@@ -1,74 +1,131 @@
 <!DOCTYPE html>
 <html>
 <script src="d3.js" charset="utf-8"></script>
-<link href='http://fonts.googleapis.com/css?family=Lato:100,400' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400' rel='stylesheet' type='text/css'>
+<!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"> -->
+<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/cosmo/bootstrap.min.css" rel="stylesheet">
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
 html {
+
 }
+
 body {
-  margin-top: 20px;
-  background-color: #111;
-  color: #f0f0f0;
-  font-family: Helvetica;
-  margin: 0;
-  margin: auto;
-  width: 1024px;
-  font-size: 20px;
+  /*margin-top: 20px;*/
+  /*background-color: white;*/
+  color: #111;
+  /*font-family: Helvetica;*/
+  /*margin: 0;*/
+  /*margin: auto;*/
+  /*font-size: 20px;*/
+  /*margin-right: 100px;*/
+  /*margin-left: 100px;*/
 
-
-  
-   /*http://booksbonesbuffy.files.wordpress.com/2014/01/chalkboard-bg.jpg */
-  /*background: url('bg1.jpg') top center;*/
+  background: url('bg2.jpg') top center;
 }
-h1 {
+
+
+h1.title {
   font-size: 90px;
-  font-weight: 100;
   letter-spacing: 2px;
+  font-weight: 200;
+
+  margin-left: -7px;
+
+  white-space: nowrap;
+  font-family: "Source Sans Pro" sans-serif;
+  /*font-family: "G" sans-serif;*/
+  color: #fff ;
+  text-shadow: 1px 0px 10px rgba(0,0,0,.06);
+
+  /*text-transform: lowercase;*/
 }
+
 .header {
+
   text-transform: uppercase;
   font-family: "Lato" sans-serif;
-  text-align: center;
+  background-color: rgba(0,0,0,.15);
+  padding-bottom: 60px;
+  padding-top: 20px;
 }
+
 .header .title {
   font-size: 90px;
+  color: #fff;
+  /*text-shadow: 1px 1px 2px #fff;*/
 }
+
 .header .sub-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 28px;
+  color: rgba(0,0,0,.3);
+  font-weight: 300;
 }
+
 .header span {
   font-weight: 100;
   letter-spacing: 2px;
   color: #999;
   font-size: 32px;
 }
+
 section#hero {
   margin-top: 60px;
-
-  font-family: "Roboto" sans-serif;
-  font-weight: 100;
-  color: #aaa;
-  letter-spacing: 2px;
-  line-height: 1.7;
-
-  text-align: justify;
 }
+
+#hero p {
+  font-family: "Source Sans Pro" sans-serif;
+  font-weight: 100;
+  /*letter-spacing: 2px;*/
+  line-height: 1.7;
+  text-align: justify;
+  font-size: 22px;
+  margin-bottom: 40px;
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+#mailing-list input {
+  width: 400px;
+}
+
+#mailing-list input, 
+#mailing-list .btn {
+  height: 48px;
+}
+
 </style>
 <body>
 <div class="header">
-  <h1 class="title">Explained Visually</h1>
-  <span class="sub-title"> by Setosa </span>
+  <div class="container">
+    <h1 class="title">Explained Visually</h1>
+    <div class="col-md4">
+      <span class="sub-title"><!-- <i class="fa fa-circle-thin"></i> --> by Setosa </span>
+    </div>
+  </div>
 </div>
-<section id="hero">
-<p>Pleasure to use generally awful user experience not only profit, particularly best design I would say that battery drain.
+<div class="container">
+  <section id="hero" class="row">
+  <p>
+    We are trying to make the world a better place through visual explanations of our culture, ideals, synergies, and creative potential. Buzzwords galore!</p>
+  </p>
 
-CrackBerry in my opinion Android is fragmented, not enough gorgeous on the whole profit such a genius as a result profit but while battery life, this is why gorgeous.
-
-Android geek, due to iTunes makes it easy, this includes user experience sucks.
-
-So-called “iPad killer”, so as to MacBook Air is just beautiful then Siri is better than TellMe and Google Voice put together.</p>
-</section>
+  <form class="form-inline" role="form" id="mailing-list">
+    <div class="form-group">
+      <label class="sr-only" for="email">Email address</label>
+      <input type="email" class="form-control block" id="email" placeholder="Email">
+    </div>
+    <button type="submit" class="btn btn-primary">Sign Up for Updates</button>
+  </form>
+  </section>
+  <section>
+  </section>
+</div>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
 </html>
