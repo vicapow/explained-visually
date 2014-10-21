@@ -30,7 +30,7 @@ body {
 h1.title {
   font-size: 90px;
   letter-spacing: 2px;
-  font-weight: 200;
+  font-weight: 400;
 
   margin-left: -7px;
 
@@ -38,7 +38,7 @@ h1.title {
   font-family: "Source Sans Pro" sans-serif;
   /*font-family: "G" sans-serif;*/
   color: #fff ;
-  text-shadow: 1px 0px 10px rgba(0,0,0,.06);
+  text-shadow: 1px 0px 2px rgba(0,0,0,.1);
 
   /*text-transform: lowercase;*/
 }
@@ -47,33 +47,40 @@ h1.title {
 
   text-transform: uppercase;
   font-family: "Lato" sans-serif;
-  background-color: rgba(0,0,0,.15);
-  padding-bottom: 60px;
-  padding-top: 20px;
+  /*background-color: rgba(0,0,0,.);*/
+  padding-bottom: 30px;
+  padding-top: 100px;
+
+  background: #fff url('header-back.jpg') bottom right;
 }
 
 .header .title {
-  font-size: 90px;
+  font-size: 60px;
   color: #fff;
+  display: inline-block;
   /*text-shadow: 1px 1px 2px #fff;*/
 }
 
 .header .sub-title {
   margin: 0;
   font-size: 28px;
-  color: rgba(0,0,0,.3);
+  /*color: rgba(0,0,0,.3);*/
+
   font-weight: 300;
+  display: inline-block;
 }
 
 .header span {
   font-weight: 100;
   letter-spacing: 2px;
-  color: #999;
+  color: #ccc;
+  padding-left: 20px;
   font-size: 32px;
 }
 
 section#hero {
-  margin-top: 60px;
+  margin-top: 100px;
+  margin-bottom: 120px;
 }
 
 #hero p {
@@ -99,14 +106,44 @@ section {
   height: 48px;
 }
 
+.full-width {
+  min-height: 600px;
+  margin: 0;
+}
+
+h1 {
+  color: #fff;
+  margin-top: 50px;
+}
+
+.section-color-1 {
+  background-color: #212b37;
+}
+
+.section-color-2 {
+  background-color: #ffc700;
+}
+
+.section-color-3 {
+  background-color: #ff5722;
+}
+
+.section-color-4 {
+  background-color: #673ab7;
+}
+
+.fucking-fraktals {
+  background: #212b37 url('brak.png') 140% -40% no-repeat;
+}
+
 </style>
 <body>
 <div class="header">
   <div class="container">
     <h1 class="title">Explained Visually</h1>
-    <div class="col-md4">
+    <!-- <div class="col-md4"> -->
       <span class="sub-title"><!-- <i class="fa fa-circle-thin"></i> --> by Setosa </span>
-    </div>
+    <!-- </div> -->
   </div>
 </div>
 <div class="container">
@@ -123,9 +160,29 @@ section {
     <button type="submit" class="btn btn-primary">Sign Up for Updates</button>
   </form>
   </section>
-  <section>
-  </section>
 </div>
+<section class="full-width section-color-1 fucking-fraktals">
+  <div class="container">
+    <h1>Fractals! (are fucking magic)</h1>
+    <!-- <img src="brak.png"> -->
+  </div>
+</section>
+<section class="full-width section-color-3">
+  <div class="container">
+    <h1>Markov Chains</h1>
+  </div>
+</section>
+<section class="full-width section-color-2">
+  <div class="container">
+    <h1>More Markov Chains</h1>
+  </div>
+</section>
+<section class="full-width section-color-4">
+  <div class="container">
+    <h1>Moar Fractals!</h1>
+  </div>
+</section>
+<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
 </html>
