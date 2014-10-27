@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="d3.js" charset="utf-8"></script>
+    <script src="angular.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+  </head>
+  <body ng-app="myApp" ng-controller="MainCtrl">
+    <h1 class="title">Exponentiation</h1>
+    <p>
+      Most people have a difficult time conceptualizing exponentiation. Are
+      default mode of thinking is linear but so many things in the real word
+      are exponential. <a href="http://gladwell.com"> Malcolm Gladwell</a> does
+      a great job of illustrating this point in his book <a href="http://www.amazon.com/The-Tipping-Point-Little-Difference/dp/0316346624">The Tipping Point</a>
+    </p>
+    <p class="quote">
+I give you a large piece of paper, 1/100th of a inch thick. (That's a typical
+thickness). I want you to fold it over once, and then take that folded paper and
+fold it over again, and then again, and again, until you have refolded the
+original paper 50 times. How tall do you think the final stack is going to be?
+If you ask people that question they'll fold the sheets in their mind's eye, and
+usually answer that the pile would be as thick as a phone book or, if they're
+really courageous, they'll say that it would be as tall as a refrigerator. But
+the real answer is that the height of the stack would approximate the distance
+to the sun. And if you folded it over one more time, the stack would be as high
+as the distance to the sun and back.
+    </p>
+    <div ng-controller="SimpleGrowthCtrl">
+      <p>
+        Here's a simple visualization to help conceptualize this type of growth.
+        In this case, we're <b>{{opts.rateLabel}}</b> with every step.
+        Adjust the rate slider to see {{opts.otherRateLabels.join('
+        and ')}}.
+      </p>
+      <simple-growth></simple-growth>
+      <button ng-click="$emit('restart')">restart</button>
+      <input type="range" ng-model="opts.steps" min="1" max="8"></input>
+      <span>steps: {{opts.steps}}</span>
+      <input type="range" ng-model="opts.rate" min="2" max="4"></input>
+      <span>rate: {{opts.rate}}</span>
+      <input type="range" ng-model="opts.speed" min="1" step="1" max="10"></input>
+      <span>speed: {{opts.speed}}</span>
+    </div>
+    <h3> Linear growth</h3>
+    <p>
+      This is the type of growth most of us already have a good intuition of but taking a closer look will help differentiate it from exponential growth.
+    </p>
+    <div ng-controller="GrowthDemoCtrl">
+      <button ng-click="$emit('reset')">restart</button>
+      <select
+        ng-model="opts.rate"
+        ng-options="num as num for num in [1,2,3,4,5]">
+      </select>
+      <input type="range" ng-model="opts.speed" min="1" step="1" max="10"></input>
+      <span>speed: {{opts.speed}}</span>
+      <input type="range" ng-model="opts.steps" min="5" max="50" />
+      <growth-demo growth-type="linear"></growth-demo>
+    </div>
+    <br />
+    <p>
+      // exponential growth demo
+    </p>
+    <h3> Exponential growth</h3>
+    <p>
+      Exponentiation is repeated multiplication; in the same way that
+      multiplication is repeated addition as we showed in the previous example. 
+      Where before we were successively adding a constant value, with
+      exponential growth, we're applying a constant multiple of our current
+      value. Another way to think of this is that instead of adding a constant
+      value each step, what we add each step is increasing.
+    </p>
+    <div ng-controller="GrowthDemoCtrl">
+      <button ng-click="$emit('reset')">restart</button>
+      <select
+        ng-model="opts.rate"
+        ng-options="num as num for num in [1,2,3,4,5]">
+      </select>
+      <input type="range" ng-model="opts.speed" min="1" step="1" max="10"></input>
+      <span>speed: {{opts.speed}}</span>
+      <input type="range" ng-model="opts.steps" min="5" max="50" />
+      <growth-demo growth-type="exponential"></growth-demo>
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+  </body>
+<script>
+'use strict'
+
+var myApp = angular.module('myApp', [])
+
+myApp.controller('MainCtrl', function($scope) {})
+
+myApp.controller('SimpleGrowthCtrl', function($scope) {
+  $scope.opts = { steps: 4, rate: 2, speed: 5 }
+})
+
+myApp.controller('GrowthDemoCtrl', function($scope) {
+  $scope.opts = { rate: 1, speed: 2, steps: 20 }
+})
+
+myApp.directive('playButton', function() {
+  function link(scope, el, attr) {
+    var svg = d3.select(el[0]).select('svg')
+      .style('cursor', 'pointer')
+      .style('background-color', 'rgba(255, 255, 255, 0.5)')
+    var g = svg.append('g')
+    var s = 20
+    var circle = g.append('circle')
+      .attr('r', 40)
+      .attr('fill', 'rgba(255, 255, 255, 0.4)')
+    var icon = g.append('path')
+      .attr('transform', 'translate(' + [ s/4, 0 ] + ')')
+      .attr('d', 'M-' + s + ',-' + s + 'L' + s + ',0L-' + s + ',' + s + 'Z')
+      .attr('fill', 'rgba(0, 0, 0, 0.2)')
+    scope.$watch('width * height', function() {
+      var w = scope.width, h = scope.height
+      svg.attr({width: w, height: h})
+      g.attr('transform', 'translate(' + [w / 2, h / 2] + ')')
+      scope.myStyle = {
+          position: 'absolute'
+        , top: '0'
+        , left: '0'
+        , display: 'block'
+        , width: w + 'px'
+        , height: h + 'px'
+      }
+    })
+    scope.$watch('isPlaying', function(playing) {
+      svg.transition().style('opacity', playing ? 0 : 1)
+        .style('pointer-events', playing ? 'none' : 'all')
+    })
+    svg.on('click', function() {
+      scope.$apply(function() { scope.$emit('play') })
+    })
+  }
+  return {
+      link: link
+    , restrict: 'E'
+    , template: '<div ng-style="myStyle">'
+      + '<svg></svg>'
+    + '</div>'
+  }
+})
+
+myApp.directive('simpleGrowth', function() {
+  function link(scope, el, attr) {
+    var root = d3.select(el[0])
+    var svg = root.append('svg')
+    var w = root.node().clientWidth
+    var h = root.node().clientHeight
+    svg.attr({ width: w, height: h })
+    scope.width = w
+    scope.height = h
+    var opts = scope.opts
+    var data0 = function() { return { x: 0, y: 0, i: 0 } }
+    var data = [ data0() ]
+    var curStep = 0
+    var g = svg.append('g')
+    // color bewer, ftw!
+    var colors = [ "#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c"
+      , "#fc4e2a", "#e31a1c", "#bd0026", "#800026" ].reverse()
+    function color(d) { return colors[d] }
+    var durScale = d3.scale.linear().domain([1, 10]).range([5000, 100]);
+    function update() {
+      var duration = durScale(opts.speed);
+      var bw = w * Math.pow(1 / opts.rate, opts.steps)
+      var bh = h / 4
+      var len = data.length
+      data = d3.range(data.length * opts.rate || 1).map(function(d) {
+        return { x: bw * (len !== 0 ? d % len : 0), y: 0, i: d }
+      })
+
+      var block = g.selectAll('.block').data(data).enter()
+        .append('g')
+        .classed('block', true)
+        .style('fill', color(curStep))
+
+      block.append('rect')
+        .attr({ width: bw, height: bh })
+
+      var fsize = Math.min(64, bw / 2)
+      block.append('text')
+        .attr('x', bw / 2)
+        .attr('y', bh + fsize)
+        .style('text-anchor', 'middle')
+        .style('font-size', fsize)
+        .style('fill', '#555')
+        .text(function(d) { return d.i + 1 })
+
+      block
+        .attr('transform', function(d) {
+          return 'translate(' + [d.x, d.y] + ')'
+        })
+        .filter(function(d, i) { return d.i > 0 })
+        .style('opacity', 0)
+        .transition().duration(duration / 4)
+        .style('opacity', 1)
+        .attr('transform', function(d) {
+          d.y = bh * Math.floor(d.i / len)
+          return 'translate(' + [d.x, d.y] + ')'
+        })
+        .transition().duration(duration / 4)
+        .attr('transform', function(d) {
+          d.x = bw * d.i
+          return 'translate(' + [d.x, d.y] + ')'
+        })
+        .transition().duration(duration / 4)
+        .attr('transform', function(d) {
+          d.y = 0
+          return 'translate(' + [d.x, d.y] + ')'
+        }).call(function(blocks) {
+          var s = blocks.size()
+          blocks.each('end', function(d) {
+            if (!--s && curStep < opts.steps) update()
+          })
+        })
+      curStep++
+    }
+    var intr
+    function restart() {
+      var blocks = g.selectAll('.block')
+      blocks.transition()
+      blocks.remove()
+      data = [ data0() ]
+      curStep = 0
+      update()
+    }
+    scope.$on('restart', restart);
+    scope.$watch('opts', function() {
+      var r = +opts.rate
+      if (r === 4 && opts.steps > 4) return opts.steps = 4
+      else if (r === 3 && opts.steps > 5) return opts.steps = 5
+      var labels = ['doubling', 'tripling', 'quadrupling']
+      opts.rateLabel = labels[opts.rate - 2]
+      opts.otherRateLabels = labels.slice(0)
+      opts.otherRateLabels.splice(labels.indexOf(opts.rateLabel), 1)
+      restart()
+    }, true)
+    restart()
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('cellGrowth', function($timeout) {
+  function link(scope, el, attr) {
+    var root = d3.select(el[0])
+    var svg = root.select('svg')
+    var w, h, nodes
+    w = root.node().clientWidth
+    h = root.node().clientHeight
+    svg.attr({width: w, height: h})
+    scope.width = w
+    scope.height = h
+
+    var data = [ { x: w / 2, y: h / 2 } ]
+
+    function update() {
+      nodes = svg.selectAll('circle').data(data)
+      nodes.enter().append('circle')
+        .attr('r', 5)
+        .attr('fill', 'rgba(255, 155, 100, 1)')
+        .attr('stroke', 'rgba(100, 100, 100, 1)')
+        .attr('stroke-width', 2)
+    }
+
+    update()
+
+    var force = d3.layout.force()
+      .nodes(data)
+      .charge(-40)
+      .gravity(0)
+      .friction(0.9)
+      .size([w, h])
+      .start()
+
+    var start = Date.now()
+    var color = d3.interpolateHsl(
+        d3.hsl(50, 0.5, 0.5).toString()
+      , d3.hsl(0, 0.5, 0.5).toString())
+    var duration = 1000
+    var boundCharge = -10
+    var padding = 50
+    force.on('tick', function() {
+      var now = +Date.now()
+      data.forEach(function(d, i) {
+        if (d.x < 0 + padding) {
+          d.px += boundCharge * ( padding - d.x ) / padding
+        } else if (d.x > w - padding) {
+          d.px += -boundCharge * - Math.log( (d.x - (w - padding) ) / padding,
+          2) / 1
+        }
+        if (d.y < 0 + padding) {
+          d.py += boundCharge * ( padding - d.y ) / padding
+        } else if (d.y > h - padding) {
+          d.py += -boundCharge * - Math.log( (d.y - (h - padding) ) / padding, 2)
+        }
+      })
+      nodes
+        .attr('cx', function(d) { return d.x })
+        .attr('cy', function(d) { return d.y })
+        .style('fill', function(d) {
+          var t = Math.min((now - d.t) / duration, 1)
+          return color(t)
+        })
+    })
+
+    var interval = setInterval(function() {
+      if (data.length > 64) {
+        clearInterval(interval)
+        return
+      }
+      data = data.concat(data.map(function(d) {
+        return { x: d.x + Math.random(), y: d.y + Math.random(), t: Date.now() }
+      }))
+      window.data = data
+      update()
+      force
+        .nodes(data)
+        .start()
+    }, duration)
+  }
+  return {
+      link: link
+    , restrict: 'E'
+    , transclude: true
+    , template: '<div style="position: relative">'
+      + '<svg></svg>'
+      + '<div style="position: absolute; top: 0; left: 0;" ng-transclude></div>'
+    + '</div>'
+  }
+})
+
+myApp.directive('growthDemo', function() {
+  function link(scope, el, attr) {
+    var root = d3.select(el[0])
+    var svg = root.select('svg')
+    var m = { b: 100 }
+    var w = root.node().clientWidth, h = root.node().clientHeight - m.b
+    var bw = 10, bh = 10
+    var ghostG = svg.append('g')
+    var horG = svg.append('g')
+    var blocks = []
+    var labels = 0
+    var duration = 5000
+    var stepDuration
+    var stepCount = 0
+    var isLooping = false
+    var dropTimer
+    var growthType = attr.growthType = 'linear'
+    var horX = 0
+    var opts = scope.opts
+    var duration
+    var dur
+
+    svg.attr({width: w, height: h + m.b})
+
+    scope.$on('reset', reset)
+    scope.$watch('opts', reset, true)
+
+    var durScale = d3.scale.linear().domain([1, 10]).range([10000, 5000]);
+
+    function reset() {
+      var stepW = (w - bw - 1) / opts.steps
+      horG.transition()
+      d3.timer.flush()
+      horG.attr('transform', 'translate(0,0)')
+      var sel = horG
+      duration = durScale(+opts.speed)
+      dur = duration / opts.steps
+      d3.range(+opts.steps).forEach(function(d) {
+        sel = sel.transition()
+          .duration( duration / opts.steps)
+          .ease('linear')
+          .attr('transform', 'translate(' + [ stepW * (d + 1), 0 ] + ')')
+          .each('end', function() {
+            if (d < +opts.steps - 1) update(d)
+            else sel.transition()
+              .ease('linear')
+              .attr('transform', 'translate(' + [ w, 0 ] + ')')
+          })
+      })
+      blocks = []
+      horG.selectAll('rect').remove()
+      labels = 0
+      ghostG.selectAll('*').remove()
+      first = true
+      update(0)
+    }
+
+    var first = false
+    function update(i) {
+      blocks = blocks.concat(d3.range(+opts.rate).map(function(){ return {} }))
+      var dropDuration = 0.7
+      var bh = h / (opts.steps * opts.rate)
+      var block = horG.selectAll('rect').data(blocks)
+      block.enter().append('rect')
+        .attr('class', 'block')
+        .attr({width: bw, height: bh})
+        .attr('y', function(d, i) { return -bh * (i + 1) })
+        .transition()
+        .ease('linear')
+        .delay(dur -  dur * dropDuration)
+        .duration(dur * dropDuration)
+        .attr('y', function(d, i) {
+          return h - bh * (i + 1) - 1
+        })
+      var stepW = (w - bw - 1) / +opts.steps
+      var x = stepW * (labels) + bw / 2 - 2
+      var h0 = h - bh * (blocks.length - opts.rate)
+      var h1 = h - bh * (blocks.length - opts.rate * 2)
+      if (!first)  ghostG.append('line')
+        .attr({ x1: x, y1: h1, x2: x, y2: h  })
+        .style({'stroke-width': 2, stroke: 'rgba(0, 0, 0, 0.2)'})
+        .style('opacity', 0)
+        .transition()
+        .style('opacity', 1)
+      if (!first) ghostG.append('line')
+        .attr({ x1: x, y1: h1, x2: x, y2: h0 })
+        .style({'stroke-width': 2, stroke: 'rgba(0, 0, 255, 0.8)'})
+        .style('opacity', 0)
+        .transition()
+        .style('opacity', 1)
+
+      ghostG.append('text')
+        .attr({ x: stepW * (labels + 1) + bw + 5,  y: h0 - (h1 - h0) / 2 + 3 })
+        .style('text-anchor', 'middle')
+        .style('font-size', 12)
+        .text('+' + opts.rate)
+        .style('fill', '#555')
+        .style('opacity', 0)
+        .transition()
+        .delay(dur)
+        .style('opacity', 1)
+      first = false
+      labels++
+    }
+    reset()
+  }
+  return {
+    link: link,
+    restrict: 'E',
+    transclude: true,
+    template: '<div style="position: relative">'
+      + '<svg></svg>'
+      + '<div ng-transclude></div>'
+    + '</div>'
+  }
+})
+</script>
+</html>
