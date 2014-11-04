@@ -549,11 +549,11 @@ myApp.directive('virusDemo', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])
     var w = el.node().clientWidth, h = el.node().clientHeight
-    var r = 14
+    var r = 18
     var duration = 200
     var opts = scope.opts
     var m = { l: r, t: r, r: r, b: r}
-    var maxGenerationGuess = 25
+    var maxGenerationGuess = 10
     var canvas = el.append('canvas')
       .style({position: 'absolute', top: 0, left: 0})
       .attr({width: w, height: h})
@@ -799,6 +799,7 @@ myApp.directive('virusDemo', function() {
         frontier = newFrontier
         if(!numInfected || numInfected < prevNumInfected) {
           if (numInfected) updateHistory()
+          step = function() { }
           return clearInterval(intr)
         }
         prevNumInfected = numInfected
