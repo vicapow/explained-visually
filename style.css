@@ -13,7 +13,7 @@ body {
 }
 
 .setosa-logo {
-  background-image: url('/img/setosa.png');
+  background-image: url('./img/setosa.png');
   width: 70px;
   height: 17px;
   display: inline-block;
