@@ -1,0 +1,188 @@
+/* Global styles all explainations require. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 960px;
+  margin: auto;
+  font-family: "PT Serif", serif;
+  color: rgba(0, 0, 0, 0.5);
+  background-color: #fff;
+}
+
+.setosa-logo {
+  background-image: url('/img/setosa.png');
+  width: 70px;
+  height: 17px;
+  display: inline-block;
+  background-size: 100%;
+  vertical-align: middle;
+}
+
+section {
+  padding: 1em;
+}
+
+section.menu a {
+  font-family: Lato;
+}
+
+section.title {
+  margin-top: 1em;
+  padding-bottom: 0;
+}
+section.title .title {
+  font-size: 6em;
+  margin-top: 0;
+  margin-bottom: 0;
+  color: rgba(0, 0, 0, 0.8);
+  font-weight: 300;
+}
+section.title .by-line {
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 2em;
+  font-size: 1.5em;
+  font-weight: normal;
+}
+h1, h2, h3, h4, h5 {
+  font-family: Lato;
+}
+h3 {
+  font-size: 2em;
+  margin: 0;
+}
+h4 {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+a, .link {
+  color: #d74d87;
+}
+.summary {
+  width: 100%;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-position: right center;
+  position: relative;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.summary h3 {
+  margin: 0;
+  font-size: 1.7em;
+}
+.summary p {
+  margin-top: .5em;
+}
+.summary .thumb,
+.summary .thumb-preview {
+  position: absolute;
+  z-index: 0;
+  right: 0;
+}
+.summary .thumb {
+  opacity: 0;
+  transition: 0.25s all;
+}
+.summary .thumb-preview {
+  opacity: 0.5;
+  transition: 0.25s all;
+}
+
+.summary:hover .thumb {
+  opacity: 1;
+}
+.summary:hover .thumb-preview {
+  opacity: 0;
+}
+.plain-link {
+  color: inherit;
+  text-decoration: none;
+}
+.link {
+  text-decoration: underline;
+  position: relative;
+  z-index: 1;
+}
+
+
+.axis {
+  shape-rendering: crispEdges;
+}
+.axis text {
+  fill: rgba(0, 0, 0, 0.6);
+}
+.axis path, .axis line {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.1);
+}
+
+.fb-iframe {
+  width: 85px;
+  height: 20px;
+}
+
+.btn {
+  background-color: #1abc9c;
+  border-radius: 6px;
+  color: #fff;
+  border: none;
+  padding: 10px 19px;
+  cursor: pointer;
+  font-size: 17px;
+  -webkit-user-select: none;
+  vertical-align: middle;
+  transition: .25s background-color;
+  line-height: 1.471;
+  outline: 0;
+  font-family: Lato, Helvetica, Arial, sans-serif;
+}
+.btn-primary {
+  background-color: #1abc9c;
+}
+.btn-primary:hover {
+  background-color: #48c9b0;
+}
+.btn-primary:active {
+  background-color: #16a085;
+}
+
+.form-control {
+  height: 42px;
+  padding: 8px 12px;
+  font-size: 15px;
+  line-height: 1.467;
+  color: #34495e;
+  border: 2px solid #bdc3c7;
+  border-radius: 6px;
+  box-shadow: none;
+  background-color: white;
+  display: block;
+  outline: 0;
+}
+
+/* Mail Chimp sign-up form */
+#mc_embed_signup .mc-field-group {
+  float: left;
+  line-height: 46px;
+}
+#mc_embed_signup #mce-EMAIL {
+  display: inline-block;
+}
+#mc_embed_signup #mc-embedded-subscribe {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+section.share {
+  float: right;
+}
+
+section.share iframe {
+  display: block;
+  margin: 4px;
+}

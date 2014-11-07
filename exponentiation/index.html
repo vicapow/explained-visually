@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="d3.js" charset="utf-8"></script>
-    <script src="angular.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="style.css" type="text/css">
+    <script src="/d3.js" charset="utf-8"></script>
+    <script src="/angular.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <link rel="stylesheet" href="/exponentiation/style.css" type="text/css">
   </head>
   <body ng-app="myApp" ng-controller="MainCtrl">
-    <section style="opacity: {{visible(400)}}">
-      <h1 class="title">Exponentiation</h1>
-      <h4> By <a href="http://twitter.com/vicapow">Victor Powell</a> </h3>
+    <section class="menu">
+      <a href="/">Home</a>
+    </section>
+    <section class="share">
+      <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    </section>
+    <section class="title" style="opacity: {{visible(400)}}">
+      <div class="title-region">
+        <h1 class="title">Exponentiation</h1>
+        <h3 class="title-sub"> Explained visually </h3>
+      </div>
+      <p> By <a href="http://twitter.com/vicapow">Victor Powell</a> </p>
       <p>
         Most people have a difficult time conceptualizing exponentiation. Are
         default mode of thinking is linear but so many things in the real word
@@ -34,7 +46,7 @@
           Adjust the rate slider to see {{opts.otherRateLabels.join('
           and ')}}.
         </p>
-        <button ng-click="$emit('restart')">restart</button>
+        <button class="btn btn-primary" ng-click="$emit('restart')">Restart</button>
         <label>rate: </label>
         <select
           ng-model="opts.rate"
@@ -55,16 +67,16 @@
         This is the type of growth most of us already have a good intuition of but taking a closer look will help differentiate it from exponential growth.
       </p>
       <div ng-controller="LinearGrowthDemoCtrl">
-        <button ng-click="$emit('reset')">restart</button>
+        <button class="btn btn-primary" ng-click="$emit('reset')">restart</button>
         <label>rate: </label>
         <select
           ng-model="opts.rate"
           ng-options="num as '+' + num for num in [1,2,3,4,5]">
         </select>
-        <input type="range" ng-model="opts.speed" min="1" step="1" max="20"></input>
-        <span>speed: {{opts.speed}}</span>
         <input type="range" ng-model="opts.steps" min="5" max="20" />
         <span>steps: {{opts.steps}}</span>
+        <input type="range" ng-model="opts.speed" min="1" step="1" max="20"></input>
+        <span>speed: {{opts.speed}}</span>
         <growth-demo growth-type="linear"></growth-demo>
       </div>
     </section>
@@ -79,16 +91,16 @@
         value each step, what we add each step is increasing.
       </p>
       <div ng-controller="ExponentialGrowthDemoCtrl">
-        <button ng-click="$emit('reset')">restart</button>
+        <button class="btn btn-primary" ng-click="$emit('reset')">restart</button>
         <label>rate: </label>
         <select
           ng-model="opts.rate"
           ng-options="num as 'x' + num for num in [2,3,4]">
         </select>
-        <input type="range" ng-model="opts.speed" min="1" step="1" max="20"></input>
-        <span>speed: {{opts.speed}}</span>
         <input type="range" ng-model="opts.steps" min="5" max="20" />
         <span>steps: {{opts.steps}}</span>
+        <input type="range" ng-model="opts.speed" min="1" step="1" max="20"></input>
+        <span>speed: {{opts.speed}}</span>
         <growth-demo growth-type="exponential"></growth-demo>
       </div>
     </section>
@@ -98,16 +110,20 @@
         A great real world example of something that grows exponentially is a virus.
       </p>
       <div ng-controller="ViralDemoCtrl">
-      <button ng-click="$emit('restart')">restart</button>
-      <input type="range" ng-model="opts.speed" min="1" step="1" max="10" />
-      <span>speed: {{opts.speed}}</span>
+      <button class="btn btn-primary" ng-click="$emit('restart')">restart</button>
       <input type="range" ng-model="opts.size" min="1" step="1" max="20" />
       <span>size: {{opts.size}}</span>
+      <input type="range" ng-model="opts.speed" min="1" step="1" max="10" />
+      <span>speed: {{opts.speed}}</span>
       <virus-demo></virus-demo>
     </section>
     <br />
     <br />
     <br />
+    <p>
+      For more explanations, visit the Explained Visually <a href="/">project
+      page. </a>
+    </p>
     <br />
   </body>
 <script>
@@ -124,7 +140,8 @@ var colorScale = d3.scale.linear()
   .range(colors);
 
 var myApp = angular.module('myApp', [])
-myApp.controller('MainCtrl', function($scope, $window) {
+myApp.controller('MainCtrl', function($scope, $window, $sce) {
+  utils.setFBIframeLink($scope, $sce, $window)
   angular.element($window).bind('scroll', function() {
     $scope.$apply(function() { $scope.yOffset = window.pageYOffset })
   })
@@ -142,7 +159,7 @@ myApp.controller('MainCtrl', function($scope, $window) {
     return val;
   }
   $scope.visible = function(ym1) {
-    // return 1
+    return 1
     var yOffset = window.pageYOffset
     var ym2 = yOffset + window.innerHeight / 2
     var buf = 200
@@ -159,11 +176,11 @@ myApp.controller('SimpleGrowthCtrl', function($scope) {
 })
 
 myApp.controller('LinearGrowthDemoCtrl', function($scope) {
-  $scope.opts = { rate: 1, speed: 2, steps: 5 }
+  $scope.opts = { rate: 1, speed: 5, steps: 5 }
 })
 
 myApp.controller('ExponentialGrowthDemoCtrl', function($scope) {
-  $scope.opts = { rate: 2, speed: 2, steps: 5 }
+  $scope.opts = { rate: 2, speed: 5, steps: 5 }
 })
 
 
@@ -244,8 +261,7 @@ myApp.directive('simpleGrowth', function() {
         .classed('block', true)
         .style('fill', color(curStep))
 
-      block.append('rect')
-        .attr({ width: bw, height: bh })
+      block.append('rect').attr({ width: bw, height: bh })
 
       var fsize = Math.min(64, bw / 2)
       block.append('text')
@@ -466,7 +482,7 @@ myApp.directive('growthDemo', function() {
       trails.append('line')
         .attr('y1', function(d) { return -d.y })
         .attr('y2', function(d) { return -d.y + d.dy })
-        .style({'stroke-width': 2, stroke: 'rgba(0, 0, 255, 0.6)'})
+        .style({'stroke-width': 2, stroke: '#3498db'})
       trails.append('text')
         .attr('x', 5)
         .attr('y', function(d) { return -d.y + d.dy / 2 + 3 })
@@ -523,11 +539,13 @@ myApp.directive('growthDemo', function() {
         .enter().append('rect')
         .attr('class', 'block')
         .attr({width: bw, height: bh})
+        .attr('x', stepW / 2)
         .attr('y', function(d, i) { return - h - bh * (i + 5) })
         .transition()
         .ease('linear')
         .delay(stepDur * (1 - dropDuration))
         .duration(stepDur * dropDuration)
+        .attr('x', 0)
         .attr('y', function(d, i) { return - bh * (i + 1) - 1 })
       first = false
       labels++
@@ -686,7 +704,7 @@ myApp.directive('virusDemo', function() {
         .append('text')
         .attr({x: xa, y: y(0) + 15 })
         .style('text-anchor', 'middle')
-        .style('font-size', 8 + 'px')
+        .style('font-size', 12 + 'px')
         .text(function(d) { return d.i; })
     }
   

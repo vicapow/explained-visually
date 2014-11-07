@@ -1,188 +1,75 @@
 <!DOCTYPE html>
 <html>
-<script src="d3.js" charset="utf-8"></script>
+<script src="/d3.js" charset="utf-8"></script>
+<script src="/angular.js" charset="utf-8"></script>
+<script src="/js/common.js" charset="utf-8"></script>
 <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400' rel='stylesheet' type='text/css'>
-<!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"> -->
-<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/cosmo/bootstrap.min.css" rel="stylesheet">
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-<style>
-html {
-
-}
-
-body {
-  /*margin-top: 20px;*/
-  /*background-color: white;*/
-  color: #111;
-  /*font-family: Helvetica;*/
-  /*margin: 0;*/
-  /*margin: auto;*/
-  /*font-size: 20px;*/
-  /*margin-right: 100px;*/
-  /*margin-left: 100px;*/
-
-  background: url('bg2.jpg') top center;
-}
-
-
-h1.title {
-  font-size: 90px;
-  letter-spacing: 2px;
-  font-weight: 400;
-
-  margin-left: -7px;
-
-  white-space: nowrap;
-  font-family: "Source Sans Pro" sans-serif;
-  /*font-family: "G" sans-serif;*/
-  color: #fff ;
-  text-shadow: 1px 0px 2px rgba(0,0,0,.1);
-
-  /*text-transform: lowercase;*/
-}
-
-.header {
-
-  text-transform: uppercase;
-  font-family: "Lato" sans-serif;
-  /*background-color: rgba(0,0,0,.);*/
-  padding-bottom: 30px;
-  padding-top: 100px;
-
-  background: #fff url('header-back.jpg') bottom right;
-}
-
-.header .title {
-  font-size: 60px;
-  color: #fff;
-  display: inline-block;
-  /*text-shadow: 1px 1px 2px #fff;*/
-}
-
-.header .sub-title {
-  margin: 0;
-  font-size: 28px;
-  /*color: rgba(0,0,0,.3);*/
-
-  font-weight: 300;
-  display: inline-block;
-}
-
-.header span {
-  font-weight: 100;
-  letter-spacing: 2px;
-  color: #ccc;
-  padding-left: 20px;
-  font-size: 32px;
-}
-
-section#hero {
-  margin-top: 100px;
-  margin-bottom: 120px;
-}
-
-#hero p {
-  font-family: "Source Sans Pro" sans-serif;
-  font-weight: 100;
-  /*letter-spacing: 2px;*/
-  line-height: 1.7;
-  text-align: justify;
-  font-size: 22px;
-  margin-bottom: 40px;
-}
-
-section {
-  margin-bottom: 40px;
-}
-
-#mailing-list input {
-  width: 400px;
-}
-
-#mailing-list input, 
-#mailing-list .btn {
-  height: 48px;
-}
-
-.full-width {
-  min-height: 600px;
-  margin: 0;
-}
-
-h1 {
-  color: #fff;
-  margin-top: 50px;
-}
-
-.section-color-1 {
-  background-color: #212b37;
-}
-
-.section-color-2 {
-  background-color: #ffc700;
-}
-
-.section-color-3 {
-  background-color: #ff5722;
-}
-
-.section-color-4 {
-  background-color: #673ab7;
-}
-
-.fucking-fraktals {
-  background: #212b37 url('brak.png') 140% -40% no-repeat;
-}
-
-</style>
-<body>
-<div class="header">
-  <div class="container">
-    <h1 class="title">Explained Visually</h1>
-    <!-- <div class="col-md4"> -->
-      <span class="sub-title"><!-- <i class="fa fa-circle-thin"></i> --> by Setosa </span>
-    <!-- </div> -->
-  </div>
-</div>
-<div class="container">
-  <section id="hero" class="row">
-  <p>
-    We are trying to make the world a better place through visual explanations of our culture, ideals, synergies, and creative potential. Buzzwords galore!</p>
-  </p>
-
-  <form class="form-inline" role="form" id="mailing-list">
-    <div class="form-group">
-      <label class="sr-only" for="email">Email address</label>
-      <input type="email" class="form-control block" id="email" placeholder="Email">
-    </div>
-    <button type="submit" class="btn btn-primary">Sign Up for Updates</button>
-  </form>
+<link rel="stylesheet" href="style.css" type="text/css">
+<body ng-app="myApp" ng-controller="MainCtrl">
+  <section class="share" style="float:right;clear:both">
+    <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
   </section>
-</div>
-<section class="full-width section-color-1 fucking-fraktals">
-  <div class="container">
-    <h1>Fractals! (are fucking magic)</h1>
-    <!-- <img src="brak.png"> -->
-  </div>
-</section>
-<section class="full-width section-color-3">
-  <div class="container">
-    <h1>Markov Chains</h1>
-  </div>
-</section>
-<section class="full-width section-color-2">
-  <div class="container">
-    <h1>More Markov Chains</h1>
-  </div>
-</section>
-<section class="full-width section-color-4">
-  <div class="container">
-    <h1>Moar Fractals!</h1>
-  </div>
-</section>
-<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <section class="title">
+    <h1 class="title"> Explained Visually </h1>
+    <h3 class="by-line">a <a href="http://setosa.io"><div
+    class="setosa-logo"></div></a> project
+    </h3>
+    <h2> About </h2>
+    <p>
+      Explained Visually (EV) is a project with the goal to experiment with 
+      new ways of communicating ideas and provide an introduction 
+      to concepts to motivate future learning. We'll be posting a new visual
+      explanation roughly every week for the next few months so stay tuned by
+      signing up for our mailing list.
+    </p>
+  </section>
+  <section>
+    <p>
+      <!-- Begin MailChimp Signup Form -->
+      <div id="mc_embed_signup">
+        <form action="//setosa.us9.list-manage.com/subscribe/post?u=060f38736e386cb5f4a41ac34&amp;id=ca34aa93b7"
+          method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" 
+          class="validate" target="_blank" novalidate>
+          <div id="mc_embed_signup_scroll">
+            <h2>Subscribe to receive future explanations</h2>
+            <div class="mc-field-group">
+              <input type="email" value="" name="EMAIL" class="required email form-control" id="mce-EMAIL" value placeholder="Email address">
+            </div>
+            <div id="mce-responses" class="clear">
+              <div class="response" id="mce-error-response" style="display:none"></div>
+              <div class="response" id="mce-success-response" style="display:none"></div>
+            </div>
+            <div style="position: absolute; left: -5000px;">
+              <input type="text" name="b_060f38736e386cb5f4a41ac34_ca34aa93b7"
+                tabindex="-1" value="">
+            </div>
+            <div class="clear">
+              <input type="submit" value="Subscribe" name="subscribe"
+                id="mc-embedded-subscribe" class="button btn btn-primary">
+            </div>
+          </div>
+        </form>
+      </div>
+      <!--End mc_embed_signup-->
+    </p>
+  </section>
+  <section>
+    <a class="plain-link" href="/exponentiation/">
+      <div class="summary">
+        <img class="thumb" src="exponentiation/thumb.gif">
+        <img class="thumb-preview" src="exponentiation/thumb-preview.png">
+        <span>EV 1 - 2014/11/05 </span><h3 class="link">Thinking exponentially</h3>
+        <p>Growing, growing, gone.</p>
+      </div>
+    </a>
+  </section>
 </body>
+<script>
+var myApp = angular.module('myApp', [])
+myApp.controller('MainCtrl', function($scope, $window, $sce) {
+  utils.setFBIframeLink($scope, $sce, $window)
+})
+</script>
 </html>
