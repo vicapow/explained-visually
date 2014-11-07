@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="/d3.js" charset="utf-8"></script>
-    <script src="/angular.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="/style.css" type="text/css">
-    <link rel="stylesheet" href="/exponentiation/style.css" type="text/css">
+    <script src="../d3.js" charset="utf-8"></script>
+    <script src="../angular.js" charset="utf-8"></script>
+    <script src="../js/common.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <link rel="stylesheet" href="style.css" type="text/css">
   </head>
   <body ng-app="myApp" ng-controller="MainCtrl">
     <section class="menu">
@@ -121,7 +122,7 @@
     <br />
     <br />
     <p>
-      For more explanations, visit the Explained Visually <a href="/">project
+      For more explanations, visit the Explained Visually <a href="{{basepath}}">project
       page. </a>
     </p>
     <br />
@@ -141,7 +142,7 @@ var colorScale = d3.scale.linear()
 
 var myApp = angular.module('myApp', [])
 myApp.controller('MainCtrl', function($scope, $window, $sce) {
-  utils.setFBIframeLink($scope, $sce, $window)
+  utils.setCommonScope($scope, $sce, $window)
   angular.element($window).bind('scroll', function() {
     $scope.$apply(function() { $scope.yOffset = window.pageYOffset })
   })

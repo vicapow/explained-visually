@@ -56,7 +56,7 @@
     </p>
   </section>
   <section>
-    <a class="plain-link" href="/exponentiation/">
+    <a class="plain-link" href="exponentiation/">
       <div class="summary">
         <img class="thumb" src="exponentiation/thumb.gif">
         <img class="thumb-preview" src="exponentiation/thumb-preview.png">
@@ -69,7 +69,7 @@
 <script>
 var myApp = angular.module('myApp', [])
 myApp.controller('MainCtrl', function($scope, $window, $sce) {
-  utils.setFBIframeLink($scope, $sce, $window)
+  utils.setCommonScope($scope, $sce, $window)
 })
 </script>
 </html>
