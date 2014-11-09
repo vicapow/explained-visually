@@ -6,44 +6,30 @@
     <script src="../js/common.js" charset="utf-8"></script>
     <link rel="stylesheet" href="../style.css" type="text/css">
     <link rel="stylesheet" href="style.css" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css'>
   </head>
   <body ng-app="myApp" ng-controller="MainCtrl">
     <section class="menu">
-      <a href="/">Home</a>
-    </section>
-    <section class="share">
-      <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
-      <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
-      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      <a href="../">Home</a>
     </section>
     <section class="title" style="opacity: {{visible(400)}}">
+      <div class="share">
+        <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
+        <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
       <div class="title-region">
         <h1 class="title">Exponentiation</h1>
-        <h3 class="title-sub"> Explained visually </h3>
+        <h3 class="by-line"> Explained visually </h3>
       </div>
       <p> By <a href="http://twitter.com/vicapow">Victor Powell</a> </p>
       <p>
-        Most people have a difficult time conceptualizing exponentiation. Are
-        default mode of thinking is linear but so many things in the real word
-        are exponential. <a href="http://gladwell.com"> Malcolm Gladwell</a> does
-        a great job of illustrating this point in his book <a href="http://www.amazon.com/The-Tipping-Point-Little-Difference/dp/0316346624">The Tipping Point</a>
-      </p>
-      <p class="quote">
-  I give you a large piece of paper, 1/100th of a inch thick. (That's a typical
-  thickness). I want you to fold it over once, and then take that folded paper and
-  fold it over again, and then again, and again, until you have refolded the
-  original paper 50 times. How tall do you think the final stack is going to be?
-  If you ask people that question they'll fold the sheets in their mind's eye, and
-  usually answer that the pile would be as thick as a phone book or, if they're
-  really courageous, they'll say that it would be as tall as a refrigerator. But
-  the real answer is that the height of the stack would approximate the distance
-  to the sun. And if you folded it over one more time, the stack would be as high
-  as the distance to the sun and back.
+        We seem primed to understand linear growth, but lots of  processes in finance, ecology, physics and other fields depend on exponential growth.
       </p>
       <div ng-controller="SimpleGrowthCtrl">
         <p>
           Here's a simple visualization to help conceptualize this type of growth.
-          In this case, we're <b>{{opts.rateLabel}}</b> with every step.
+          It starts off <b>{{opts.rateLabel}}</b> with every step.
           Adjust the rate slider to see {{opts.otherRateLabels.join('
           and ')}}.
         </p>
@@ -65,7 +51,7 @@
     <section style="opacity: {{visible(1000)}}">
       <h3> Linear growth</h3>
       <p>
-        This is the type of growth most of us already have a good intuition of but taking a closer look will help differentiate it from exponential growth.
+        Most of us already have an intuition for linear growth. In the example below, each step adds a fixed amount to the total.
       </p>
       <div ng-controller="LinearGrowthDemoCtrl">
         <button class="btn btn-primary" ng-click="$emit('reset')">restart</button>
@@ -84,12 +70,7 @@
     <section style="opacity: {{visible(1500)}}">
       <h3>Exponential growth</h3>
       <p>
-        Exponentiation is repeated multiplication; in the same way that
-        multiplication is repeated addition as we showed in the previous example. 
-        Where before we were successively adding a constant value, with
-        exponential growth, we're applying a constant multiple of our current
-        value. Another way to think of this is that instead of adding a constant
-        value each step, what we add each step is increasing.
+        With exponential growth, on the other hand, each step multiplies the total by a fixed amount. So, exponentiation is  repeated multiplication in the same way that linear growth is repeated addition.
       </p>
       <div ng-controller="ExponentialGrowthDemoCtrl">
         <button class="btn btn-primary" ng-click="$emit('reset')">restart</button>
@@ -106,25 +87,24 @@
       </div>
     </section>
     <section style="opacity: {{visible(2000)}}">
-      <h3> Examples </h3>
+      <h3> Example </h3>
       <p>
-        A great real world example of something that grows exponentially is a virus.
+        The following is a naive model of the spread of a virus in a population.
+        The number of infected individuals grows exponentially up until the
+        virus runs out of people to infect.
       </p>
       <div ng-controller="ViralDemoCtrl">
       <button class="btn btn-primary" ng-click="$emit('restart')">restart</button>
-      <input type="range" ng-model="opts.size" min="1" step="1" max="20" />
-      <span>size: {{opts.size}}</span>
       <input type="range" ng-model="opts.speed" min="1" step="1" max="10" />
       <span>speed: {{opts.speed}}</span>
       <virus-demo></virus-demo>
     </section>
-    <br />
-    <br />
-    <br />
-    <p>
-      For more explanations, visit the Explained Visually <a href="{{basepath}}">project
-      page. </a>
-    </p>
+    <section>
+      <p>
+        For more explanations, visit the Explained Visually <a href="{{basepath}}">project
+        page. </a>
+      </p>
+    </section>
     <br />
   </body>
 <script>
@@ -177,16 +157,16 @@ myApp.controller('SimpleGrowthCtrl', function($scope) {
 })
 
 myApp.controller('LinearGrowthDemoCtrl', function($scope) {
-  $scope.opts = { rate: 1, speed: 5, steps: 5 }
+  $scope.opts = { rate: 1, speed: 10, steps: 10 }
 })
 
 myApp.controller('ExponentialGrowthDemoCtrl', function($scope) {
-  $scope.opts = { rate: 2, speed: 5, steps: 5 }
+  $scope.opts = { rate: 2, speed: 10, steps: 4 }
 })
 
 
 myApp.controller('ViralDemoCtrl', function($scope) {
-  $scope.opts = { speed: 8, size: 10 }
+  $scope.opts = { speed: 8, size: 20 }
 })
 
 myApp.directive('playButton', function() {
@@ -687,6 +667,11 @@ myApp.directive('virusDemo', function() {
     plot.append('g').classed('axis', true).call(axis)
     var valuesG = plot.append('g').classed('values', true)
     var labelsG = plot.append('g').classed('labels', true)
+    plot.append('text').text('people infected over time')
+      .attr('y', -10)
+      .attr('x', plotWidth / 2)
+      .style('text-anchor', 'middle')
+      .style('fill', 'rgba(0, 0, 0, 0.6)')
     var history = []
 
     function updateHistory() {

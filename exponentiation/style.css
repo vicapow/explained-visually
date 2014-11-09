@@ -1,38 +1,3 @@
-
-body {
-  width: 960px;
-  margin: auto;
-  font-family: "PT Serif", serif;
-  color: #333;
-}
-
-h1, h2, h3 {
-  font-family: sans-serif;
-  font-weight: 300;
-  /*text-transform: uppercase;*/
-}
-section.menu {
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-section.title {
-  margin-top: 0;
-  padding-top: 0;
-}
-section.title .title-region {
-  margin-top: 0;
-  margin-bottom: 2em;
-}
-h1.title {
-  font-size: 4em;
-  margin: 0;
-}
-a {
-  color: #d74d87;
-}
-h3 {
-  font-size: 2em;
-}
 growth-demo {
   width: 960px;
   height: 300px;
@@ -40,6 +5,7 @@ growth-demo {
   margin: auto;
   margin-top: 5px;
 }
+
 growth-demo svg {
   shape-rendering: crispEdges;
 }
@@ -56,19 +22,6 @@ growth-demo svg .afterImage .block {
   fill: black;
   stroke: #666;
 }
-p.quote{
-  padding-left: 10px;
-  border-left: 4px solid rgba(0, 0, 0, 0.2);
-  font-style: italic;
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.placeholder {
-  background-color: rgba(0, 0, 0, 0.1);
-  width: 100%;
-  text-align: center;
-  vertical-align: center;
-}
 
 cell-growth {
   display: block;
@@ -77,13 +30,11 @@ cell-growth {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-
 simple-growth {
   display: block;
   width: 100%;
   height: 200px;
   shape-rendering: crispEdges;
-  font-family: "PT Serif", serif;
 }
 
 virus-demo {
@@ -93,24 +44,12 @@ virus-demo {
   margin: auto;
   margin-top: 5px;
   position: relative;
-  /*background-color: rgba(0, 0, 0, 0.1);*/
 }
 
 virus-demo .values {
   shape-rendering: crispEdges;
   stroke: red;
   stroke-width: 4;
-}
-
-.axis {
-  shape-rendering: crispEdges;
-}
-.axis text {
-  fill: rgba(0, 0, 0, 0.6);
-}
-.axis path, .axis line {
-  fill: none;
-  stroke: rgba(0, 0, 0, 0.1);
 }
 
 

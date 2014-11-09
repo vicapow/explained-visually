@@ -3,13 +3,17 @@
 * {
   box-sizing: border-box;
 }
-
+html {
+  background-color: #fff;
+}
 body {
-  width: 960px;
+  width: 1024px;
+  margin-top: 0;
   margin: auto;
   font-family: "PT Serif", serif;
-  color: rgba(0, 0, 0, 0.5);
-  background-color: #fff;
+  font-family: sans-serif;
+  color: rgba(0, 0, 0, 0.7);
+  padding: 12px;
 }
 
 .setosa-logo {
@@ -22,23 +26,16 @@ body {
 }
 
 section {
-  padding: 1em;
+  padding: 12px;
 }
 
-section.menu a {
-  font-family: Lato;
-}
-
-section.title {
-  margin-top: 1em;
-  padding-bottom: 0;
-}
 section.title .title {
   font-size: 6em;
   margin-top: 0;
   margin-bottom: 0;
-  color: rgba(0, 0, 0, 0.8);
-  font-weight: 300;
+  color: #333;
+  font-weight: 100;
+  margin-left: -8px;
 }
 section.title .by-line {
   text-align: left;
@@ -49,15 +46,22 @@ section.title .by-line {
 }
 h1, h2, h3, h4, h5 {
   font-family: Lato;
+  color: #333;
 }
 h3 {
   font-size: 2em;
   margin: 0;
 }
-h4 {
-  margin: 0;
   font-weight: bold;
   font-size: 1.5em;
+}
+h3, h4 {
+  margin: 0;
+}
+h2, h3 {
+  font-family: sans-serif;
+  font-weight: 300;
+  /*text-transform: uppercase;*/
 }
 a, .link {
   color: #d74d87;
@@ -178,11 +182,38 @@ a, .link {
   margin-left: 10px;
 }
 
-section.share {
+.share {
   float: right;
 }
 
-section.share iframe {
+.share iframe {
   display: block;
+  float: left;
+  clear: both;
   margin: 4px;
+}
+
+p.quote{
+  padding-left: 10px;
+  border-left: 4px solid rgba(0, 0, 0, 0.2);
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.placeholder {
+  background-color: rgba(0, 0, 0, 0.1);
+  width: 100%;
+  text-align: center;
+  vertical-align: center;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+.axis text {
+  fill: rgba(0, 0, 0, 0.6);
+}
+.axis path, .axis line {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.1);
 }
