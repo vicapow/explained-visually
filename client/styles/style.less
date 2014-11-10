@@ -2,11 +2,16 @@
 
 @import "../../.tmp/styles/globals.less";
 
+@bg: #fff;
+@fg: #333;
+@highlight: #d74d87;
+
 * {
   box-sizing: border-box;
 }
 html {
-  background-color: #fff;
+  background-color: @bg;
+  background-image: url("@{basepath}/img/bg.png");
 }
 body {
   width: 1024px;
@@ -14,7 +19,7 @@ body {
   margin: auto;
   font-family: "PT Serif", serif;
   font-family: sans-serif;
-  color: rgba(0, 0, 0, 0.7);
+  color: @fg;
   padding: 12px;
 }
 
@@ -35,7 +40,7 @@ section.title .title {
   font-size: 6em;
   margin-top: 0;
   margin-bottom: 0;
-  color: #333;
+  color: @fg;
   font-weight: 100;
   margin-left: -8px;
 }
@@ -48,7 +53,7 @@ section.title .by-line {
 }
 h1, h2, h3, h4, h5 {
   font-family: Lato;
-  color: #333;
+  color: @fg;
 }
 h3 {
   font-size: 2em;
@@ -63,7 +68,7 @@ h2, h3 {
   /*text-transform: uppercase;*/
 }
 a, .link {
-  color: #d74d87;
+  color: @highlight;
 }
 .summary {
   width: 100%;
