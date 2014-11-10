@@ -3,15 +3,17 @@
 @import "../../.tmp/styles/globals.less";
 
 @bg: #fff;
-@fg: #333;
 @highlight: #d74d87;
+@textPrimary: #222;
+@textSoft: #c1c0c1;
+@textHighlight: @highlight;
 
 * {
   box-sizing: border-box;
 }
 html {
   background-color: @bg;
-  background-image: url("@{basepath}/img/bg.png");
+  // background-image: url("@{basepath}/img/bg.png");
 }
 body {
   width: 1024px;
@@ -19,7 +21,7 @@ body {
   margin: auto;
   font-family: "PT Serif", serif;
   font-family: sans-serif;
-  color: @fg;
+  color: @textPrimary;
   padding: 12px;
 }
 
@@ -40,8 +42,8 @@ section.title .title {
   font-size: 6em;
   margin-top: 0;
   margin-bottom: 0;
-  color: @fg;
-  font-weight: 100;
+  color: @textPrimary;
+  font-weight: normal;
   margin-left: -8px;
 }
 section.title .by-line {
@@ -49,11 +51,12 @@ section.title .by-line {
   margin-top: 0;
   margin-bottom: 2em;
   font-size: 1.5em;
-  font-weight: normal;
+  font-weight: 100;
+  color: @textSoft;
 }
 h1, h2, h3, h4, h5 {
   font-family: Lato;
-  color: @fg;
+  color: @textPrimary;
 }
 h3 {
   font-size: 2em;
@@ -68,7 +71,7 @@ h2, h3 {
   /*text-transform: uppercase;*/
 }
 a, .link {
-  color: @highlight;
+  color: @textHighlight;
 }
 .summary {
   width: 100%;
@@ -220,4 +223,31 @@ p.quote{
 .axis path, .axis line {
   fill: none;
   stroke: rgba(0, 0, 0, 0.1);
+}
+
+
+background-stage {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: none;
+  pointer-events: none;
+
+  svg {
+    // opacity: 0.2;
+    .node {
+      fill: #3498db;
+      stroke: rgba(0, 0, 0, 0.2);
+      stroke-width: 1;
+    }
+    .node text {
+      font-size: 64px;
+      text-anchor: middle;
+      fill: rgba(0, 0, 0, .5);
+      stroke: none;
+    }
+  }
 }

@@ -1,3 +1,5 @@
+include ../../templates/share.jade
+
 doctype html
 html
   head
@@ -15,16 +17,13 @@ html
     section.menu
       a(href=basepath) Back
     section.title(style="opacity: {{visible(400)}}")
-      .share.
-        <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
-        <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      +share
       .title-region
         h1.title !{title}
         h3.by-line Explained visually
+    section
       p.
         By <a href="http://twitter.com/vicapow">Victor Powell</a>
-      
       p We seem primed to understand linear growth, but lots of  processes in finance, ecology, physics and other fields depend on exponential growth.
       
       div(ng-controller="SimpleGrowthCtrl")

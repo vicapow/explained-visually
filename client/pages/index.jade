@@ -3,12 +3,9 @@ include ../templates/share.jade
 
 doctype html
 html
-  script(src=basepath + "/scripts/d3.js" charset="utf-8")
-  script(src=basepath + "/scripts/angular.js" charset="utf-8")
-  script(src=basepath + "/scripts/common.js" charset="utf-8")
-  link(href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css')
-  link(rel="stylesheet" href= basepath + "/styles/style.css" type="text/css")
+  include ../templates/head.jade
   body(ng-app="myApp" ng-controller="MainCtrl")
+    background-stage
     if debug
       section
         pre
@@ -50,17 +47,16 @@ html
         <!--End mc_embed_signup-->
 
     section
-      each exp in explanations
+      each exp, i in explanations
         a.plain-link(href=exp.path)
           div.summary
-            img.thumb(src=exp.path + '/thumb.gif')
-            img.thumb-preview(src= exp.path + '/thumb-preview.png')
-            span EV 1 - 2014/11/05
-            h3.link Thinking exponentially
-            p Growing, growing, gone.
+            if exp.thumb
+              img.thumb(src=exp.path + '/thumb.gif')
+              img.thumb-preview(src= exp.path + '/thumb-preview.png')
+            span EV !{explanations.length - i} - !{exp.date}
+            h3.link !{exp.title}
+            p !{exp.quip}
 
-    script(type='text/javascript').
-      var myApp = angular.module('myApp', [])
-      myApp.controller('MainCtrl', function($scope, $window, $sce) {
-        utils.setCommonScope($scope, $sce, $window)
-      })
+    script(type='text/javascript')
+      include script.js
+

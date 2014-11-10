@@ -33,6 +33,8 @@ gulp.task('pages', ['locals'], function() {
     .pipe(gulp.dest(out + '/'))
 })
 gulp.watch(pagesSrc, ['pages'])
+gulp.watch(src + '/explanations/*', ['pages'])
+gulp.watch(src + '/pages/*', ['pages'])
 
 // Styles.
 
@@ -63,10 +65,10 @@ gulp.task('resources', ['locals'], function(cb) {
     var name, from, to
     name = d.slug + '/thumb.gif'
     from = src + '/explanations/' + name, to = out + '/' + name
-    fse.copySync(from, to)
+    try { fse.copySync(from, to) } catch(e) {}
     name = d.slug + '/thumb-preview.png'
     from = src + '/explanations/' + name, to = out + '/' + name
-    fse.copySync(from, to)
+    try { fse.copySync(from, to) } catch(e) {}
   })
   cb()
 })
@@ -82,6 +84,13 @@ gulp.task('locals', function(cb) {
     exponentiation: {
         title: 'Exponentiation'
       , quip: 'Growing, Growing, gone.'
+      , thumb: true
+      , date: '2014/11/05'
+    }
+    , 'markov-chains': {
+        title: 'Markov Chains'
+      , quip: 'Mark on, Markov'
+      , date: '2014/07/26'
     }
   }
   Object.keys(hash).forEach(function(slug) {

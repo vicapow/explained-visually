@@ -1,0 +1,66 @@
+
+/* markov style */
+
+.st-diagram {
+  width: 100%;
+  height: 100%;
+  display: block;
+  float: left;
+  box-sizing: border-box;
+}
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+  opacity: 1;
+}
+.currentState {
+  fill: rgba(0, 0, 0, 0.4);
+  stroke: #ffffff;
+  pointer-events: none;
+}
+.node text{
+  text-anchor: middle;
+}
+.links {
+  fill: none;
+}
+.link {
+  opacity: 0.4;
+  -webkit-transition: .25s opacity;
+  transition: .25s opacity;
+}
+.link.active {
+  opacity: 0.8;
+}
+.link.inactive {
+  opacity: 0.1;
+}
+.stateTable {
+  color: white;
+}
+.stateTable tr {
+  box-sizing: border-box;
+  padding: none;
+}
+.stateTable td {
+  text-align: center;
+  box-sizing: border-box;
+  width: 25%;
+  height: 25%;
+  padding: none;
+}
+
+.grid {
+  width: 100%;
+  height: 100%;
+}
+
+.sequence {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+  margin: auto;
+  vertical-align: center;
+}
+

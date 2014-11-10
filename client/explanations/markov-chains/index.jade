@@ -1,0 +1,49 @@
+include ../../templates/share.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    if debug
+      section
+        pre !{JSON.stringify(locals, null, 2)}
+    section.menu
+      a(href=basepath) Back
+    section.title(style="opacity: {{visible(400)}}")
+      +share
+      .title-region
+        h1.title !{title}
+        h3.by-line Explained visually
+    section
+      :markdown
+        By [Victor Powell](http://twitter.com/vicapow)
+        /w text by [Lewis Lehe](http://twitter.com/lewislehe)
+
+        Markov chains, named after [Andrey Markov](https://en.wikipedia.org/wiki/Andrey_Markov), are mathematical systems that hop from one "state" (a situation or set of values) to another. For example, if you made a Markov chain model of a baby's behavior, you might include "playing," "eating", "sleeping," and "crying" as states, which together with other behaviors could form a 'state space': a list of all possible states. In addition, on top of the state space, a Markov chain tells you the probabilitiy of hopping, or "transitioning," from one state to any other state---e.g., the chance that a baby currently playing will fall asleep in the next five minutes without crying first.
+
+        A simple, two-state Markov chain is shown below.
+      p(ng-controller="NoControlsCtrl")
+        input.speedRange(type="range" ng-model="speedRange" min="1" max="20" step="1")
+        label speed
+        st-diagram(states="states" transition-matrix="transitionMatrix"
+          style="width:960px;height:230px;display:block;"
+          center="diagramCenter" duration="duration")
+      
+      :markdown
+        With two states (A and B) in our state space, there are 4 possible transitions (not 2, because a state can transition back into itself). If we're at 'A' we could transition to 'B' or stay at 'A'. If we're at 'B' we could transition to 'A' or stay at 'B'. In this two state diagram, the probability of transitioning from any state to any other state is 0.5.
+
+        Of course, real modelers don't always draw out Markov chain diagrams. Instead they use a "transition matrix" to tally the transition probabilities. Every state in the state space is included once as a row and again as a column, and each cell in the matrix tells you the probability of transitioning from its row's state to its column's state. So, in the matrix, the cells do the same job that the arrows do in the diagram.
+
+
+  script(type='text/javascript').
+    'use strict'
+    var myApp = angular.module('myApp', [])
+    myApp.controller('MainCtrl', function($scope, $window) {
+      angular.element($window).on('resize', function() { $scope.$apply(); });
+    })
+  script(type='text/javascript')
+    include vector.js
+    include common.js
+    include script.js
