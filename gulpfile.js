@@ -90,6 +90,7 @@ gulp.task('locals', function(cb) {
     , 'markov-chains': {
         title: 'Markov Chains'
       , quip: 'Mark on, Markov'
+      , thumb: true
       , date: '2014/07/26'
     }
   }
