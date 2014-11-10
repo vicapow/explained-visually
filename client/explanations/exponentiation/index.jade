@@ -27,10 +27,7 @@ html
       p We seem primed to understand linear growth, but lots of  processes in finance, ecology, physics and other fields depend on exponential growth.
       
       div(ng-controller="SimpleGrowthCtrl")
-        p
-          Here's a simple visualization to help conceptualize this type of growth.
-          It starts off <b>{{opts.rateLabel}}</b> with every step.
-          Adjust the rate slider to see {{opts.otherRateLabels.join(' and ')}}.
+        p Here's a simple visualization to help conceptualize this type of growth. It starts off <b>{{opts.rateLabel}}</b> with every step. Adjust the rate slider to see {{opts.otherRateLabels.join(' and ')}}.
         button.btn.btn-primary(ng-click="$emit('restart')") Restart
         label rate:
         select(ng-model="opts.rate" ng-options="num as 'x' + num for num in [2,3,4]")
