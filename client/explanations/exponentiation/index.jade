@@ -92,7 +92,6 @@ html
 
     var myApp = angular.module('myApp', [])
     myApp.controller('MainCtrl', function($scope, $window, $sce) {
-      utils.setCommonScope($scope, $sce, $window)
       angular.element($window).bind('scroll', function() {
         $scope.$apply(function() { $scope.yOffset = window.pageYOffset })
       })

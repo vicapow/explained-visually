@@ -1,6 +1,6 @@
 var myApp = angular.module('myApp', [])
 myApp.controller('MainCtrl', function($scope, $window, $sce) {
-  utils.setCommonScope($scope, $sce, $window)
+
 })
 
 d3.select('section.title .title')
@@ -25,10 +25,9 @@ myApp.directive('backgroundStage', function() {
     function resize() {
       // resize!
       svg.attr({width: w, height: h})
-      if (!start) begin() && (start = true)
+      // if (!start) begin() && (start = true)
     }
-    var circle = svg.append('circle')
-
+    return
     var node = svg.append('g').attr('class', 'node')
     node.append('circle').attr('r', 50)
     node.append('text')
