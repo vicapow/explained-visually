@@ -1,0 +1,66 @@
+doctype html
+html
+  script(src=basepath + "/scripts/d3.js" charset="utf-8")
+  script(src=basepath + "/scripts/angular.js" charset="utf-8")
+  script(src=basepath + "/scripts/common.js" charset="utf-8")
+  link(href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css')
+  link(rel="stylesheet" href= basepath + "/styles/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+  section.title
+    .share.
+      <iframe class="fb-iframe" src="{{fbIframeLink}}" scrolling="no" frameborder="0" style="border:none; overflow:hidden;" allowTransparency="true"></iframe>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-via="setosa">Tweet</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    h1.title Explained Visually
+    h2.by-line.
+      a <a href="http://setosa.io"><div class="setosa-logo"></div></a> project
+    h2 About
+    p
+      Explained Visually (EV) is a project with the goal to experiment with 
+      new ways of communicating ideas and provide an introduction 
+      to concepts to motivate future learning. We'll be posting a new visual
+      explanation roughly every week for the next few months so stay tuned by
+      signing up for our mailing list.
+  section
+    p.
+      <!-- Begin MailChimp Signup Form -->
+      <div id="mc_embed_signup">
+        <form action="//setosa.us9.list-manage.com/subscribe/post?u=060f38736e386cb5f4a41ac34&amp;id=ca34aa93b7"
+          method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" 
+          class="validate" target="_blank" novalidate>
+          <div id="mc_embed_signup_scroll">
+            <h2>Subscribe to receive future explanations</h2>
+            <div class="mc-field-group">
+              <input type="email" value="" name="EMAIL" class="required email form-control" id="mce-EMAIL" value placeholder="Email address">
+            </div>
+            <div id="mce-responses" class="clear">
+              <div class="response" id="mce-error-response" style="display:none"></div>
+              <div class="response" id="mce-success-response" style="display:none"></div>
+            </div>
+            <div style="position: absolute; left: -5000px;">
+              <input type="text" name="b_060f38736e386cb5f4a41ac34_ca34aa93b7"
+                tabindex="-1" value="">
+            </div>
+            <div class="clear">
+              <input type="submit" value="Subscribe" name="subscribe"
+                id="mc-embedded-subscribe" class="button btn btn-primary">
+            </div>
+          </div>
+        </form>
+      </div>
+      <!--End mc_embed_signup-->
+
+  section
+    a.plain-link(href="exponentiation/")
+      div.summary
+        img.thumb(src="exponentiation/thumb.gif")
+        img.thumb-preview(src="exponentiation/thumb-preview.png")
+        span EV 1 - 2014/11/05
+        h3.link Thinking exponentially
+        p Growing, growing, gone.
+
+script(type='text/javascript').
+  var myApp = angular.module('myApp', [])
+  myApp.controller('MainCtrl', function($scope, $window, $sce) {
+    utils.setCommonScope($scope, $sce, $window)
+  })

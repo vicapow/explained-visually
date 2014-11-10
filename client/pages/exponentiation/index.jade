@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="../d3.js" charset="utf-8"></script>
-    <script src="../angular.js" charset="utf-8"></script>
-    <script src="../js/common.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="../style.css" type="text/css">
-    <link rel="stylesheet" href="style.css" type="text/css">
-    <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css'>
-  </head>
-  <body ng-app="myApp" ng-controller="MainCtrl">
+doctype html
+html
+  head
+    script(src=basepath + "/scripts/d3.js" charset="utf-8")
+    script(src=basepath + "/scripts/angular.js" charset="utf-8")
+    script(src=basepath + "/scripts/common.js" charset="utf-8")
+    link(href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css')
+    link(rel="stylesheet" href= basepath + "/styles/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl").
     <section class="menu">
       <a href="../">Home</a>
     </section>

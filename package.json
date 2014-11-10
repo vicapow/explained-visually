@@ -1,0 +1,22 @@
+{
+  "name": "explained-visually",
+  "version": "0.0.0",
+  "description": "* [Logorithms](https://en.wikipedia.org/wiki/Logarithm) * [Log scales](https://en.wikipedia.org/wiki/Logarithmic_scale) * [Taylor Series](https://en.wikipedia.org/wiki/Taylor_series) * [Div Grad Curl](https://en.wikipedia.org/wiki/Vector_calculus_identities)",
+  "main": "index.js",
+  "dependencies": {
+    "init": "~0.1.2",
+    "gulp-jade": "~0.9.0",
+    "gulp": "~3.8.10",
+    "gulp-less": "~1.3.6",
+    "fs-extra": "~0.12.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vicapow/explained-visually.git"
+  },
+  "author": "Victor Powell"
+}

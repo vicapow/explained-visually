@@ -1,5 +1,7 @@
 /* Global styles all explainations require. */
 
+@import "../../.tmp/styles/globals.less";
+
 * {
   box-sizing: border-box;
 }
@@ -17,7 +19,7 @@ body {
 }
 
 .setosa-logo {
-  background-image: url('./img/setosa.png');
+  background-image: url("@{basepath}/img/setosa.png");
   width: 70px;
   height: 17px;
   display: inline-block;
@@ -51,9 +53,6 @@ h1, h2, h3, h4, h5 {
 h3 {
   font-size: 2em;
   margin: 0;
-}
-  font-weight: bold;
-  font-size: 1.5em;
 }
 h3, h4 {
   margin: 0;

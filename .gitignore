@@ -1,2 +1,4 @@
 .DS_Store
 todo.txt
+node_modules
+.tmp
