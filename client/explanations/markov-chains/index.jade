@@ -1,4 +1,4 @@
-include ../../templates/share.jade
+include ../../templates/common.jade
 
 doctype html
 html
@@ -12,10 +12,10 @@ html
     section.menu
       a(href=basepath) Back
     section.title(style="opacity: {{visible(400)}}")
-      +share
       .title-region
         h1.title !{title}
         h3.by-line Explained visually
+      +share
     section
       :markdown
         By [Victor Powell](http://twitter.com/vicapow)

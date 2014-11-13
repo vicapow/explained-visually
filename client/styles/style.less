@@ -3,10 +3,14 @@
 @import "../../.tmp/styles/globals.less";
 
 @bg: #fff;
-@highlight: #d74d87;
+@highlight: #e74c3c;
 @textPrimary: #222;
 @textSoft: #c1c0c1;
 @textHighlight: @highlight;
+
+@bg: #ecf0f1;
+@textPrimary: #2c3e50;
+@textSoft: #34495e;
 
 * {
   box-sizing: border-box;
@@ -22,7 +26,7 @@ body {
   font-family: "PT Serif", serif;
   font-family: sans-serif;
   color: @textPrimary;
-  padding: 12px;
+  padding: 0;
 }
 
 .setosa-logo {
@@ -32,6 +36,25 @@ body {
   display: inline-block;
   background-size: 100%;
   vertical-align: middle;
+}
+
+.landing .title {
+  font-size: 120px;
+  margin: 0;
+}
+
+section.slide {
+  // background-color: rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0;
+}
+
+.landing h2 {
+  font-size: 30px;
+}
+
+.landing p {
+  font-size: 14px;
 }
 
 section {
@@ -49,7 +72,7 @@ section.title .title {
 section.title .by-line {
   text-align: left;
   margin-top: 0;
-  margin-bottom: 2em;
+  margin-bottom: 0.5em;
   font-size: 1.5em;
   font-weight: 100;
   color: @textSoft;
@@ -100,11 +123,11 @@ a, .link {
   right: 0;
 }
 .summary .thumb {
-  opacity: 0;
+  opacity: 0.5;
   transition: 0.25s all;
 }
 .summary .thumb-preview {
-  opacity: 0.5;
+  opacity: 1;
   transition: 0.25s all;
 }
 
@@ -136,11 +159,6 @@ a, .link {
   stroke: rgba(0, 0, 0, 0.1);
 }
 
-.fb-iframe {
-  width: 85px;
-  height: 20px;
-}
-
 .btn {
   background-color: #1abc9c;
   border-radius: 6px;
@@ -167,7 +185,7 @@ a, .link {
 }
 
 .form-control {
-  height: 42px;
+  height: 46px;
   padding: 8px 12px;
   font-size: 15px;
   line-height: 1.467;
@@ -191,17 +209,6 @@ a, .link {
 #mc_embed_signup #mc-embedded-subscribe {
   display: inline-block;
   margin-left: 10px;
-}
-
-.share {
-  float: right;
-}
-
-.share iframe {
-  display: block;
-  float: left;
-  clear: both;
-  margin: 4px;
 }
 
 p.quote{
@@ -254,4 +261,24 @@ background-stage {
       stroke: none;
     }
   }
+}
+
+.ev-thumb {
+  width: 512px;
+  height: 100px;
+  float: right;
+  // border: 1px solid rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+ev1-thumb line {
+  shape-rendering: crispEdges;
+  stroke-width: 2;
+  stroke: #ef8536;
+}
+
+ev2-thumb line {
+  shape-rendering: crispEdges;
+  stroke-width: 2;
+  stroke: #ef8536;
 }

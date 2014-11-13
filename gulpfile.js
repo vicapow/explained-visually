@@ -7,13 +7,11 @@ var extend = require('extend')
 var jade = require('gulp-jade')
 var less = require('gulp-less')
 var mkdirp = require('mkdirp')
-var basepath = '/explained-visually'
+var basepath = '/explained-visually/'
+var host = 'setosa.io'
 var src = 'client'
 var out = './build/explained-visually'
-var locals = {
-    basepath: basepath
-  , debug: false
-}
+var locals = { basepath: basepath, host: host, debug: false }
 
 gulp.task('default', ['styles', 'pages', 'scripts', 'resources'])
 
@@ -26,6 +24,7 @@ gulp.task('pages', ['locals'], function() {
     .pipe(through.obj(function(file, enc, cb) {
       var dirname = path.dirname(file.path).split('/').slice(-1)
       myLocals = locals.explanationsHash[dirname] || {}
+      myLocals.href = 'http://setosa.io' + myLocals.path
       file.data = extend({}, myLocals, locals)
       cb(null, file)
     }))
@@ -49,9 +48,7 @@ gulp.watch(stylesSrc, ['styles'])
 // Generate less global variables.
 gulp.task('export-less-globals', function(cb) {
   mkdirp('.tmp/styles')
-  var variables = {
-    basepath: basepath
-  }
+  var variables = locals
   var content = '/* AUTO GENERATED FILE. */\n'
     + Object.keys(variables).map(function(key) {
       return "@" + key + ': "' + variables[key] + '";'
@@ -96,7 +93,7 @@ gulp.task('locals', function(cb) {
   }
   Object.keys(hash).forEach(function(slug) {
     hash[slug].slug = slug
-    hash[slug].path = locals.basepath + '/'  + slug
+    hash[slug].path = locals.basepath  + slug + '/'
   })
   fs.readdir(src + '/explanations', function(err, files) {
     if (err) return cb(err)

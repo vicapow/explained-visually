@@ -1,26 +1,25 @@
-include ../../templates/share.jade
+include ../../templates/common.jade
 
 doctype html
 html
   head
-    script(src=basepath + "/scripts/d3.js" charset="utf-8")
-    script(src=basepath + "/scripts/angular.js" charset="utf-8")
-    script(src=basepath + "/scripts/common.js" charset="utf-8")
+    script(src=basepath + "scripts/d3.js" charset="utf-8")
+    script(src=basepath + "scripts/angular.js" charset="utf-8")
+    script(src=basepath + "scripts/common.js" charset="utf-8")
     link(href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css')
-    link(rel="stylesheet" href= basepath + "/styles/style.css" type="text/css")
+    link(rel="stylesheet" href= basepath + "styles/style.css" type="text/css")
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
   body(ng-app="myApp" ng-controller="MainCtrl")
     if debug
       section
-        pre
-          !{JSON.stringify(locals, null, 2)}
+        pre !{JSON.stringify(locals, null, 2)}
     section.menu
       a(href=basepath) Back
     section.title(style="opacity: {{visible(400)}}")
-      +share
       .title-region
         h1.title !{title}
         h3.by-line Explained visually
+      +share
     section
       p.
         By <a href="http://twitter.com/vicapow">Victor Powell</a>
@@ -70,10 +69,7 @@ html
         input(type="range" ng-model="opts.speed" min="1" step="1" max="10")
         span speed: {{opts.speed}}
         virus-demo
-    section
-      p For more explanations, visit the Explained Visually 
-        a(href="{{basepath}}") project page.
-      br
+    +footer
   script(type="text/javascript").
     'use strict'
 

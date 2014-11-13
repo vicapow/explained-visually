@@ -1,5 +1,3 @@
-
-
 function vector(x, y) {
 
   var v = {x: x, y: y}
@@ -25,7 +23,6 @@ function vector(x, y) {
   v.rotDegrees = function(theta) { return v.rot(theta * Math.PI / 180) }
 
   v.array = function() { return [v.x, v.y] }
-
 
   return v
 }
