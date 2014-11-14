@@ -21,19 +21,19 @@
   , "explanations": [
     {
         "title": "Conditional probability"
+      , "subtitle": "Explained Visually"
       , "slug": "conditional-probability"
       , "quip": "You probably wouldn't understand."
       , "date": "2014/10/30"
-      , "subtitle": "Explained Visually"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
     }
     , {
         "title": "Markov Chains"
+      , "subtitle": "Explained Visually"
       , "slug": "markov-chains"
       , "quip": "Mark on, Markov"
       , "date": "2014/11/07"
-      , "subtitle": "Explained Visually"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
       , "twitterCreatorText": "lewislehe"
@@ -41,10 +41,10 @@
     }
     , {
         "title": "Exponentiation"
+      , "subtitle": "Explained Visually"
       , "slug": "exponentiation"
       , "quip": "Growing, growing, gone."
       , "date": "2014/11/14"
-      , "subtitle": "Explained Visually"
       , "twitterCreator": "vicapow"
       , "author": "Victor Powell"
     }
