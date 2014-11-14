@@ -4,19 +4,22 @@ doctype html
 html
   head
     include ../../templates/head
+    include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
-    meta(property="og:image" content= path + "fb-thumb.png")
   body(ng-app="myApp" ng-controller="MainCtrl")
     section.menu
       a(href=basepath) Back
     section.title
       .title-region
         h1.title !{title}
-        h3.by-line Explained visually
+        h3.by-line !{subtitle}
       +share
     section
-      p.
-        By <a href="http://twitter.com/vicapow">Victor Powell</a>
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
       p We seem primed to understand linear growth, but lots of  processes in finance, ecology, physics and other fields depend on exponential growth.
       
       div(ng-controller="SimpleGrowthCtrl")

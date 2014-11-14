@@ -1,0 +1,89 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
+    section.
+      <br>
+      <p> A conditional probability is the probability of an event, given some other event has already occurred. In the below example, there are two possible events that can occur. A ball falling could either hit the <span class="A">red</span> shelf (we'll call this event <span class="A">A</span>) or hit the <span class="B">blue</span> shelf (we'll call this event <span class="B">B</span>) or both.
+      </p>
+      <p>If we know the statistics of these events across the entire population and then were to be given a single ball and told "this ball hit the <span class="A">red</span> shelf (event <span class="A">A</span>), what's the probability it also hit the <span class="B">blue</span> shelf (event <span class="B">B</span>)?" we could answer this question by providing the conditional probability of <span class="B">B</span> given that <span class="A">A</span> occurred or P(<span class="B">B</span>|<span class="A">A</span>). </p>
+      <p style="text-align: center">
+        <img src="resources/formula.png">
+      </p>
+      <div class="half-column">
+        <p class="slider">
+          <label>P(<span class="A">A</span>)</label><span> = {{pOfA | number:3}} <span class="or">or</span> {{pOfA * 100 | number:1}}%</span><input type="range" ng-model="pOfA" min="0" max="1" step="0.001"></input>
+        </p>
+        <p class="slider">
+          <label>P(<span class="B">B</span>)</label><span> = {{pOfB | number:3}} <span class="or">or</span> {{pOfB * 100 | number:1}}%</span><input type="range" ng-model="pOfB" min="0" max="1" step="0.001"></input>
+        </p>
+        <p class="slider">
+          <label>P(<span class="A">A</span> n <span class="B">B</span>)</label><span> = {{pOfAAndB | number:3}} <span class="or">or</span> {{pOfAAndB * 100 | number:1}}%</span><input type="range" ng-model="pOfAAndB" min="0" max="1" step="0.001"></input>
+        </p>
+      </div>
+      <div class="half-column">
+        <p>P(<span class="B">B</span>|<span class="A">A</span>) = 
+          {{ pOfBGivenA | number:3}}
+          <span class="or">or</span> 
+          {{ pOfBGivenA * 100 | number:1}}%
+        </p>
+        <p>
+          <small>
+            If we have a ball and we know it hit the <span class="A">red</span> shelf, there's a {{ pOfBGivenA * 100 | number:1}}% chance it also hit the <span class="B">blue</span> shelf.
+          </small>
+        </p>
+        <p>P(<span class="A">A</span>|<span class="B">B</span>) = 
+          {{ pOfAGivenB | number:3}}
+          <span class="or">or</span> 
+          {{ pOfAGivenB * 100 | number:1}}%
+        </p>
+        <p>
+          <small>
+            If we have a ball and we know it hit the <span class="B">blue</span> shelf, there's a {{ pOfAGivenB * 100 | number:1}}% chance it also hit the <span class="A">red</span> shelf.
+          </small>
+        </p>
+      </div>
+      <div style="clear:both"></div>
+      <waterfall></waterfall>
+      <div class="half-column">
+        <label class="or">drop frequency</label><input type="range" ng-model="dropFrequency" min="0" max="20"></input>
+      </div>
+      <div class="half-column">
+        <div class="perspective">
+          <label class="or">perspective</label>
+          <button ng-click="onClickPerspective('P(B|A)')" ng-class="buttons['P(B|A)']">P(B|A)</button>
+          <button ng-click="onClickPerspective('P(A|B)')" ng-class="buttons['P(A|B)']">P(A|B)</button>
+          <button ng-click="onClickPerspective('world')" ng-class="buttons.world">world</button>
+        </div>
+      </div>
+      <div style="clear:both"></div>
+      <p> actual </p>
+      <bar-chart data="barChartActual" accessor="accessor"></bar-chart>
+      <p> expected </p>
+      <bar-chart data="barChartExpected" accessor="accessor"></bar-chart>
+      <p> <div class="icon A"></div> count(A n !B): {{countA}} <small class="or">(balls that hit the <span class="A">red</span> shelf but not the <span class="B">blue</span> shelf)</small></p>
+      <p> <div class="icon B"></div> count(B n !A): {{countB}} <small class="or"> (balls that hit the <span class="B">blue</span> shelf but not the <span class="A">red</span> shelf)</small></p>
+      <p> <div class="icon A B"></div> count(A n B): {{countAB}} <small class="or">(balls that hit both the <span class="A">red</span> shelf and the <span class="B">blue</span> shelf)</small></p>
+      <p> <div class="icon"></div> count(!A n !B): {{countNone}} <small class="or">(balls that did not hit the <span class="A">red</span> nor <span class="B">blue</span> shelf)</small></p>
+    +footer
+    +disqus
+  script(type="text/javascript")
+    include script.js

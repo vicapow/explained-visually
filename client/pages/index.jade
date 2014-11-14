@@ -6,10 +6,7 @@ mixin explanationList
     a.plain-link(href=exp.path)
       div.explanation-summary
         span.release EV !{explanations.length - i} - !{exp.date}
-        if i === 0
-          ev1-thumb.ev-thumb
-        else if i === 1
-          ev2-thumb.ev-thumb
+          #{'ev' + i + '-thumb'}.ev-thumb
         div.desc
           hr
           h3.link !{exp.title}
@@ -17,7 +14,10 @@ mixin explanationList
 
 doctype html
 html
-  include ../templates/head.jade
+  head
+    include ../templates/head.jade
+    meta(property="og:title" content="Explained Visually")
+    meta(name="twitter:creator" content="@setosaio")
   body(ng-app="myApp" ng-controller="MainCtrl")
     //- background-stage
     if debug
@@ -27,14 +27,17 @@ html
     section.landing-demo
       div(style="width:{{slideW}}px;height:200px;")
         landing-demo
-    section.landing.slide(ng-init="offsetY=-210" style="width:{{slideW}}px;")
+    section.landing.slide(ng-init="offsetY=-210" style="width:{{slideW}}px;position:relative")
       h1.title(style="text-align:center") Explained Visually
-      h2.by-line(style="margin-right:115px;text-align:right;top:-40px;position:relative;").
+      h2.by-line(style="margin-right:115px; text-align:right; top:-40px;").
         a <a href="http://setosa.io"><div class="setosa-logo"></div></a> project
-      +share
-      h2(style="") About
-      p Explained Visually (EV) is a project with the goal to experiment with  new ways of communicating ideas and provide an introduction  to concepts to motivate future learning. We'll be posting a new visual explanation roughly every week for the next few months so stay tuned by signing up for our mailing list.
-      +mailchimpSignup
+      div(style="text-align:center")
+        +share
+    section(style="text-align:center")
+      //- h2(style="") About
+      :markdown
+        Explained Visually (EV) is an experiment in making hard ideas intuitive. The team at Setosa is working full-time on explanatory visualizations, so expect a visualization every week for the next few months. Sign up to hear about the latest visualization.
+      //- +mailchimpSignup
     section
       +explanationList
     br

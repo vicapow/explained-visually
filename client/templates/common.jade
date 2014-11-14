@@ -16,11 +16,20 @@ mixin share
         }
       }(document, 'script', 'twitter-wjs');
 
-mixin footer
+mixin authors
   section
-    p For more explanations, visit the Explained Visually 
-      a(href="/explained-visually/") project page.
-    br
+    p By 
+      if twitterCreator
+        a(href="http://twitter.com/" + twitterCreator) !{author}
+      else
+       !{author}
+    p
+      if authorText
+        | /w text by 
+        if twitterCreatorText
+          a(href="http://twitter.com/" + twitterCreatorText) !{authorText}
+        else
+          !{authorText}
 
 mixin mailchimpSignup
   div.
@@ -49,6 +58,14 @@ mixin mailchimpSignup
       </form>
     </div>
     <!--End mc_embed_signup-->
+
+mixin footer
+  section
+    p For more explanations, visit the Explained Visually 
+      a(href="/ev/") project homepage.
+    p Or subscribe to our mailing list.
+    +mailchimpSignup
+    br
 
 mixin disqus
   section.

@@ -4,6 +4,7 @@ doctype html
 html
   head
     include ../../templates/head
+    include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
   body(ng-app="myApp" ng-controller="MainCtrl")
     if debug
@@ -14,13 +15,10 @@ html
     section.title(style="opacity: {{visible(400)}}")
       .title-region
         h1.title !{title}
-        h3.by-line Explained visually
+        h3.by-line !{subtitle}
       +share
-    section
+      +authors
       :markdown
-        By [Victor Powell](http://twitter.com/vicapow)
-        /w text by [Lewis Lehe](http://twitter.com/lewislehe)
-
         Markov chains, named after [Andrey Markov](https://en.wikipedia.org/wiki/Andrey_Markov), are mathematical systems that hop from one "state" (a situation or set of values) to another. For example, if you made a Markov chain model of a baby's behavior, you might include "playing," "eating", "sleeping," and "crying" as states, which together with other behaviors could form a 'state space': a list of all possible states. In addition, on top of the state space, a Markov chain tells you the probabilitiy of hopping, or "transitioning," from one state to any other state---e.g., the chance that a baby currently playing will fall asleep in the next five minutes without crying first.
 
         A simple, two-state Markov chain is shown below.
@@ -28,7 +26,7 @@ html
         input.speedRange(type="range" ng-model="speedRange" min="1" max="20" step="1")
         label speed
         st-diagram(states="states" transition-matrix="transitionMatrix"
-          style="width:960px;height:230px;display:block;"
+          style="width:100%;height:230px;display:block;"
           center="diagramCenter" duration="duration")
       
       :markdown
@@ -36,6 +34,165 @@ html
 
         Of course, real modelers don't always draw out Markov chain diagrams. Instead they use a "transition matrix" to tally the transition probabilities. Every state in the state space is included once as a row and again as a column, and each cell in the matrix tells you the probability of transitioning from its row's state to its column's state. So, in the matrix, the cells do the same job that the arrows do in the diagram.
 
+
+      div(ng-controller="TransitionMatrixCtrl" style="position: relative; height: 230px;margin-bottom:0px").
+        <div class="controls" style="position: absolute; top: 0">
+          <input class="speedRange" type="range" ng-model="speedRange"
+            min="1" max="20" step="1">
+          <label> speed </label>
+        </div>
+        <st-diagram center="diagramCenter" states="states"
+          transition-matrix="transitionMatrix" duration="duration"
+          selected-transition="selected.transition"></st-diagram>
+        <grid class="matrix">
+          <row>
+            <cell></cell>
+            <cell style="line-height:{{height}}px;background-color:{{color('A')}}">A</cell>
+            <cell style="line-height:{{height}}px;background-color:{{color('B')}}">B</cell>
+          </row>
+          <row>
+          <div ng-style="{'background-color': color('A')}"
+              style="width:100%;height:100%">
+              <cell>
+                <div style="text-align: center; line-height:{{height}}px"> A </div>
+              </cell>
+              <cell ng-mouseover="selected.transition = [0, 0]"
+                ng-mouseout="selected.transition = null">
+                <div class="desc">
+                  P(A|A): {{ transitionMatrix[0][0] | number:2 }}
+                </div>
+                <div class="control">
+                  <input type="range" min="0" max="1" step="0.01"
+                    ng-change="onChangeMatrixValue(0, 0)"
+                    ng-model="transitionMatrix[0][0]">
+                </div>
+              </cell>
+              <cell ng-mouseover="selected.transition = [0, 1]"
+                ng-mouseout="selected.transition = null">
+                <div class="desc">
+                  P(B|A): {{ transitionMatrix[0][1] | number:2 }}
+                </div>
+                <div class="control">
+                  <input type="range" min="0" max="1" step="0.01"
+                    ng-change="onChangeMatrixValue(0, 1)"
+                    ng-model="transitionMatrix[0][1]">
+                </div>
+              </cell>
+            </div>
+          </row>
+          <row>
+            <div ng-style="{'background-color': color('B')}"
+                style="width:100%;height:100%">
+              <cell>
+                <div style="text-align: center; line-height:{{height}}px"> B </div>
+              </cell>
+              <cell ng-mouseover="selected.transition = [1, 0]"
+                ng-mouseout="selected.transition = null">
+                <div class="desc">
+                  P(A|B): {{ transitionMatrix[1][0] | number:2 }}
+                </div>
+                <div class="control">
+                  <input type="range" min="0" max="1" step="0.01"
+                    ng-change="onChangeMatrixValue(1, 0)"
+                    ng-model="transitionMatrix[1][0]">
+                </div>
+              </cell>
+              <cell ng-mouseover="selected.transition = [1, 1]"
+                ng-mouseout="selected.transition = null">
+                <div class="desc">
+                  P(B|B): {{ transitionMatrix[1][1] | number:2 }}
+                </div>
+                <div class="control">
+                  <input type="range" min="0" max="1" step="0.01"
+                    ng-change="onChangeMatrixValue(1, 1)"
+                    ng-model="transitionMatrix[1][1]">
+                </div>
+              </cell>
+            </div>
+          </row>
+        </grid>
+      :markdown
+        If the state space adds one state, we add one row and one column, adding one cell to every existing column and row. This means the number of cells grows quadratically as we add states to our Markov chain. Thus, a transition matrix comes in handy pretty quickly, unless you want to draw a jungle gym Markov chain diagram.
+
+        One use of Markov chains is to include real-world phenomena in computer simulations. For example, we might want to check how frequently a new dam will overflow, which depends on the number of rainy days in a row. To build this model, we start out with the following pattern of rainy (R) and sunny (S) days:
+
+      div(ng-controller="RandomSequenceCtrl" style="width:100%; height: 100px")
+        div.sequence
+
+      :markdown
+        One way to simulate this weather would be to just say "Half of the days are rainy. Therefore, every day in our simulation will have a fifty percent chance of rain." This rule would generate the following sequence in simulation:
+
+      div(ng-controller="RandomSequenceCtrl50" style="width:100%; height: 100px")
+        div.sequence
+
+      :markdown
+        Did you notice how the above sequence doesn't look quite like the original? The second sequence seems to jump around, while the first one (the real data) seems to have a "stickyness". In the real data, if it's sunny (S) one day, then the next day is also much more likely to be sunny.
+
+        We can minic this "stickyness" with a two-state Markov chain. When the Markov chain is in state "R", it has a 0.9 probability of staying put and a 0.1 chance of leaving for the "S" state. Likewise, "S" state has 0.9 probability of staying put and a 0.1 chance of transitioning to the "R" state.
+
+      div(ng-controller="RandomSequenceMarkovCtrl" style="width:100%; height: 230px;position: relative").
+        <div class="controls" style="position: absolute; top: 0">
+          <input class="speedRange" type="range" ng-model="speedRange"
+            min="1" max="10" step="1">
+          <label> speed </label>
+        </div>
+        <st-diagram center="diagramCenter" states="states"
+          transition-matrix="transitionMatrix" duration="duration"
+          state="state"
+          selected-transition="selected.transition"
+          style="pointer-events:none;position:absolute;z-index:1;left: 0;width: 100%;"></st-diagram>
+        <div class="sequence" step-1="70%" step-2="60%"></div>
+
+      :markdown
+        In the hands of metereologists, ecologists, computer scientists, financial engineers and other people who need to model big phenomena, Markov chains can get to be quite large and powerful. For example, the algorithm Google uses to determine the order of search results, called [PageRank](https://en.wikipedia.org/wiki/PageRank), is a type of Markov chain.
+
+        <iframe scrolling="no" class="playground" style="display: block; float: left; border: none" width="100%" height="500" src="http://setosa.io/markov/playground.html"></iframe>
+
+        Above, we've included a Markov chain "playground", where you can make your own Markov chains by messing around with a transition matrix. Here's a few to work from as an example: <a href="javascript:update_playground('long')">ex1</a>, <a href="javascript:update_playground('large')">ex2</a>, <a href="javascript:update_playground('three')">ex3</a> or generate one <a href="javascript:update_playground('random')">randomly</a>. The transition matrix text will turn red if the provided matrix isn't a valid transition matrix. _The rows of the transition matrix must total to 1._ There also has to be the same number of rows as columns.
+
+        You can also access a fullscreen version at [setosa.io/markov](/markov/index.html)
+
+        <script>
+        function randomMatrix(){
+          var n = Math.floor(Math.random() * 9) + 1;
+          return d3.range(n).map(function() {
+            var row = d3.range(n).map(function(){ return 0; });
+            // place 100, '0.01' pieces into random `row` indices.
+            d3.range(10).forEach(function(d) {
+              row[Math.floor(Math.random() * n)] += 0.1;
+            });
+            row = row.map(function(d){ return Math.round(d * 10) / 10; });
+            return row;
+          });
+        }
+        function update_playground(type){
+          var matrix;
+          if (type === 'three')
+            matrix = [[0.3,0.3,0.4], [0.3,0.5,0.2], [0.4,0.4,0.2]];
+          else if (type === 'large')
+            matrix = [[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+                     [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]];
+          else if(type === 'long')
+            matrix = [[0.6,0.2,0,0,0,0.2], [0.2,0.6,0.2,0,0,0],[0,0.2,0.6,0.2,0,0],
+             [0,0,0.2,0.6,0.2,0],[0,0,0,0.2,0.6,0.2],[0.2,0,0,0,0.2,0.6]];
+          else if(type === 'random')
+            matrix = randomMatrix();
+          var hash = { tm: matrix };
+          d3.select('.playground').attr('src', 'http://setosa.io/markov/playground.html?'
+            + (+new Date()) + '#' + encodeURIComponent(JSON.stringify(hash, null, 2)));
+        }
+        update_playground('three');
+        </script>
+    +footer
+    +disqus
 
   script(type='text/javascript').
     'use strict'

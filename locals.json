@@ -1,5 +1,6 @@
 {
-  "basepath": "/explained-visually/"
+  "basepath": "/ev/"
+  , "name": "ev"
   , "host": "setosa.io"
   , "debug": false
   , "bg": "#2c3e50"
@@ -8,7 +9,7 @@
   , "textSoft": "#7f8c8d"
   , "textExtraSoft": "#aaa"
   , "textHighlight": "#e67e22"
-  , "seperation": "rgba(255, 255, 255, 0.08)"
+  , "seperation": "rgba(0, 0, 0, 0.08)"
 
   , "bg": "#fff"
   , "highlight": "#e74c3c"
@@ -17,18 +18,35 @@
   , "textExtraSoft": "#aaa"
   , "textHighlight": "#e74c3c"
 
-  , "explanationsHash": {
-    "exponentiation": {
-        "title": "Exponentiation"
-      , "quip": "Growing, growing, gone."
-      , "thumb": true
-      , "date": "2014/11/05"
+  , "explanations": [
+    {
+        "title": "Conditional probability"
+      , "slug": "conditional-probability"
+      , "quip": "You probably wouldn't understand."
+      , "date": "2014/10/30"
+      , "subtitle": "Explained Visually"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
     }
-    , "markov-chains": {
+    , {
         "title": "Markov Chains"
+      , "slug": "markov-chains"
       , "quip": "Mark on, Markov"
-      , "thumb": true
-      , "date": "2014/07/26"
+      , "date": "2014/11/07"
+      , "subtitle": "Explained Visually"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+      , "twitterCreatorText": "lewislehe"
+      , "authorText" : "Lewis Lehe"
     }
-  }
+    , {
+        "title": "Exponentiation"
+      , "slug": "exponentiation"
+      , "quip": "Growing, growing, gone."
+      , "date": "2014/11/14"
+      , "subtitle": "Explained Visually"
+      , "twitterCreator": "vicapow"
+      , "author": "Victor Powell"
+    }
+  ]
 }

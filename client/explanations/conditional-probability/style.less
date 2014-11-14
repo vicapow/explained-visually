@@ -1,0 +1,113 @@
+
+@import "../../../.tmp/styles/globals.less";
+
+circle {
+  fill: rgba(0, 0, 0, 0.2);
+  stroke: none;
+}
+
+.A {
+  fill: #C0392B;
+  color: #C0392B;
+}
+
+.B {
+  fill: #2980B9;
+  color: #2980B9;
+}
+
+.A.B {
+  fill: #9b59b6;
+  color: #9b59b6;
+}
+
+.not-A, .not-B {
+  fill: #999;
+}
+
+.or {
+  opacity: 0.4;
+}
+
+rect.A, rect.B {
+  cursor: pointer;
+}
+
+waterfall {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+input[type="range"] {
+  width: 90%;
+}
+
+.half-column {
+  float: left;
+  width: 50%;
+}
+
+button {
+  border-radius: 10px;
+  border: none;
+  color: @textPrimary;
+  background-color: rgba(0, 0, 0, 0);
+  cursor: pointer;
+  -webkit-transition: all 0.5s;
+}
+
+button.active {
+  background-color: @textPrimary;
+  color: @bg;
+}
+
+.perspective {
+  text-align: right;
+}
+
+h1 {
+  font-size: 5em;
+  margin: 0;
+}
+
+.event text {
+  text-anchor: middle;
+  opacity: 0.5;
+}
+
+donut {
+  width: 100px;
+  height: 100px;
+  display: inline-block;
+}
+
+bar-chart {
+  width: 100%;
+  height: 10px;
+  display: inline-block;
+}
+
+bar-chart rect {
+  fill: #ddd;
+}
+
+.icon {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: 1px solid #aaa;
+  background-color: #333;
+}
+
+.icon.A {
+  background-color: #C0392B;
+}
+
+.icon.B {
+  background-color: #2980B9;
+}
+
+.icon.A.B {
+  background-color: #9b59b6;
+}
