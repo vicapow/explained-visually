@@ -1,0 +1,34 @@
+{
+  "basepath": "/explained-visually/"
+  , "host": "setosa.io"
+  , "debug": false
+  , "bg": "#2c3e50"
+  , "highlight": "#e67e22"
+  , "textPrimary": "#ecf0f1"
+  , "textSoft": "#7f8c8d"
+  , "textExtraSoft": "#aaa"
+  , "textHighlight": "#e67e22"
+  , "seperation": "rgba(255, 255, 255, 0.08)"
+
+  , "bg": "#fff"
+  , "highlight": "#e74c3c"
+  , "textPrimary": "#222"
+  , "textSoft": "#c1c0c1"
+  , "textExtraSoft": "#aaa"
+  , "textHighlight": "#e74c3c"
+
+  , "explanationsHash": {
+    "exponentiation": {
+        "title": "Exponentiation"
+      , "quip": "Growing, growing, gone."
+      , "thumb": true
+      , "date": "2014/11/05"
+    }
+    , "markov-chains": {
+        "title": "Markov Chains"
+      , "quip": "Mark on, Markov"
+      , "thumb": true
+      , "date": "2014/07/26"
+    }
+  }
+}

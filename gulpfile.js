@@ -7,11 +7,9 @@ var extend = require('extend')
 var jade = require('gulp-jade')
 var less = require('gulp-less')
 var mkdirp = require('mkdirp')
-var basepath = '/explained-visually/'
-var host = 'setosa.io'
 var src = 'client'
 var out = './build/explained-visually'
-var locals = { basepath: basepath, host: host, debug: false }
+var locals
 
 gulp.task('default', ['styles', 'pages', 'scripts', 'resources'])
 
@@ -48,12 +46,16 @@ gulp.task('styles', ['export-less-globals'], function() {
 gulp.watch(stylesSrc, ['styles'])
 
 // Generate less global variables.
-gulp.task('export-less-globals', function(cb) {
+gulp.task('export-less-globals', ['locals'], function(cb) {
   mkdirp('.tmp/styles')
   var variables = locals
   var content = '/* AUTO GENERATED FILE. */\n'
     + Object.keys(variables).map(function(key) {
-      return "@" + key + ': "' + variables[key] + '";'
+      if (variables[key][0] !== '#'
+        && typeof variables[key] === 'string'
+        && variables[key].slice(0, 3) !== 'rgb')
+        return '@' + key + ': "' + variables[key] + '";'
+      else return '@' + key + ': ' + variables[key] + ';'
     }).join('\n') + '\n'
   fs.writeFile('.tmp/styles/globals.less', content, cb)
 })
@@ -78,21 +80,8 @@ gulp.task('scripts', function(cb) {
 gulp.watch(src + 'scripts/*', ['scripts'])
 
 gulp.task('locals', function(cb) {
-  var byLine = 'Explained visually'
-  var hash = locals.explanationsHash = {
-    exponentiation: {
-        title: 'Exponentiation'
-      , quip: 'Growing, growing, gone.'
-      , thumb: true
-      , date: '2014/11/05'
-    }
-    , 'markov-chains': {
-        title: 'Markov Chains'
-      , quip: 'Mark on, Markov'
-      , thumb: true
-      , date: '2014/07/26'
-    }
-  }
+  locals = JSON.parse(fs.readFileSync('locals.json'))
+  var hash = locals.explanationsHash
   Object.keys(hash).forEach(function(slug) {
     hash[slug].slug = slug
     hash[slug].path = locals.basepath  + slug + '/'
@@ -108,3 +97,5 @@ gulp.task('locals', function(cb) {
     cb()
   })
 })
+
+gulp.watch('./locals.json', ['default'])

@@ -2,17 +2,6 @@
 
 @import "../../.tmp/styles/globals.less";
 
-@bg: #fff;
-@highlight: #e74c3c;
-@textPrimary: #222;
-@textSoft: #c1c0c1;
-@textExtraSoft: #aaa;
-@textHighlight: @highlight;
-
-@bg: #ecf0f1;
-@textPrimary: #2c3e50;
-@textSoft: #34495e;
-
 * {
   box-sizing: border-box;
 }
@@ -23,10 +12,14 @@ body {
   width: 1024px;
   margin-top: 0;
   margin: auto;
-  font-family: "PT Serif", serif;
-  font-family: sans-serif;
+  font-family: "Lato", "PT Serif", serif;
   color: @textPrimary;
   padding: 0;
+  font-weight: 100;
+}
+
+p {
+  font-size: 18px;
 }
 
 .setosa-logo {
@@ -51,10 +44,6 @@ section.slide {
 
 .landing h2 {
   font-size: 30px;
-}
-
-.landing p {
-  font-size: 14px;
 }
 
 section {
@@ -122,7 +111,7 @@ a, .link {
 
 hr {
   border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid @seperation;
 }
 
 .plain-link {
@@ -168,7 +157,7 @@ hr {
   -webkit-appearance: none;
 }
 .btn-primary {
-  background-color: #1abc9c;
+  background-color: @highlight;
 }
 .btn-primary:hover {
   background-color: #48c9b0;

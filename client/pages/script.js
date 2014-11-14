@@ -125,14 +125,14 @@ myApp.directive('ev1Thumb', function() {
     svg.on('mouseenter', function() {
       scale
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr('transform', 'translate(' + [w * .8, h / 2] + ') scale(1)')
         .style('opacity', 1)
     })
     .on('mouseleave', function() {
       scale
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
         .style('opacity', 0.6)
     })
@@ -170,14 +170,14 @@ myApp.directive('ev2Thumb', function() {
     svg.on('mouseenter', function() {
       scale
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr('transform', 'translate(' + [w / 2, h / 2] + ') scale(1)')
         .style('opacity', 1)
     })
     .on('mouseleave', function() {
       scale
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr('transform', 'translate(' + [w * .6, h / 2] + ') scale(4)')
         .style('opacity', 0.8)
     })
@@ -216,15 +216,6 @@ myApp.directive('ev2Thumb', function() {
       .style({ stroke: color1, 'stroke-width': 7, fill: 'none' })
       .style('opacity', 0.5)
       .attr('d', 'M' + ps2[0] + 'C' + ps2.slice(1).join(' '))
-
-    // window.points = []
-    // svg.on('click', function() {
-    //   var p = d3.mouse(this)
-    //   console.log(p)
-    //   window.points.push(p)
-    //   ps1 = window.points
-    //   path.attr('d', 'M' + ps1[0] + 'C' + ps1.slice(1).join(' '))
-    // })
 
     var n1 = root.append('g')
       .attr('transform', 'translate(' + p1 + ')')
