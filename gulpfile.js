@@ -62,14 +62,15 @@ gulp.task('export-less-globals', ['locals'], function(cb) {
 
 gulp.task('resources', ['locals'], function(cb) {
   fse.copySync(src + '/img', out + '/img')
+  function from(name) { return src + '/explanations/' + name }
+  function to(name) { return out + '/' + name }
+  function tryCopy(name) {
+    try { fse.copySync(from(name), to(name)) } catch(e) {}
+  }
   locals.explanations.forEach(function(d) {
-    var name, from, to
-    name = d.slug + '/thumb.gif'
-    from = src + '/explanations/' + name, to = out + '/' + name
-    try { fse.copySync(from, to) } catch(e) {}
-    name = d.slug + '/thumb-preview.png'
-    from = src + '/explanations/' + name, to = out + '/' + name
-    try { fse.copySync(from, to) } catch(e) {}
+    tryCopy(d.slug + '/thumb.gif')
+    tryCopy(d.slug + '/thumb-preview.png')
+    tryCopy(d.slug + '/fb-thumb.png')
   })
   cb()
 })
