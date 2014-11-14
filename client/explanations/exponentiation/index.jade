@@ -3,16 +3,10 @@ include ../../templates/common.jade
 doctype html
 html
   head
-    script(src=basepath + "scripts/d3.js" charset="utf-8")
-    script(src=basepath + "scripts/angular.js" charset="utf-8")
-    script(src=basepath + "scripts/common.js" charset="utf-8")
-    link(href='http://fonts.googleapis.com/css?family=Lato:100,300,400' rel='stylesheet' type='text/css')
-    link(rel="stylesheet" href= basepath + "styles/style.css" type="text/css")
+    include ../../templates/head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
+    meta(property="og:image" content= path + "fb-thumb.png")
   body(ng-app="myApp" ng-controller="MainCtrl")
-    if debug
-      section
-        pre !{JSON.stringify(locals, null, 2)}
     section.menu
       a(href=basepath) Back
     section.title
@@ -26,7 +20,7 @@ html
       p We seem primed to understand linear growth, but lots of  processes in finance, ecology, physics and other fields depend on exponential growth.
       
       div(ng-controller="SimpleGrowthCtrl")
-        p Here's a simple visualization to help conceptualize this type of growth. It starts off <b>{{opts.rateLabel}}</b> with every step. Adjust the rate slider to see {{opts.otherRateLabels.join(' and ')}}.
+        p Here's a simple visualization to help conceptualize this type of growth. It starts off <b>{{opts.rateLabel}}</b> with every step. Adjust the rate to see {{opts.otherRateLabels.join(' and ')}}.
         button.btn.btn-primary(ng-click="$emit('restart')") Restart
         label rate:
         select(ng-model="opts.rate" ng-options="num as 'x' + num for num in [2,3,4]")
