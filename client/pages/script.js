@@ -66,12 +66,12 @@ myApp.directive('landingDemo', function() {
       .style('fill', function(d) { return color(d / (n - 1)) })
     check()
     resize()
-    var dur = 4000, delay = 500
+    var dur = 1000, delay = 500
     function loop(g) {
       g.style('opacity', 0)
       .attr('transform', 'translate(' + [0, - (h - m.t - m.b) / 2] + ')')
       .transition()
-      .duration(dur / 2)
+      .duration(dur)
       .ease('bounce')
       .delay(function(d) { return Math.random() * 3000 })
       .style('opacity', 1)
@@ -81,9 +81,10 @@ myApp.directive('landingDemo', function() {
         d3.select(this)
           .transition()
           .delay(delay)
+          .ease('cubic-in')
           .style('opacity', 0)
           .attr('transform', function(d) {
-            return 'translate(' + [0, (h - m.t - m.b)] + ')'
+            return 'translate(' + [0, 100] + ')'
           }).each('end', function() { d3.select(this).call(loop) })
       })
     }

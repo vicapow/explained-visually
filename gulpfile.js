@@ -82,7 +82,7 @@ gulp.task('locals', function(cb) {
   var hash = locals.explanationsHash = {
     exponentiation: {
         title: 'Exponentiation'
-      , quip: 'Growing, Growing, gone.'
+      , quip: 'Growing, growing, gone.'
       , thumb: true
       , date: '2014/11/05'
     }

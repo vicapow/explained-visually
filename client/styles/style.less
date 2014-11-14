@@ -39,7 +39,7 @@ body {
 }
 
 .landing .title {
-  font-size: 120px;
+  font-size: 110px;
   margin: 0;
 }
 
@@ -122,7 +122,7 @@ a, .link {
 
 hr {
   border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .plain-link {
@@ -163,6 +163,9 @@ hr {
   line-height: 1.471;
   outline: 0;
   font-family: Lato, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+  -webkit-appearance: none;
 }
 .btn-primary {
   background-color: #1abc9c;
@@ -186,6 +189,10 @@ hr {
   background-color: white;
   display: block;
   outline: 0;
+}
+
+input[type='submit'] {
+  -webkit-appearance: none;
 }
 
 /* Mail Chimp sign-up form */
