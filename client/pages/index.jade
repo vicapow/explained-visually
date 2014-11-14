@@ -4,17 +4,16 @@ include ../templates/common.jade
 mixin explanationList
   each exp, i in explanations
     a.plain-link(href=exp.path)
-      div.summary
+      div.explanation-summary
+        span.release EV !{explanations.length - i} - !{exp.date}
         if i === 0
           ev1-thumb.ev-thumb
         else if i === 1
           ev2-thumb.ev-thumb
-        else
-          img.thumb(src=exp.path + '/thumb.gif')
-          img.thumb-preview(src= exp.path + '/thumb-preview.png')
-        span.release EV !{explanations.length - i} - !{exp.date}
-        h3.link !{exp.title}
-        p !{exp.quip}
+        div.desc
+          hr
+          h3.link !{exp.title}
+          p !{exp.quip}
 
 doctype html
 html
@@ -38,6 +37,9 @@ html
       +mailchimpSignup
     section
       +explanationList
+    br
+    br
+    br
     script(type='text/javascript')
       include script.js
 

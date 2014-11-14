@@ -33,6 +33,8 @@ gulp.task('pages', ['locals'], function() {
 })
 gulp.watch(pagesSrc, ['pages'])
 gulp.watch(src + '/explanations/*', ['pages'])
+gulp.watch(src + '/explanations/**/*.js', ['pages'])
+gulp.watch(src + '/explanations/**/*.jade', ['pages'])
 gulp.watch(src + '/pages/*', ['pages'])
 
 // Styles.

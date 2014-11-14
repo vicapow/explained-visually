@@ -102,22 +102,47 @@ myApp.directive('ev1Thumb', function() {
     var n = 50
     var m = { l: 10, t: 10, r: 10, b: 10 }
     var val = 1
+    
     var data = d3.range(n).map(function(d) {
       return { i: d, d: val = val * 1.1 }
     })
+
     var x = d3.scale.linear()
       .domain([0, n - 1])
       .range([m.l, w - m.r])
     var y = d3.scale.linear()
       .domain([0, d3.max(data, function(d) { return d.d })])
       .range([h - m.b, m.t])
-    var g = svg.selectAll('g').data(data).enter().append('g')
 
-    g.attr({
-      transform: function(d) {
-        return 'translate(' + [x(d.i), 0] + ')'
-      }
-    }).append('line').attr({y1: y(0), y2: function(d) { return y(d.d) } })
+    var scale = svg.append('g').attr('class', 'scale')
+      .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
+      .style('opacity', 0.6)
+
+    var root = scale.append('g').attr('class', 'root')
+      .attr('transform', 'translate(' + [-w * .8, -h / 2] + ')')
+
+    svg.on('mouseenter', function() {
+      scale
+        .transition()
+        .duration(1000)
+        .attr('transform', 'translate(' + [w * .8, h / 2] + ') scale(1)')
+        .style('opacity', 1)
+    })
+    .on('mouseleave', function() {
+      scale
+        .transition()
+        .duration(1000)
+        .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
+        .style('opacity', 0.6)
+    })
+
+
+    root.selectAll('g').data(data).enter().append('g')
+      .attr({
+        transform: function(d) {
+          return 'translate(' + [x(d.i), 0] + ')'
+        }
+      }).append('line').attr({y1: y(0), y2: function(d) { return y(d.d) } })
   }
   return { link: link, restrict: 'E' }
 })
@@ -131,10 +156,35 @@ myApp.directive('ev2Thumb', function() {
     var color1 = '#ff7f0c'
     var color2 = '#1e77b4'
 
-    var r = 20
+    // svg.append('rect').attr({width: w, height: h})
 
-    var p1 = [w * 0.3, h * .5]
-    var p2 = [w * 0.7, h * .5]
+
+    var scale = svg.append('g').attr('class', 'scale')
+      .attr('transform', 'translate(' + [w * .6, h / 2] + ') scale(4)')
+      .style('opacity', 0.8)
+
+    var root = scale.append('g').attr('class', 'root')
+      .attr('transform', 'translate(' + [-w / 2, -h / 2] + ')')
+
+    svg.on('mouseenter', function() {
+      scale
+        .transition()
+        .duration(1000)
+        .attr('transform', 'translate(' + [w / 2, h / 2] + ') scale(1)')
+        .style('opacity', 1)
+    })
+    .on('mouseleave', function() {
+      scale
+        .transition()
+        .duration(1000)
+        .attr('transform', 'translate(' + [w * .6, h / 2] + ') scale(4)')
+        .style('opacity', 0.8)
+    })
+
+    var r = 30
+
+    var p1 = [w * 0.43, h * .5]
+    var p2 = [w * 0.57, h * .5]
 
     var defs = svg.append('defs')
     defs.append('marker')
@@ -151,7 +201,7 @@ myApp.directive('ev2Thumb', function() {
         .attr('d', 'M0,0 V4 L2,2 Z')
         .style('fill', color1)
 
-    var links = svg.append('g').attr('class', 'links')
+    var links = root.append('g').attr('class', 'links')
     var ps1 = [p2, vec_add(p2, [-50, -50]), vec_add(p1, [50, -50]), vec_add(p1, [r, -r])]
     var path2 = links.append('path')
       .attr({ 'marker-end': 'url(#linkMarker1)',  'class': 'link' })
@@ -175,7 +225,7 @@ myApp.directive('ev2Thumb', function() {
     //   path.attr('d', 'M' + ps1[0] + 'C' + ps1.slice(1).join(' '))
     // })
 
-    var n1 = svg.append('g')
+    var n1 = root.append('g')
       .attr('transform', 'translate(' + p1 + ')')
 
     n1.append('circle').attr({ r: r })
@@ -188,7 +238,7 @@ myApp.directive('ev2Thumb', function() {
       .style('text-anchor', 'middle')
       .style('font-size', '25px')
 
-    var n2 = svg.append('g')
+    var n2 = root.append('g')
       .attr('transform', 'translate(' + p2 + ')')
 
     n2.append('circle').attr({ r: r })

@@ -6,6 +6,7 @@
 @highlight: #e74c3c;
 @textPrimary: #222;
 @textSoft: #c1c0c1;
+@textExtraSoft: #aaa;
 @textHighlight: @highlight;
 
 @bg: #ecf0f1;
@@ -17,7 +18,6 @@
 }
 html {
   background-color: @bg;
-  // background-image: url("@{basepath}/img/bg.png");
 }
 body {
   width: 1024px;
@@ -96,7 +96,7 @@ h2, h3 {
 a, .link {
   color: @textHighlight;
 }
-.summary {
+.explanation-summary {
   width: 100%;
   height: 100px;
   background-repeat: no-repeat;
@@ -105,55 +105,45 @@ a, .link {
   margin-top: 10px;
   margin-bottom: 10px;
   .release {
-    color: @textSoft;
+    color: @textExtraSoft;
     font-size: 12px;
   }
-}
-.summary h3 {
-  margin: 0;
-  font-size: 1.7em;
-}
-.summary p {
-  margin-top: .5em;
-}
-.summary .thumb,
-.summary .thumb-preview {
-  position: absolute;
-  z-index: 0;
-  right: 0;
-}
-.summary .thumb {
-  opacity: 0.5;
-  transition: 0.25s all;
-}
-.summary .thumb-preview {
-  opacity: 1;
-  transition: 0.25s all;
+  h3 {
+    margin: 0;
+    font-size: 1.7em;
+  }
+  p {
+    margin-top: .5em;
+  }
+  .desc {
+    pointer-events: none;
+  }
 }
 
-.summary:hover .thumb {
-  opacity: 1;
+hr {
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
-.summary:hover .thumb-preview {
-  opacity: 0;
-}
+
 .plain-link {
   color: inherit;
   text-decoration: none;
 }
+
 .link {
   text-decoration: underline;
   position: relative;
   z-index: 1;
 }
 
-
 .axis {
   shape-rendering: crispEdges;
 }
+
 .axis text {
   fill: rgba(0, 0, 0, 0.6);
 }
+
 .axis path, .axis line {
   fill: none;
   stroke: rgba(0, 0, 0, 0.1);
@@ -264,11 +254,16 @@ background-stage {
 }
 
 .ev-thumb {
-  width: 512px;
+  width: 100%;
   height: 100px;
-  float: right;
-  // border: 1px solid rgba(0, 0, 0, 0.1);
+  position: absolute;
   box-sizing: border-box;
+  display: block;
+  top: 26px;
+}
+.explanation-summary {
+  position: relative;
+  margin-bottom: 40px;
 }
 
 ev1-thumb line {
