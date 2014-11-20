@@ -95,7 +95,10 @@ myApp.directive('landingDemo', function() {
   return { link: link, restrict: 'E' }
 })
 
-myApp.directive('ev2Thumb', function() {
+
+// Conditional Probability
+
+myApp.directive('ev1Thumb', function() {
   function link(scope, el, attr) {
     var sel = d3.select(el[0])
     var w = sel.node().clientWidth, h = sel.node().clientHeight
@@ -146,60 +149,9 @@ myApp.directive('ev2Thumb', function() {
   return { link: link, restrict: 'E' }
 })
 
-myApp.directive('ev0Thumb', function() {
-  function link(scope, el, attr) {
-    var sel = d3.select(el[0])
-    var w = sel.node().clientWidth, h = sel.node().clientHeight
-    var svg = sel.append('svg').attr({width: w, height: h})
-    var n = 50
-    var m = { l: 10, t: 10, r: 10, b: 10 }
-    var val = 1
-    
-    var data = d3.range(n).map(function(d) {
-      return { i: d, d: val = val * 1.1 }
-    })
+// Markov Chains
 
-    var x = d3.scale.linear()
-      .domain([0, n - 1])
-      .range([m.l, w - m.r])
-    var y = d3.scale.linear()
-      .domain([0, d3.max(data, function(d) { return d.d })])
-      .range([h - m.b, m.t])
-
-    var scale = svg.append('g').attr('class', 'scale')
-      .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
-      .style('opacity', 0.6)
-
-    var root = scale.append('g').attr('class', 'root')
-      .attr('transform', 'translate(' + [-w * .8, -h / 2] + ')')
-
-    svg.on('mouseenter', function() {
-      scale
-        .transition()
-        .duration(500)
-        .attr('transform', 'translate(' + [w * .8, h / 2] + ') scale(1)')
-        .style('opacity', 1)
-    })
-    .on('mouseleave', function() {
-      scale
-        .transition()
-        .duration(500)
-        .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
-        .style('opacity', 0.6)
-    })
-
-
-    root.selectAll('g').data(data).enter().append('g')
-      .attr({
-        transform: function(d) {
-          return 'translate(' + [x(d.i), 0] + ')'
-        }
-      }).append('line').attr({y1: y(0), y2: function(d) { return y(d.d) } })
-  }
-  return { link: link, restrict: 'E' }
-})
-
-myApp.directive('ev1Thumb', function() {
+myApp.directive('ev2Thumb', function() {
   function link(scope, el, attr) {
     var sel = d3.select(el[0])
     var w = sel.node().clientWidth, h = sel.node().clientHeight
@@ -294,6 +246,70 @@ myApp.directive('ev1Thumb', function() {
       .style('text-anchor', 'middle')
       .style('font-size', '25px')
 
+  }
+  return { link: link, restrict: 'E' }
+})
+
+// Exponentiation
+
+myApp.directive('ev3Thumb', function() {
+  function link(scope, el, attr) {
+    var sel = d3.select(el[0])
+    var w = sel.node().clientWidth, h = sel.node().clientHeight
+    var svg = sel.append('svg').attr({width: w, height: h})
+    var n = 50
+    var m = { l: 10, t: 10, r: 10, b: 10 }
+    var val = 1
+    
+    var data = d3.range(n).map(function(d) {
+      return { i: d, d: val = val * 1.1 }
+    })
+
+    var x = d3.scale.linear()
+      .domain([0, n - 1])
+      .range([m.l, w - m.r])
+    var y = d3.scale.linear()
+      .domain([0, d3.max(data, function(d) { return d.d })])
+      .range([h - m.b, m.t])
+
+    var scale = svg.append('g').attr('class', 'scale')
+      .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
+      .style('opacity', 0.6)
+
+    var root = scale.append('g').attr('class', 'root')
+      .attr('transform', 'translate(' + [-w * .8, -h / 2] + ')')
+
+    svg.on('mouseenter', function() {
+      scale
+        .transition()
+        .duration(500)
+        .attr('transform', 'translate(' + [w * .8, h / 2] + ') scale(1)')
+        .style('opacity', 1)
+    })
+    .on('mouseleave', function() {
+      scale
+        .transition()
+        .duration(500)
+        .attr('transform', 'translate(' + [w * 2, - h  / 2] + ') scale(4)')
+        .style('opacity', 0.6)
+    })
+
+
+    root.selectAll('g').data(data).enter().append('g')
+      .attr({
+        transform: function(d) {
+          return 'translate(' + [x(d.i), 0] + ')'
+        }
+      }).append('line').attr({y1: y(0), y2: function(d) { return y(d.d) } })
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('ev4Thumb', function() {
+  function link() {
+    var sel = d3.select(el[0])
+    var w = sel.node().clientWidth, h = sel.node().clientHeight
+    var svg = sel.append('svg').attr({width: w, height: h})
   }
   return { link: link, restrict: 'E' }
 })

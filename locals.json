@@ -1,6 +1,7 @@
 {
   "basepath": "/ev/"
   , "name": "ev"
+  , "src": "client"
   , "host": "setosa.io"
   , "debug": false
   , "bg": "#2c3e50"
@@ -47,6 +48,16 @@
       , "date": "2014/11/14"
       , "twitterCreator": "vicapow"
       , "author": "Victor Powell"
+    }
+    , {
+        "title": "Sine and Cosine"
+      , "subtitle": "Explained Visually"
+      , "slug": "sine-and-cosine"
+      , "quip": "Think of something witty and put it here."
+      , "date": "2014/11/21"
+      , "twitterCreator": "vicapow"
+      , "author": "Victor Powell"
+      , "hideFromHomepage" : true
     }
   ]
 }

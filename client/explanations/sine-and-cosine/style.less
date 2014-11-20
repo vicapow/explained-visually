@@ -1,0 +1,181 @@
+
+@rayColor: #9b59b6;
+@thetaColor: #e74c3c;
+@cosineColor: #3498db;
+@sineColor: #2ecc71;
+@softColor: rgba(0, 0, 0, 0.1);
+
+linked-coordinates, unit-circle {
+  display: block;
+  width: 100%;
+  height: 300px;
+  .arm {
+    stroke: @rayColor;
+    stroke-width: 4;
+  }
+  .arc {
+    fill: none;
+    stroke: @thetaColor;
+    stroke-width: 4;
+  }
+  .nob {
+    fill: #fff;
+    stroke: rgba(0, 0, 0, 0.7);
+  }
+  .axis {
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .axis path, .axis line {
+    stroke: #666;
+  }
+  .axis text {
+    fill: rgba(0, 0, 0, 1);
+  }
+  .tick-arc {
+    fill: none;
+    stroke: @softColor;
+  }
+  .cos-arm {
+    stroke: @cosineColor;
+    stroke-width: 4;
+  }
+  .sin-arm {
+    stroke: @sineColor;
+    stroke-width: 4;
+  }
+  .cos-arm, .sin-arm {
+    stroke-width: 8;
+  }
+  .sine-g {
+    .sin {
+      fill: none;
+      stroke: rgba(0, 0, 0, 0.5);
+      stroke-dasharray: 2, 2;
+    }
+    .cos {
+      fill: none;
+      stroke: rgba(0, 0, 0, 0.5);
+      stroke-dasharray: 2, 2;
+    }
+  }
+}
+
+unit-circle {
+  display: block;
+  width: 400px;
+  height: 300px;
+  .ticks line {
+    stroke: @softColor;
+    shape-rendering: crispEdges;
+  }
+}
+
+unit-circle {
+  .coord-label {
+    pointer-events: none;
+    font-size: 15px;
+  }
+  .cos-arm, .sin-arm, .arm, .arc {
+    stroke-width: 4;
+  }
+  &.polar {
+    .cos-arm, .sin-arm {
+      opacity: 0.1;
+    }
+    .t1 {
+      stroke: @rayColor;
+    }
+    .t2 {
+      stroke: @thetaColor;
+    }
+  }
+  &.cartesian {
+    .arc, .arm {
+      opacity: 0.1;
+    }
+    .t1 {
+      stroke: @cosineColor;
+    }
+    .t2 {
+      stroke: @sineColor;
+    }
+  }
+}
+
+trig-transform {
+  // background-color: rgba(0, 0, 0, 0.1);
+  display: block;
+  width: 100%;
+  height: 200px;
+  .cos-arm, .sin-arm {
+    stroke-width: 4;
+  }
+  .ray-arm {
+    stroke: @rayColor;
+  }
+  .cos-arm {
+    stroke: @cosineColor;
+  }
+  .sin-arm {
+    stroke: @sineColor;
+  }
+  &.sine {
+    .cos-arm {
+      stroke: none;
+    }
+  }
+  &.cosine {
+    .sin-arm {
+      stroke: none;
+    }
+  }
+  .center {
+    fill: #555;
+  }
+  .unit-circle {
+    circle {
+      fill: none;
+      stroke: #888;
+    }
+    text {
+      text-anchor: middle;
+      fill: #777;
+      font-size: 14px;
+    }
+    .nob {
+      stroke: none;
+      fill: #e74c3c;
+    }
+  }
+  .triangle {
+    fill: rgba(0, 0, 0, 0.1);
+  }
+  .axis line, .axis path {
+    stroke: #aaa;
+  }
+  .axis text {
+    font-size: 10px;
+    fill: black;
+  }
+  .x-axis text {
+    font-size: 12px;
+  }
+  .y-axis .tick line{
+    stroke: rgba(0, 0, 0, 0.1);
+  }
+  .sin-path {
+    stroke: @sineColor;
+    stroke-width: 4;
+    fill: none;
+  }
+  .cos-path {
+    stroke: @cosineColor;
+    stroke-width: 4;
+    fill: none;
+  }
+  .axis-zero {
+    stroke: rgba(0, 0, 0, 0.1);
+    stroke-width: 1;
+  }
+}

@@ -1,0 +1,39 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
+    section
+      unit-circle(system="cartesian" style="float:left;width:50%")
+      unit-circle(system="polar" style="float:left;width:50%")
+    section
+      h2 Sine
+      trig-transform(func="sine")
+    section
+      h2 Cosine
+      trig-transform(func="cosine")
+      div(style="clear:both")
+      linked-coordinates(show-cosine="true")
+      linked-coordinates(show-sine="true")
+
+    +footer
+    +disqus
+
+  script(src=path + "script.js")

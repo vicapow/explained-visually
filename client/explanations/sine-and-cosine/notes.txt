@@ -1,0 +1,4 @@
+
+There's a few reason's why sine and cosine can be confusing. Firstly, we always refer to them as "sine and cosine" but cosine corresponds to x and sine to y. Because of this, we really should call them "cosine and sine" just like we say "x and y".
+
+Another confusing thing about sine and cosine is that they are hard to evaluate. There is no simple equation for computing them when we only have the angle. This seems unintuitive. Somehow our calculators and computers are able to whip up values of sine(45) to many significant digits. But computers and calculators can only give us approximate answers in the same way PI is a number but one we can't simply write down completely. Let's peel back the curtain just a bit and see how a computer might calculate cosine and sine. I won't describe how but believe me when I say this is the equation for calculating successively more values of cosine.

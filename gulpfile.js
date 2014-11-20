@@ -7,8 +7,9 @@ var extend = require('extend')
 var jade = require('gulp-jade')
 var less = require('gulp-less')
 var mkdirp = require('mkdirp')
-var src = 'client'
-var locals = require('./locals.json')
+var localsStore = require('./localsStore')
+var locals = localsStore.refresh()
+var src = locals.src
 var out = './build/' + locals.name
 
 gulp.task('default', ['styles', 'pages', 'scripts', 'resources'])
@@ -31,7 +32,6 @@ gulp.task('pages', ['locals'], function() {
 })
 gulp.watch(pagesSrc, ['pages'])
 gulp.watch(src + '/explanations/*', ['pages'])
-gulp.watch(src + '/explanations/**/*.js', ['pages'])
 gulp.watch(src + '/explanations/**/*.jade', ['pages'])
 gulp.watch(src + '/templates/*.jade', ['pages'])
 gulp.watch(src + '/pages/*', ['pages'])
@@ -65,17 +65,31 @@ gulp.task('resources', ['locals'], function(cb) {
   fse.copySync(src + '/img', out + '/img')
   function from(name) { return src + '/explanations/' + name }
   function to(name) { return out + '/' + name }
-  function tryCopy(name) {
-    try { fse.copySync(from(name), to(name)) } catch(e) {}
+  function copy(name) {
+    fse.copySync(from(name), to(name))
   }
   locals.explanations.forEach(function(d) {
-    tryCopy(d.slug + '/thumb.gif')
-    tryCopy(d.slug + '/thumb-preview.png')
-    tryCopy(d.slug + '/fb-thumb.png')
-    tryCopy(d.slug + '/resources/')
+    // Throw an error if any of the thumbnails are missing.
+    try { copy(d.slug + '/thumb-preview.png') } catch(e) {
+      console.log('WARNING: No preview thumb for ' + d.slug)
+    }
+    try { copy(d.slug + '/fb-thumb.png') } catch(e) {
+      console.log('WARNING: No Facebook thumb for ' + d.slug)
+    }
+    try { copy(d.slug + '/resources/') } catch(e) {}
+    var files = fs.readdirSync(from(d.slug))
+    // Copy over scripts.
+    files.forEach(function(file) {
+      if (file.match(/.*\.js$/)) {
+        console.log('file:', file)
+        copy(d.slug + '/' + file)
+      }
+    })
   })
   cb()
 })
+
+gulp.watch(src + '/explanations/**/*.js', ['resources'])
 
 gulp.task('scripts', function(cb) {
   fse.copy(src + '/scripts', out + '/scripts', cb)
@@ -84,23 +98,9 @@ gulp.task('scripts', function(cb) {
 gulp.watch(src + 'scripts/*', ['scripts'])
 
 gulp.task('locals', function(cb) {
-  locals = JSON.parse(fs.readFileSync('locals.json'))
-  var hash = locals.explanationsHash = {}
-  locals.explanations.reverse().forEach(function(d) { hash[d.slug] = d })
-  Object.keys(hash).forEach(function(slug) {
-    hash[slug].slug = slug
-    hash[slug].path = locals.basepath  + slug + '/'
-  })
-  fs.readdir(src + '/explanations', function(err, files) {
-    if (err) return cb(err)
-    var filesHash = {}
-    files.forEach(function(d) { filesHash[d] = true })
-    // Check that each explanation has its folder.
-    locals.explanations.forEach(function(d) {
-      if (!filesHash[d.slug]) throw new Error('missing folder for explanation ' + d.slug)
-    })
-    cb()
-  })
+  locals = localsStore.refresh()
+  cb()
 })
 
 gulp.watch('./locals.json', ['default'])
+
