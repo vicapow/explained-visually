@@ -103,21 +103,44 @@ myApp.directive('similarTriangles', function() {
 
     var labelA = tg.append('text')
       .attr({y: 5, class: 'label-a'})
-      .style('text-anchor', 'middle')
 
     var labelB = tg.append('text')
       .attr({y: 5, class: 'label-b'})
-      .style('text-anchor', 'middle')
 
     var labelC = tg.append('text')
       .attr({y: 5, class: 'label-c'})
       .text(function(d) { return 'c=' + d.r })
-      .style('text-anchor', 'middle')
 
-    var cL = tg.append('g').call(function(cL) {
-      var t = cL.append('text')
-      t.append('tspan').text('cos(')
-    })
+    var cosL = tg.append('g')
+      .attr('class', 'equation sine')
+      .attr('transform', function(d) {
+        return 'translate(' + [ x(d.r) * 1.2 - 20, 70] + ') scale(0.7)'
+      })
+      .call(equation, 'cos(θ) =', 'a', 'c')
+
+    var sinL = tg.append('g')
+      .attr('class', 'equation cosine')
+      .attr('transform', function(d) {
+        return 'translate(' + [ x(d.r) * 1.2 - 40, 100 ] + ') scale(0.7)'
+      })
+      .call(equation, 'sin(θ) =')
+
+    function equation(cL, eq, num, denom) {
+      var t = cL.append('text').attr('class', 'symbols')
+      t.append('tspan').text(eq)
+      t.append('tspan').text(' = ').attr('x', 70).attr('y', 0)
+      var t = cL.append('text').attr('class', 'values')
+        .attr('transform', 'translate(45,0)')
+      t.append('tspan').attr('class', 'numerator')
+        .text('').attr('x', 0).attr('y', -10)
+      t.append('tspan').text('—').attr('x', 0).attr('y', 0)
+      t.append('tspan').attr('class', 'denominator')
+        .text(function(d) { return d.r })
+        .attr('x', 0).attr('y', 12)
+      t.append('tspan')
+        .attr('class', 'value')
+        .text('100').attr('x', 60).attr('y', 0)
+    }
 
 
     function update() {
@@ -172,24 +195,34 @@ myApp.directive('similarTriangles', function() {
         v = m.add(v)
         return 'translate(' + v + ')'
       })
+      cosL.select('.numerator')
+        .text(function(d) { return d3.round(x.invert(d.px), 2) })
+      sinL.select('.numerator')
+        .text(function(d) { return d3.round(-x.invert(d.py), 2) })
+      cosL.select('.value')
+        .text(function(d) { return d3.round(x.invert(d.px) / d.r, 2) })
+      sinL.select('.value')
+        .text(function(d) { return d3.round(-x.invert(d.py) / d.r, 2) })
     }
 
     var drag = d3.behavior.drag()
-      .on('drag', function(d,i) {
-        scope.$apply(function() {
-          var pPos = scope.opts.pos
-          var prevR = sqrt(pPos[0] * pPos[0] + pPos[1] * pPos[1])
-          var pos = d3.mouse(this), px, py
-          pos = [px = x.invert(pos[0]), py = y.invert(pos[1])]
-          var r = sqrt( px * px + py * py)
-          var theta
-          if (r > 0.001) theta = acos(px / r); else theta = 0
-          if (py < 0) theta = pi * 2 - theta
-          px = cos(theta) * prevR, py = sin(theta) * prevR
-          scope.opts.pos = [px, py]
-        }.bind(this))
-      })
+      .on('drag', function(d,i) { scope.$apply(updatePos.bind(this)) })
     tg.call(drag)
+
+    tg.on('mousedown', function() { scope.$apply(updatePos.bind(this)) })
+
+    function updatePos() {
+      var pPos = scope.opts.pos
+      var prevR = sqrt(pPos[0] * pPos[0] + pPos[1] * pPos[1])
+      var pos = d3.mouse(this), px, py
+      pos = [px = x.invert(pos[0]), py = y.invert(pos[1])]
+      var r = sqrt( px * px + py * py)
+      var theta
+      if (r > 0.001) theta = acos(px / r); else theta = 0
+      if (py < 0) theta = pi * 2 - theta
+      px = cos(theta) * prevR, py = sin(theta) * prevR
+      scope.opts.pos = [px, py]
+    }
 
     update()
 
@@ -367,7 +400,7 @@ myApp.directive('trigTransform', function() {
         g.selectAll('.triangle').transition().duration(dur).style('opacity', 0)
         if (isCosine) g.select('.rot')
           .transition()
-          .delay(dur)
+          .delay(dur / 2)
           .duration(dur / 2)
           .attr('transform', function(d) { return 'rotate(-90)' })
           .call(expandLines)
@@ -375,7 +408,7 @@ myApp.directive('trigTransform', function() {
         function expandLines(g) {
           var done = 2
           g.transition()
-          .duration(dur)
+          .duration(dur / 2)
           .each('end', function() { if (!--done) expandPlot() })
         }
         g.selectAll('text').transition().duration(dur).style('opacity', 0)
@@ -552,17 +585,21 @@ myApp.directive('unitCircle', function() {
     var nob = gridG.append('g').attr('class', 'nob')
     nob.append('circle').attr({r: 5})
     var drag = d3.behavior.drag()
-      .on('drag', function(d,i) {
-        scope.$apply(function() {
-          var pos = d3.mouse(this)
-          pos[0] = pos[0] - w * 0.5
-          pos[1] = pos[1] - h * 0.5
-          pos = [xScale.invert(pos[0]), yScale.invert(pos[1])]
-          pos = limitToR(pos[0], pos[1], 2)
-          pos = scope.opts.pos = pos
-        }.bind(this))
+      .on('drag', function() {
+        scope.$apply(updatePos.bind(this))
       })
     svg.call(drag)
+
+    function updatePos() {
+      var pos = d3.mouse(this)
+      pos[0] = pos[0] - w * 0.5
+      pos[1] = pos[1] - h * 0.5
+      pos = [xScale.invert(pos[0]), yScale.invert(pos[1])]
+      pos = limitToR(pos[0], pos[1], 2)
+      pos = scope.opts.pos = pos
+    }
+
+    svg.on('mousedown', function() { scope.$apply(updatePos.bind(this)) })
 
     var cosArm = gridG.append('line')
       .attr('class', 'cos-arm')
@@ -647,7 +684,12 @@ myApp.directive('linkedCoordinates', function() {
     var arm = polarG.append('line').attr('class', 'arm')
     var arc = polarG.append('path').attr('class', 'arc')
 
-    var drag = d3.behavior.drag().on('drag', function(d,i) {
+    var drag = d3.behavior.drag()
+    .on('drag', function() { updatePos.call(this) })
+    svg.call(drag)
+    svg.on('mousedown', function() { updatePos.call(this) })
+
+    function updatePos() {
       var pos = d3.mouse(this), x, y, set = false, r, theta, tx
       if (pos[0] < w * 0.5) {
         x = pos[0] - polarGPos[0], y = pos[1] - polarGPos[1]
@@ -669,8 +711,7 @@ myApp.directive('linkedCoordinates', function() {
       if (set) scope.$apply(function() {
         scope.opts.pos = [x, y]
       })
-    })
-    svg.call(drag)
+    }
 
     polarG.append('g')
       .selectAll('circle')

@@ -13,6 +13,7 @@ linked-coordinates, unit-circle {
   display: block;
   width: 100%;
   height: 300px;
+  cursor: pointer;
   .arm {
     stroke: @rayColor;
     stroke-width: 4;
@@ -191,6 +192,7 @@ similar-triangles {
   .outline {
     fill: rgba(0, 0, 0, 0); /* prides a click region */
     stroke: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
   }
   .triangle {
     fill: rgba(0, 0, 0, 0.1);
@@ -211,17 +213,52 @@ similar-triangles {
   }
   .label-a {
     fill: @cosineColor;
+    text-anchor: middle;
   }
   .label-b {
     fill: @sineColor;
+    text-anchor: middle;
   }
   .label-c {
     fill: @rayColor;
+    text-anchor: middle;
   }
+
   .corner-square {
     fill: rgba(255, 255, 255, 0.8);
     stroke: rgba(0, 0, 0, 0.2);
     stroke-width: 1;
     shape-rendering: crispEdges;
+  }
+  text {
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  :hover {
+     text {
+      opacity: 1;
+    }
+  }
+  .equation {
+    text-anchor: middle;
+    .value {
+      font-weight: bold;
+    }
+    &.sine {
+      .numerator {
+        fill: @cosineColor;
+      }
+      .denominator {
+        fill: @rayColor;
+      }
+    }
+    &.cosine {
+      .numerator {
+        fill: @sineColor;
+      }
+      .denominator {
+        fill: @rayColor;
+      }
+    }
   }
 }
