@@ -109,7 +109,7 @@ myApp.directive('similarTriangles', function() {
 
     var labelC = tg.append('text')
       .attr({y: 5, class: 'label-c'})
-      .text(function(d) { return 'c=' + d.r })
+      .text(function(d) { return  d.r })
 
     var cosL = tg.append('g')
       .attr('class', 'equation sine')
@@ -180,13 +180,13 @@ myApp.directive('similarTriangles', function() {
           var top = theta >= pi
           return 'translate(' + [d.px / 2, top ? -10 : 10] + ')'
         })
-        .text(function(d) { return 'a=' + d3.round(x.invert(d.px), 2) })
+        .text(function(d) { return d3.round(x.invert(d.px), 2) })
       labelB
         .attr('transform', function(d) {
           var right = (theta < pi * 0.5 || theta > pi * 1.5) ? 1 : -1
           return 'translate(' + [d.px + right * 30, d.py / 2] + ')'
         })
-        .text(function(d) { return 'b=' + d3.round(-x.invert(d.py), 2) })
+        .text(function(d) { return  d3.round(-x.invert(d.py), 2) })
       labelC.attr('transform', function(d) {
         var m = vector(d.px / 2, d.py / 2)
         var top = theta >= 0 && theta < pi * 0.5 
