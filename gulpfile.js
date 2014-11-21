@@ -80,10 +80,7 @@ gulp.task('resources', ['locals'], function(cb) {
     var files = fs.readdirSync(from(d.slug))
     // Copy over scripts.
     files.forEach(function(file) {
-      if (file.match(/.*\.js$/)) {
-        console.log('file:', file)
-        copy(d.slug + '/' + file)
-      }
+      if (file.match(/.*\.js$/)) copy(d.slug + '/' + file)
     })
   })
   cb()
@@ -95,7 +92,7 @@ gulp.task('scripts', function(cb) {
   fse.copy(src + '/scripts', out + '/scripts', cb)
 })
 
-gulp.watch(src + 'scripts/*', ['scripts'])
+gulp.watch(src + '/scripts/*', ['scripts'])
 
 gulp.task('locals', function(cb) {
   locals = localsStore.refresh()

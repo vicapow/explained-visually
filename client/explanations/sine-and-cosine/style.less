@@ -5,6 +5,10 @@
 @sineColor: #2ecc71;
 @softColor: rgba(0, 0, 0, 0.1);
 
+.nob {
+  cursor: pointer;
+}
+
 linked-coordinates, unit-circle {
   display: block;
   width: 100%;
@@ -47,7 +51,7 @@ linked-coordinates, unit-circle {
   .cos-arm, .sin-arm {
     stroke-width: 8;
   }
-  .sine-g {
+  .sine-g, .cosine-g {
     .sin {
       fill: none;
       stroke: rgba(0, 0, 0, 0.5);
@@ -104,7 +108,6 @@ unit-circle {
 }
 
 trig-transform {
-  // background-color: rgba(0, 0, 0, 0.1);
   display: block;
   width: 100%;
   height: 200px;
@@ -177,5 +180,48 @@ trig-transform {
   .axis-zero {
     stroke: rgba(0, 0, 0, 0.1);
     stroke-width: 1;
+  }
+}
+
+similar-triangles {
+  width: 100%;
+  height: 300px;
+  display: block;
+  // background-color: rgba(0, 0, 0, 0.1);
+  .outline {
+    fill: rgba(0, 0, 0, 0); /* prides a click region */
+    stroke: rgba(0, 0, 0, 0.3);
+  }
+  .triangle {
+    fill: rgba(0, 0, 0, 0.1);
+    stroke: none;
+    cursor: pointer;
+  }
+  .side-a {
+    stroke: @cosineColor;
+  }
+  .side-b {
+    stroke: @sineColor;
+  }
+  .side-c {
+    stroke: @rayColor;
+  }
+  .side-a, .side-b, .side-c {
+    stroke-width: 2;
+  }
+  .label-a {
+    fill: @cosineColor;
+  }
+  .label-b {
+    fill: @sineColor;
+  }
+  .label-c {
+    fill: @rayColor;
+  }
+  .corner-square {
+    fill: rgba(255, 255, 255, 0.8);
+    stroke: rgba(0, 0, 0, 0.2);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
   }
 }

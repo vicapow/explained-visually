@@ -7,30 +7,218 @@ var pi = Math.PI
   , sin = Math.sin
   , acos = Math.acos
   , round = Math.round
+  , max = Math.max
+  , min = Math.min
 
-var myApp = angular.module('myApp', [])
+var myApp = angular.module('myApp', ['ev'])
 
 myApp.controller('MainCtrl', function($scope) {
   $scope.opts = { pos: [1, 1] }
 })
 
+myApp.controller('SineAnimationCtrl', function($scope) {
+  var opts = $scope.opts = { isPlaying: false }
+  $scope.$on('evPlayBtnClick', function() {
+    if (!opts.isPlaying) {
+      opts.isPlaying = true
+      $scope.$broadcast('startPlay')
+    }
+  })
+})
+
+myApp.controller('CosineAnimationCtrl', function($scope) {
+  var opts = $scope.opts = { isPlaying: false }
+  $scope.$on('evPlayBtnClick', function() {
+    if (!opts.isPlaying) {
+      opts.isPlaying = true
+      $scope.$broadcast('startPlay')
+    }
+  })
+})
+
+myApp.controller('SineCosineLinkedCtrl', function($scope) {
+  // var opts = $scope.opts = { pos: [1, 1] }
+})
+
+myApp.directive('testComp', function() {
+  function link(scope, el, attr) {
+    scope.$on('startPlay', function() {
+      console.log('start playing the component!')
+      setTimeout(function() {
+        scope.$apply(function() {
+          console.log('try to stop playing')
+          scope.opts.isPlaying = false
+        })
+      }, 4000)
+    })
+  }
+  return {
+    link: link,
+    restrict: 'E',
+    template: '<h1> is playing? {{opts.isPlaying}} </h1>'
+  }
+})
+
+myApp.directive('similarTriangles', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var svg = el.append('svg').attr({width: w, height: h })
+    var m = {l: 95, r: 95, t: 20, b: 20}
+    var n = 4, R = 30
+    var x = d3.scale.linear().domain([0, 1]).range([0, R])
+    var y = d3.scale.linear().domain([0, 1]).range([0, -R])
+    var data = (function() {
+      var triangles = d3.range(n)
+      var totalR = triangles
+        .reduce(function(s, c) { return s + x(c + 1) }, 0) * 2
+      var remainingW = w - totalR - m.l - m.r
+      var padding = remainingW / (triangles.length - 1)
+      var prevX = 0
+      return triangles.map(function(r) {
+        var rp = x(r + 1) // r in pixels.
+        var d = { r: r + 1, x: prevX + rp }
+        prevX = prevX + rp * 2 + padding
+        return d
+      })
+    })()
+
+    var stageY = d3.scale.linear().domain([0, 1]).range([m.t, h - m.b])
+    var tg = svg.selectAll('g').data(data)
+      .enter().append('g')
+      .attr('transform', function(d, i) {
+        return 'translate(' + [d.x + m.l, stageY(0.5)] + ')'
+      })
+    tg.append('circle').attr({r: function(d) { return x(d.r) }})
+      .attr('class', 'outline')
+
+    var triangles = tg.append('path').attr('class', 'triangle')
+
+    var sq = tg.append('rect').attr('class', 'corner-square')
+
+    var sideA = tg.append('line').attr('class', 'side-a')
+    var sideB = tg.append('line').attr('class', 'side-b')
+    var sideC = tg.append('line').attr('class', 'side-c')
+
+
+    var labelA = tg.append('text')
+      .attr({y: 5, class: 'label-a'})
+      .style('text-anchor', 'middle')
+
+    var labelB = tg.append('text')
+      .attr({y: 5, class: 'label-b'})
+      .style('text-anchor', 'middle')
+
+    var labelC = tg.append('text')
+      .attr({y: 5, class: 'label-c'})
+      .text(function(d) { return 'c=' + d.r })
+      .style('text-anchor', 'middle')
+
+    var cL = tg.append('g').call(function(cL) {
+      var t = cL.append('text')
+      t.append('tspan').text('cos(')
+    })
+
+
+    function update() {
+      var pos = scope.opts.pos, px = pos[0], py = pos[1]
+      var r = sqrt( px * px + py * py)
+      var theta
+      if (r > 0.001) theta = acos(px / r); else theta = 0
+      if (py < 0) theta = pi * 2 - theta
+      r = 1
+      data.forEach(function(d) {
+        d.px = x(cos(theta) * d.r)
+        d.py = y(sin(theta) * d.r)
+      })
+      triangles
+        .attr('d', function(d) {
+          var points = [ [0, 0], [d.px, 0], [d.px, d.py] ]
+          return 'M' + points.join('L')
+        })
+      sideA.attr({ x1: 0, y1: 0, y2 : 0, x2: function(d) { return d.px } })
+      sideB.attr({
+        x1: function(d) { return d.px }, y1: 0,
+        x2: function(d) { return d.px }, y2: function(d) { return d.py }
+      })
+      sideC.attr({
+        x1: 0, y1: 0,
+        x2: function(d) { return d.px }, y2: function(d) { return d.py }
+      })
+      function calSqW(d) { return min(Math.abs(d.px), 10) }
+      function calSqH(d) { return min(Math.abs(d.py), 10) }
+      sq.attr({
+        x: function(d) { return (d.px > 0) ? d.px - calSqW(d) : d.px },
+        y: function(d) { return (theta > pi) ? 0 : -calSqH(d) },
+        width: calSqW, height: calSqH
+      })
+      labelA
+        .attr('transform', function(d) {
+          var top = theta >= pi
+          return 'translate(' + [d.px / 2, top ? -10 : 10] + ')'
+        })
+        .text(function(d) { return 'a=' + d3.round(x.invert(d.px), 2) })
+      labelB
+        .attr('transform', function(d) {
+          var right = (theta < pi * 0.5 || theta > pi * 1.5) ? 1 : -1
+          return 'translate(' + [d.px + right * 30, d.py / 2] + ')'
+        })
+        .text(function(d) { return 'b=' + d3.round(-x.invert(d.py), 2) })
+      labelC.attr('transform', function(d) {
+        var m = vector(d.px / 2, d.py / 2)
+        var top = theta >= 0 && theta < pi * 0.5 
+          || theta >= pi && theta <= pi * 1.5 ? 1 : -1
+        var v = m.unit().rot(-pi / 2).scale(15 * top)
+        v = m.add(v)
+        return 'translate(' + v + ')'
+      })
+    }
+
+    var drag = d3.behavior.drag()
+      .on('drag', function(d,i) {
+        scope.$apply(function() {
+          var pPos = scope.opts.pos
+          var prevR = sqrt(pPos[0] * pPos[0] + pPos[1] * pPos[1])
+          var pos = d3.mouse(this), px, py
+          pos = [px = x.invert(pos[0]), py = y.invert(pos[1])]
+          var r = sqrt( px * px + py * py)
+          var theta
+          if (r > 0.001) theta = acos(px / r); else theta = 0
+          if (py < 0) theta = pi * 2 - theta
+          px = cos(theta) * prevR, py = sin(theta) * prevR
+          scope.opts.pos = [px, py]
+        }.bind(this))
+      })
+    tg.call(drag)
+
+    update()
+
+    scope.$watch('opts.pos', update, true)
+
+  }
+  return {link: link, restrict: 'E'}
+})
+
 myApp.directive('trigTransform', function() {
   function link(scope, el, attr) {
-    var w = el[0].clientWidth, h = el[0].clientHeight
-    var svg = d3.select(el[0]).append('svg').attr({width: w, height: h})
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var stage, baseAxis, unitCircles, movingUnit
+    var xAxis, xAxisG, yAxis, yAxisG, axisZero, sinPath, cosPath
     var isSine = attr.func === 'sine'
     var isCosine = attr.func === 'cosine'
-    d3.select(el[0]).classed('cosine', isCosine).classed('sine', isSine)
-    var stage = svg.append('g')
-    var baseAxis = stage.append('g').style('opacity', 0)
-      // .attr('transform', 'translate(700, 150) scale(4) translate(0, -150) ')
-    var m = { l: 70, t: 20, r: 70, b: 20 }
+    var m = { l: 70, t: 30, r: 70, b: 30 }
     var n = Math.pow(2, 4) + 1
     var rInPixels = 1 / (n - 1) * (w - m.l - m.r) * .5
+    var x, y
     var rS = 1.2
-    var x = d3.scale.linear().domain([0, tau]).range([m.l, w - m.r])
-    var y = d3.scale.linear().domain([-rS, rS]).range([rInPixels, -rInPixels])
+    var needsReset = false
     var thetas = d3.range(n).map(function(d) { return d / (n - 1) * tau })
+    var dur = 5000, delay = 2000
+    
+
+    var svg = el.classed('cosine', isCosine).classed('sine', isSine)
+      .append('svg').attr({width: w, height: h})
 
     var unitX = d3.scale.linear()
       .domain([-rS, rS])
@@ -42,11 +230,6 @@ myApp.directive('trigTransform', function() {
       .domain([-rS, rS])
       .range([ rInPixels, -rInPixels])
 
-    var unitCircles = stage.append('g').selectAll('g').data(thetas)
-      .enter().append('g')
-      .attr('transform', function(d) {
-        return 'translate(' + [ x(d), h * 0.5 ] + ')'
-      })
 
     var unitXAxis = d3.svg.axis().scale(unitX).tickValues(tickValues)
       .tickFormat(function(d) {
@@ -59,6 +242,38 @@ myApp.directive('trigTransform', function() {
       .tickFormat(function(d) {
         return d3.round(d)
       }).outerTickSize(3).innerTickSize(0)
+
+
+    init()
+
+
+    function init() {
+      // Remove everything and start a new.
+      
+      x = d3.scale.linear().domain([0, tau]).range([m.l, w - m.r])
+      y = d3.scale.linear().domain([-rS, rS]).range([rInPixels, -rInPixels])
+
+      svg.selectAll('*').remove()
+
+      stage = svg.append('g')
+      baseAxis = stage.append('g').style('opacity', 0)
+
+      unitCircles = stage.append('g').selectAll('g').data(thetas)
+        .enter().append('g')
+        .attr('transform', function(d) {
+          return 'translate(' + [ x(d), h * 0.5 ] + ')'
+        })
+
+      movingUnit = stage.append('g').attr('class', 'moving-unit')
+        .datum(0)
+        .call(buidUnitCircle)
+        .call(updateUnitCircle)
+        .attr('transform', function(d) {
+          return 'translate(' + [ x(d), h * 0.5 ] + ')'
+        })
+      
+      buildXYAxis()
+    }
 
     function buidUnitCircle(g) {
       g.classed('unit-circle', true)
@@ -106,120 +321,99 @@ myApp.directive('trigTransform', function() {
       })
     }
 
-    var dur = 5000, delay = 2000
-    var movingUnit = stage.append('g').attr('class', 'moving-unit')
-      .datum(0)
-      .call(buidUnitCircle)
-      .call(updateUnitCircle)
-      .attr('transform', function(d) {
-        return 'translate(' + [ x(d), h * 0.5 ] + ')'
-      })
-    movingUnit.transition()
-      .delay(delay)
-      .ease('linear')
-      .duration(dur)
-      .attr('transform', function(d) {
-        return 'translate(' + [ x(thetas[thetas.length - 1]), h * 0.5 ] + ')'
-      })
-      .tween('custom', function() {
-        return function(t) {
-          var theta = tau * t
-          d3.select(this).datum(theta).call(updateUnitCircle)
-        }
-      })
-    
-    var doneCount = unitCircles.size()
-    unitCircles.call(buidUnitCircle).call(updateUnitCircle)
-      .style('opacity', 0)
-      .transition()
-      .duration(500)
-      .ease('cubic-in')
-      .delay(function(d, i) { return delay + i * dur / (thetas.length - 1) - 100 })
-      .style('opacity', 1)
-      .each('end', function(d) {
-        if (!--doneCount) doneWithMovingUnit()
-      })
+    function start() {
+      if (needsReset) init()
+      var delay = 400
+      movingUnit.transition()
+        .delay(delay)
+        .ease('linear')
+        .duration(dur)
+        .attr('transform', function(d) {
+          return 'translate(' + [ x(thetas[thetas.length - 1]), h * 0.5 ] + ')'
+        })
+        .tween('custom', function() {
+          return function(t) {
+            var theta = tau * t
+            d3.select(this).datum(theta).call(updateUnitCircle)
+          }
+        })
+      
+      var doneCount = unitCircles.size()
+      unitCircles.call(buidUnitCircle).call(updateUnitCircle)
+        .style('opacity', 0)
+        .transition()
+        .duration(500)
+        .ease('cubic-in')
+        .delay(function(d, i) {
+          return delay + i * dur / (thetas.length - 1) - 100
+        })
+        .style('opacity', 1)
+        .each('end', function(d) {
+          if (!--doneCount) doneWithMovingUnit()
+        })
+    }
 
 
     function doneWithMovingUnit() {
       movingUnit.remove()
-      var dur = 1000
+      var dur = 3000
       unitCircles.call(function(g) {
         g.selectAll('circle')
           .transition()
           .duration(dur)
           .style('opacity', 0)
-        g.selectAll('.axis')
-          .transition()
-          .duration(dur)
-          .style('opacity', 0)
-        g.selectAll('.ray-arm')
-          .transition()
-          .duration(dur)
-          .style('opacity', 0)
-        g.selectAll('.triangle')
-          .transition()
-          .duration(dur)
-          .style('opacity', 0)
+        g.selectAll('.axis').transition().duration(dur).style('opacity', 0)
+        g.selectAll('.ray-arm').transition().duration(dur).style('opacity', 0)
+        g.selectAll('.triangle').transition().duration(dur).style('opacity', 0)
         if (isCosine) g.select('.rot')
           .transition()
           .delay(dur)
-          .duration(dur * 2)
-          .attr('transform', function(d) {
-            return 'rotate(-90)'
-          }).call(expandLines)
+          .duration(dur / 2)
+          .attr('transform', function(d) { return 'rotate(-90)' })
+          .call(expandLines)
         else g.call(expandLines)
         function expandLines(g) {
           var done = 2
           g.transition()
           .duration(dur)
-          .call(function(g) {
-            // g.select('.cos-arm').style('stroke-width', 8)
-            // g.select('.sin-arm').style('stroke-width', 8)
-          }).each('end', function() {
-            if (!--done) expandPlot()
-          })
+          .each('end', function() { if (!--done) expandPlot() })
         }
-        g.selectAll('text')
-          .transition()
-          .duration(dur)
-          .style('opacity', 0)
-        baseAxis
-          .transition()
-          .duration(dur)
-          .style('opacity', 1)
+        g.selectAll('text').transition().duration(dur).style('opacity', 0)
+        baseAxis.transition().duration(dur).style('opacity', 1)
       })
     }
 
-    var xAxis = d3.svg.axis().scale(x).tickValues(thetas)
-      .tickFormat(function(d) {
-        return d3.round(d / pi * 10) / 10 + 'π'
-      }).tickSize(4)
+    function buildXYAxis() {
+      xAxis = d3.svg.axis().scale(x).tickValues(thetas)
+        .tickFormat(function(d) {
+          return d3.round(d / pi * 10) / 10 + 'π'
+        }).tickSize(4)
 
-    var xAxisG = baseAxis.append('g').attr('class', 'x-axis axis')
-      .attr('transform', 'translate(' + [0, y.range()[0] + h / 2 ] + ')')
-      .call(xAxis)
+      xAxisG = baseAxis.append('g').attr('class', 'x-axis axis')
+        .attr('transform', 'translate(' + [0, y.range()[0] + h / 2 ] + ')')
+        .call(xAxis)
 
-    var yAxis = d3.svg.axis().scale(y).orient('left').ticks(4)
-      .innerTickSize(-w + m.l + m.r)
-      .outerTickSize(0)
+      yAxis = d3.svg.axis().scale(y).orient('left').ticks(4)
+        .innerTickSize(-w + m.l + m.r)
+        .outerTickSize(0)
 
-    var yAxisG = baseAxis.append('g')
-      .attr('transform', 'translate(' + [m.l, h / 2] + ')')
+      yAxisG = baseAxis.append('g')
+        .attr('transform', 'translate(' + [m.l, h / 2] + ')')
 
-    yAxisG.append('g').attr('class', 'y-axis axis')
-      .call(yAxis)
+      yAxisG.append('g').attr('class', 'y-axis axis')
+        .call(yAxis)
 
-    var axisZero = yAxisG
-      .append('line')
-      .attr('class', 'axis-zero')
-      .attr({x1: 0, y1: round(y(0)), x2: w - m.l - m.r, y2: round(y(0)) })
+      axisZero = yAxisG
+        .append('line')
+        .attr('class', 'axis-zero')
+        .attr({x1: 0, y1: round(y(0)), x2: w - m.l - m.r, y2: round(y(0)) })
 
-    var sinPath = stage.append('path').attr('class', 'sin-path')
-    var cosPath = stage.append('path').attr('class', 'cos-path')
+      sinPath = stage.append('path').attr('class', 'sin-path')
+      cosPath = stage.append('path').attr('class', 'cos-path')
+    }
 
     function expandPlot() {
-      var dur = 1000
+      var dur = 2000
       y.domain([-1, 1]).range([h - m.b - 1, m.t])
       yAxisG
         .transition()
@@ -269,10 +463,20 @@ myApp.directive('trigTransform', function() {
             .transition()
             .duration(dur)
             .style('opacity', 0)
+            setTimeout(finish, dur)
         }, dur)
       }, dur)
     }
-
+    function finish() {
+      needsReset = true
+      scope.$apply(function() {
+        scope.opts.isPlaying = false
+      })
+    }
+    scope.$on('startPlay', function() {
+      console.log('start playing the trig animation')
+      start()
+    })
   }
   return { link: link, restrict: 'E' }
 })
@@ -294,20 +498,17 @@ myApp.directive('unitCircle', function() {
     
     var r = h / 2 - 10
 
-    var xScale = d3.scale.linear()
-      .domain([-2, 2])
-      .range([-r, r])
+    var xScale = d3.scale.linear().domain([-2, 2]).range([-r, r])
 
+    // X Axis
     var xTickValues = xScale.ticks(ticks).filter(function(d) { return !!d })
     gridG.append('g').attr('class', 'axis-x axis')
       .call(d3.svg.axis().scale(xScale).tickValues(xTickValues))
 
-    var yScale = d3.scale.linear()
-      .domain([2, -2])
-      .range([-r, r])
+    var yScale = d3.scale.linear().domain([2, -2]).range([-r, r])
 
+    // Y Axis
     var yTickValues = yScale.ticks(ticks).filter(function(d) { return !!d })
-    console.log('yTickValues', yTickValues)
     gridG.append('g').attr('class', 'axis-y axis')
       .call(d3.svg.axis().orient('left').scale(yScale).tickValues(yTickValues))
 
@@ -320,6 +521,7 @@ myApp.directive('unitCircle', function() {
         .data(xTickValues.filter(function(d) { return d > 0 }))
         .enter().append('circle')
           .attr({ r: xScale, class: 'tick-arc' })
+
     if (isCartesian) {
       gridG.append('g').attr('class', 'ticks x-ticks')
         .selectAll('line')
@@ -331,7 +533,6 @@ myApp.directive('unitCircle', function() {
             y1: function(d) { return yScale.range()[0] },
             y2: function(d) { return yScale.range()[1] }
           })
-
       gridG.append('g').attr('class', 'ticks y-ticks')
         .selectAll('line')
         .data(yTickValues)
@@ -344,6 +545,10 @@ myApp.directive('unitCircle', function() {
           })
     }
 
+    if (isPolar) {
+      // ?
+    }
+
     var nob = gridG.append('g').attr('class', 'nob')
     nob.append('circle').attr({r: 5})
     var drag = d3.behavior.drag()
@@ -352,7 +557,9 @@ myApp.directive('unitCircle', function() {
           var pos = d3.mouse(this)
           pos[0] = pos[0] - w * 0.5
           pos[1] = pos[1] - h * 0.5
-          scope.opts.pos = [xScale.invert(pos[0]), yScale.invert(pos[1])]
+          pos = [xScale.invert(pos[0]), yScale.invert(pos[1])]
+          pos = limitToR(pos[0], pos[1], 2)
+          pos = scope.opts.pos = pos
         }.bind(this))
       })
     svg.call(drag)
@@ -414,28 +621,25 @@ myApp.directive('unitCircle', function() {
 
 myApp.directive('linkedCoordinates', function() {
   function link(scope, el, attr) {
-    var w = el[0].clientWidth, h = el[0].clientHeight
-    var svg = d3.select(el[0]).append('svg').attr({width: w, height: h})
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
     var theta = 0
-    var showSine = attr.showSine === 'true'
-    var showCosine = attr.showCosine === 'true'
+    var R = h / 2 - 10
+    var polarGPos = [w * 0.3, h * 0.5]
+
+    var svg = el.append('svg').attr({width: w, height: h})
     
     var polarG = svg.append('g').attr('class', 'polar-g')
-      .attr('transform', 'translate(' + [w * 0.3, h * 0.5] + ')')
+      .attr('transform', 'translate(' + polarGPos + ')')
     
-    var r = h / 2 - 10
 
-    var xScale = d3.scale.linear()
-      .domain([-2, 2])
-      .range([-r, r])
+    var xScale = d3.scale.linear().domain([-2, 2]).range([-R, R])
 
     var xTickValues = xScale.ticks(6)
     polarG.append('g').attr('class', 'axis-x axis')
       .call(d3.svg.axis().scale(xScale).tickValues(xTickValues))
 
-    var yScale = d3.scale.linear()
-      .domain([2, -2])
-      .range([-r, r])
+    var yScale = d3.scale.linear().domain([2, -2]).range([-R, R])
 
     polarG.append('g').attr('class', 'axis-y axis')
       .call(d3.svg.axis().orient('left').scale(yScale).ticks(6))
@@ -443,28 +647,30 @@ myApp.directive('linkedCoordinates', function() {
     var arm = polarG.append('line').attr('class', 'arm')
     var arc = polarG.append('path').attr('class', 'arc')
 
-    var nob = polarG.append('g').attr('class', 'nob')
-    nob.append('circle').attr({r: 5})
-    var drag = d3.behavior.drag()
-      .on('drag', function(d,i) {
-          var pos = d3.mouse(this), x = pos[0], y = pos[1]
-          nob.attr('transform', function(d,i) {
-            return 'translate(' + pos + ')'
-          })
-          arm.attr({x1: 0, y1: 0, x2: x, y2: y })
-          var r = Math.sqrt( x * x + y * y)
-          theta = Math.acos(x / r)
-          if (y > 0) theta = pi * 2 - theta
-          arc.attr('d', 'M ' + [ r, 0 ]
-            + ' A ' + [r, r, 0, (y < 0 ? 0 : 1 ), 0 ]
-            + [pos[0], pos[1]]
-          )
-          showCosine && polarCosArm.attr({x2: pos[0] })
-          showSine && polarSinArm.attr({y2: pos[1] })
-          updateSineCos(-yScale.invert(r))
-          // updateSineCos(1)
+    var drag = d3.behavior.drag().on('drag', function(d,i) {
+      var pos = d3.mouse(this), x, y, set = false, r, theta, tx
+      if (pos[0] < w * 0.5) {
+        x = pos[0] - polarGPos[0], y = pos[1] - polarGPos[1]
+        x = xScale.invert(x), y = yScale.invert(y)
+        var XY = limitToR(x, y, 2), x = XY[0], y = XY[1]
+        set = true
+      }
+      tx = pos[0] - w * 0.55
+      if ( tx >= thetaScale.range()[0] && tx <= thetaScale.range()[1] ) {
+        theta = thetaScale.invert(tx)
+        x = scope.opts.pos[0], y = scope.opts.pos[1]
+        r = sqrt(x * x + y * y)
+        x = cos(theta) * r
+        y = sin(theta) * r
+        // console.log('theta', theta)
+        set = true
+      }
+
+      if (set) scope.$apply(function() {
+        scope.opts.pos = [x, y]
       })
-    polarG.call(drag)
+    })
+    svg.call(drag)
 
     polarG.append('g')
       .selectAll('circle')
@@ -481,64 +687,116 @@ myApp.directive('linkedCoordinates', function() {
       .attr({x1:0, y1: 0})
 
     var sineG = svg.append('g').attr('class', 'sine-g')
-      .attr('transform', 'translate(' + [w * 0.5, h * 0.5] + ')')
+      .attr('transform', 'translate(' + [w * 0.55, h * 0.33] + ')')
 
-    var thetaScale = d3.scale.linear()
-      .domain([0, pi * 2])
-      .range([0, r * 2])
-    sineG.append('g').attr('class', 'axis-theta axis')
+    sineG.append('text').text('sin(θ)')
+      .attr('transform', 'translate(' + [-50, 5] + ')')
+      .style('text-anchor', 'end')
+
+    var cosineG = svg.append('g').attr('class', 'cosine-g')
+      .attr('transform', 'translate(' + [w * 0.55, h * 0.66] + ')')
+
+    cosineG.append('text').text('cos(θ)')
+      .attr('transform', 'translate(' + [-50, 5] + ')')
+      .style('text-anchor', 'end')
+
+    var thetaScale = d3.scale.linear().domain([0, pi * 2]).range([0, R * 2])
+
+    function appendThetaScale(g) {
+      g.append('g').attr('class', 'axis-theta axis')
       .call(d3.svg.axis().scale(thetaScale)
         .tickValues([0, pi / 2, pi, pi * 1.5, pi * 2])
         .tickFormat(function(d, i) {
           return  d3.format('.1f')(d / pi) + 'π'
         })
       )
+    }
 
-    sineG.append('g').attr('class', 'axis-y axis')
-      .call(d3.svg.axis().orient('left').scale(yScale).ticks(6))
+    sineG.call(appendThetaScale)
+    cosineG.call(appendThetaScale)
+
+    var yScaleTrig = d3.scale.linear().domain([1, -1]).range([-40, 40])
+    
+    function appendYScale(g) {
+      g.append('g').attr('class', 'axis-y axis')
+        .call(d3.svg.axis().orient('left').scale(yScaleTrig).ticks(2))
+        .attr('transform', 'translate(-20, 0)')
+    }
+
+    sineG.call(appendYScale)
+    cosineG.call(appendYScale)
 
     var sinPath, cosPath
     var sineArm = sineG.append('line').attr('class', 'sin-arm')
-    var coseArm = sineG.append('line').attr('class', 'cos-arm')
+    var coseArm = cosineG.append('line').attr('class', 'cos-arm')
 
-    sinPath = showSine && sineG.append('path')
-    cosPath = showCosine && sineG.append('path')
+    sinPath = sineG.append('path')
+    cosPath = cosineG.append('path')
 
     function updateSineCos(radius) {
-      var n = 100, vals, x
+      var n = 100, vals, x, y
 
-      if (showSine) {
-        vals = d3.range(n).map(function(i) {
-          x = pi * 2 / (n - 1) * i
-          return [ thetaScale(x), yScale(sin(x) * radius) ]
-        })
-        sinPath.attr('class', 'sin').attr('d', 'M' + vals.join('L'))
-        sineArm.attr({
-          x1: thetaScale(theta),
-          y1: 0,
-          x2: thetaScale(theta),
-          y2: yScale(sin(theta) * radius)
-        })
-      }
+      // Show sine.
+      vals = d3.range(n).map(function(i) {
+        x = pi * 2 / (n - 1) * i
+        return [ thetaScale(x), yScaleTrig(sin(x) * radius) ]
+      })
+      x = thetaScale(theta), y = yScaleTrig(sin(theta) * radius)
+      sinPath.attr('class', 'sin').attr('d', 'M' + vals.join('L'))
+      sineArm.attr({ x1: thetaScale(theta), y1: 0, x2: x, y2: y })
+      sineNob.attr('transform', 'translate(' + [x, y] + ')')
 
-      if (showCosine) {
-        vals = d3.range(n).map(function(i) {
-          x = pi * 2 / (n - 1) * i
-          return [ thetaScale(x), yScale(cos(x) * radius) ]
-        })
-        cosPath.attr('class', 'cos').attr('d', 'M' + vals.join('L'))
-        coseArm.attr({
-          x1: thetaScale(theta),
-          y1: 0,
-          x2: thetaScale(theta),
-          y2: yScale(cos(theta) * radius)
-        })
-      }
+      // Show cosine.
+      vals = d3.range(n).map(function(i) {
+        x = pi * 2 / (n - 1) * i
+        return [ thetaScale(x), yScaleTrig(cos(x) * radius) ]
+      })
+      cosPath.attr('class', 'cos').attr('d', 'M' + vals.join('L'))
+      x = thetaScale(theta), y = yScaleTrig(cos(theta) * radius)
+      coseArm.attr({ x1: thetaScale(theta), y1: 0, x2: x, y2: y })
+      cosineNob.attr('transform', 'translate(' + [x, y] + ')')
     }
 
-    updateSineCos(1)
+    function update() {
+      var x = scope.opts.pos[0], y = scope.opts.pos[1]
+      var pos = [xScale(x), yScale(y)]
+      x = pos[0], y = pos[1]
+      nob.attr('transform', function(d,i) { return 'translate(' + pos + ')' })
+      arm.attr({x1: 0, y1: 0, x2: x, y2: y })
+      var r = Math.sqrt( x * x + y * y)
+      theta = Math.acos(x / r)
+      if (y > 0) theta = pi * 2 - theta
+      arc.attr('d', 'M ' + [r, 0]
+        + ' A ' + [r, r, 0, (y < 0 ? 0 : 1 ), 0]
+        + pos
+      )
+      polarCosArm.attr({x2: x })
+      polarSinArm.attr({y2: y })
+      // updateSineCos(-yScale.invert(r))
+      updateSineCos(1)
+    }
+
+    // Add some nobs.
+    function buildNob(g) { g.append('circle').attr({r: 5}) }
+    var nob = polarG.append('g').attr('class', 'nob').call(buildNob)
+    var sineNob = sineG.append('g').attr('class', 'nob').call(buildNob)
+    var cosineNob = cosineG.append('g').attr('class', 'nob').call(buildNob)
+
+    update()
+
+    scope.$watch('opts.pos', update, true)
 
   }
   return {link: link, restrict: 'E'}
 })
 
+
+function limitToR(x, y, maxR) {
+  var r = sqrt(x * x + y * y), theta
+  if (r > maxR) {
+    theta = acos(x / r)
+    if (y > 0) theta = tau - theta
+    x = cos(theta) * maxR, y = - sin(theta) * maxR
+  }
+  return [x, y]
+}

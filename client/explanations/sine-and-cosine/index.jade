@@ -21,18 +21,21 @@ html
         else
          !{author}
     section
+      similar-triangles
+    section(ng-controller="SineCosineLinkedCtrl")
       unit-circle(system="cartesian" style="float:left;width:50%")
       unit-circle(system="polar" style="float:left;width:50%")
+    section(ng-controller="SineAnimationCtrl")
+      h1 Sine(θ)
+      ev-play-button(is-playing="opts.isPlaying" style="width:100%; height: 200px")
+        trig-transform(func="sine")
+    section(ng-controller="CosineAnimationCtrl")
+      h1 Cosine(θ)
+      ev-play-button(is-playing="opts.isPlaying" style="width:100%; height: 200px")
+        trig-transform(func="cosine")
     section
-      h2 Sine
-      trig-transform(func="sine")
-    section
-      h2 Cosine
-      trig-transform(func="cosine")
       div(style="clear:both")
-      linked-coordinates(show-cosine="true")
-      linked-coordinates(show-sine="true")
-
+      linked-coordinates
     +footer
     +disqus
 
