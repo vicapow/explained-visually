@@ -306,10 +306,51 @@ myApp.directive('ev3Thumb', function() {
 })
 
 myApp.directive('ev4Thumb', function() {
-  function link() {
+  function link(scope, el, attr) {
     var sel = d3.select(el[0])
     var w = sel.node().clientWidth, h = sel.node().clientHeight
     var svg = sel.append('svg').attr({width: w, height: h})
+    var m = { l: 220, t: 10, r: 10, b: 10 }
+    var n = 100
+    var dur = 500
+    var xScale = d3.scale.linear()
+    var yScale = d3.scale.linear().domain([-1, 1]).range([h - m.b, m.t])
+    var sine = svg.append('path').attr('class', 'sine')
+    var cosine = svg.append('path').attr('class', 'cosine')
+
+    function t1(animate) {
+      xScale.domain([0, tau]).range([m.l, w - m.r])
+      update(animate)
+    }
+
+    function t2(animate) {
+      xScale.domain([0, tau * 8]).range([300, w - m.r])
+      update(animate)
+    }
+
+    function update(animate) {
+      var sg = sine
+      if (animate) sg = sg.transition().duration(dur)
+      sg.call(updateFunc, sin)
+      var cg = cosine
+      if (animate) cg = cg.transition().duration(dur)
+      cg.call(updateFunc, cos)
+    }
+
+    function updateFunc(g, func) {
+      var xDomain = xScale.domain()[1]
+      var vals = d3.range(n).map(function(d) { return d / (n - 1) * xDomain })
+      g.attr('d', 'M' + vals
+        .map(function(d) { return [xScale(d), yScale(func(d))] })
+        .join('L'))
+    }
+
+    svg
+      .on('mouseenter', function() { t2(true) })
+      .on('mouseleave', function() { t1(true) })
+
+    t1(false)
+
   }
   return { link: link, restrict: 'E' }
 })

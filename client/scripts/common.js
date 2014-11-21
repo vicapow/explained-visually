@@ -1,22 +1,37 @@
 
 ;'use strict';
 
+var pi = Math.PI
+  , tau = pi * 2
+  , sqrt = Math.sqrt
+  , cos = Math.cos
+  , sin = Math.sin
+  , acos = Math.acos
+  , round = Math.round
+  , max = Math.max
+  , min = Math.min
+  , random = Math.random
+
+var zip = function(a, b) {
+  return a.map(function(a, i) { return [a, b[i]] })
+}
+
 function vec_add(a, b) { return [ a[0] + b[0], a[1] + b[1] ] }
 
 function vector(x, y) {
   var v = {x: x, y: y}
   // All methods should return a new vector object.
   v.rot = function(theta) {
-    var x = v.x * Math.cos(theta) - v.y * Math.sin(theta)
-    var y = v.x * Math.sin(theta) + v.y * Math.cos(theta)
+    var x = v.x * cos(theta) - v.y * sin(theta)
+    var y = v.x * sin(theta) + v.y * cos(theta)
     return vector(x, y)
   }
   v.unit = function() { var l = v.len(); return vector(v.x / l, v.y / l) }
-  v.len = function() { return Math.sqrt( v.x * v.x + v.y * v.y ) }
+  v.len = function() { return sqrt( v.x * v.x + v.y * v.y ) }
   v.sub = function(b) { return vector(v.x - b.x, v.y - b.y) }
   v.add = function(b) { return vector(v.x + b.x, v.y + b.y) }
   v.scale = function(s) { return vector(v.x * s, v.y * s) }
-  v.rotDegrees = function(theta) { return v.rot(theta * Math.PI / 180) }
+  v.rotDegrees = function(theta) { return v.rot(theta * pi / 180) }
   v.array = function() { return [v.x, v.y] }
   v.toString = function() { return v.array().toString() }
   return v
