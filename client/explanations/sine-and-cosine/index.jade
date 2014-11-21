@@ -28,7 +28,12 @@ html
         else
          !{author}
     section
+      \[\begin{aligned}
+      \sin{\theta} = \rho x &#8211; y &#8211; xz \\
+      \end{aligned} \]
+    section
       p Sine and cosine &mdash; a.k.a., sin(θ) and cos(θ) &mdash; are functions revealing the shape of a right triangle. Looking out from a vertex with angle θ, sin(θ) is the ratio of the <tspan class="direct" style="background-color: #2ecc71;">opposite</tspan> side to the  <tspan class="direct" style="background-color: #9b59b6;">hypotenuse</tspan>, while cos(θ) is the ratio of the <tspan class="direct" style="background-color: #3498db;">adjacent</tspan> side to the <tspan class="direct" style="background-color: #9b59b6;">hypotenuse</tspan>. No matter the size of the triangle, the values of sin(θ) and cos(θ) are the same for a given θ, as illustrated below.
+
     section
       similar-triangles
       p Look at the left-most triangle above. Its hypotenuse has length 1, and so (conveniently!) the ratio of its adjacent to its hypotenuse is cos(θ), and the ratio of its opposite to the hypotenuse is sin(θ). Therefore, by placing triangles at the point (0,0) of the x/y plane, the functions sin(θ) and cos(θ) can be found by recording the values of x and y for every θ. Below, click play to see this process unfold. Angles are in <a href='http://en.wikipedia.org/wiki/Radian'>radians</a> (i.e., π/4, π/2,...).
@@ -41,8 +46,8 @@ html
         trig-transform(func="cosine")
     section(ng-controller="SineCosineLinkedCtrl")
       p Using sine and cosine, it's possible to describe any (<tspan style="color: #3498db;">x</tspan>,<tspan  style="color: #2ecc71;">y</tspan>) point as an alternative, (<tspan style="color: #9b59b6;">r</tspan>,<tspan  style="color: #c0392b;">θ</tspan>) point, where <tspan style="color: #9b59b6;">r</tspan> is the length of a segment from (0,0) to the point and <tspan  style="color: #c0392b;">θ</tspan> is the angle between that segment and the x-axis. This is called the <a href="http://en.wikipedia.org/wiki/Polar_coordinate_system">polar coordinate system</a>, and the conversion rule is (<tspan style="color: #3498db;">x</tspan>,<tspan  style="color: #2ecc71;">y</tspan>) = (<tspan style="color: #9b59b6;">r</tspan>cos(<tspan  style="color: #c0392b;">θ</tspan>),<tspan style="color: #9b59b6;">r</tspan>sin(<tspan  style="color: #c0392b;">θ</tspan> )) . Below, drag the point around to see real-time conversion between <a href='http://en.wikipedia.org/wiki/Cartesian_coordinate_system'>Cartesian</a> (i.e., x/y coordinates) and polar coordinates.
-      unit-circle(system="cartesian" style="float:left;width:50%")
-      unit-circle(system="polar" style="float:left;width:50%")
+      //- unit-circle(system="cartesian" style="float:left;width:50%")
+      //- unit-circle(system="polar" style="float:left;width:50%")
     section
       div(style="clear:both")
       linked-coordinates
@@ -51,5 +56,5 @@ html
     +footer
     +disqus
 
-  // script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=default")
+  script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=default")
   script(src=path + "script.js")
