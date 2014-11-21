@@ -166,10 +166,13 @@ hr {
   background-color: @highlight;
 }
 .btn-primary:hover {
-  background-color: #48c9b0;
+  // background-color: #1abc9c !important;
 }
 .btn-primary:active {
   background-color: #16a085;
+}
+.btn:hover { 
+  background-color: darken(#e74c3c, 10%);
 }
 
 .form-control {
@@ -190,6 +193,15 @@ input[type='submit'] {
   -webkit-appearance: none;
 }
 
+#mc_embed_signup {
+  margin: auto;
+}
+#mc_embed_signup_scroll {
+  width: 350px;
+  left: 50%;
+  position: relative;
+  margin-left: -170px;
+}
 /* Mail Chimp sign-up form */
 #mc_embed_signup .mc-field-group {
   float: left;
@@ -257,11 +269,11 @@ background-stage {
 
 .ev-thumb {
   width: 100%;
-  height: 100px;
+  height: 110px;
   position: absolute;
   box-sizing: border-box;
   display: block;
-  top: 26px;
+  top: 0px;
   line {
     shape-rendering: crispEdges;
     stroke-width: 2;
@@ -270,7 +282,26 @@ background-stage {
 }
 .explanation-summary {
   position: relative;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+ev4-thumb {
+  .sine {
+    stroke: #2ecc71;
+    fill: none;
+    stroke-width: 8;
+  }
+  .cosine {
+    stroke: #3498db;
+    fill: none;
+    stroke-width: 8;
+  }
+  transition: opacity 0.25s;
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+  }
 }
 
 ev-play-button {

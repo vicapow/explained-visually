@@ -6,10 +6,10 @@ mixin explanationList
     if !exp.hideFromHomepage
       a.plain-link(href=exp.path)
         div.explanation-summary
-          span.release EV !{explanations.length - i} - !{exp.date}
-            #{'ev' + (explanations.length - i) + '-thumb'}.ev-thumb
+          #{'ev' + (explanations.length - i) + '-thumb'}.ev-thumb
           div.desc
             hr
+            span.release EV !{explanations.length - i} - !{exp.date}
             h3.link !{exp.title}
             p !{exp.quip}
 
