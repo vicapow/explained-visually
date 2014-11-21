@@ -32,7 +32,13 @@ function vector(x, y) {
   v.add = function(b) { return vector(v.x + b.x, v.y + b.y) }
   v.scale = function(s) { return vector(v.x * s, v.y * s) }
   v.rotDegrees = function(theta) { return v.rot(theta * pi / 180) }
-  v.array = function() { return [v.x, v.y] }
+  v.array = function(array) {
+    if (array) {
+      return vector(array[0], array[1])
+    } else {
+      return [v.x, v.y]
+    }
+  }
   v.toString = function() { return v.array().toString() }
   return v
 }

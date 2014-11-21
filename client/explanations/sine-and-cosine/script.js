@@ -89,6 +89,10 @@ myApp.directive('similarTriangles', function() {
       .attr('transform', function(d, i) {
         return 'translate(' + [d.x + m.l, stageY(0.5)] + ')'
       })
+    d3.select(tg[0][0]).append('text').text('unit circle')
+      .attr('transform', 'translate(0,-45)')
+      .style('text-anchor', 'middle')
+      .style('opacity', '1')
     tg.append('circle').attr({r: function(d) { return x(d.r) }})
       .attr('class', 'outline')
 
@@ -662,7 +666,7 @@ myApp.directive('linkedCoordinates', function() {
     var w = el.node().clientWidth, h = el.node().clientHeight
     var theta = 0
     var R = h / 2 - 10
-    var polarGPos = [w * 0.3, h * 0.5]
+    var polarGPos = [w * 0.33, h * 0.25]
 
     var svg = el.append('svg').attr({width: w, height: h})
     
@@ -670,16 +674,18 @@ myApp.directive('linkedCoordinates', function() {
       .attr('transform', 'translate(' + polarGPos + ')')
     
 
-    var xScale = d3.scale.linear().domain([-2, 2]).range([-R, R])
+    var xScale = d3.scale.linear().domain([-2, 2]).range([-R/2, R/2])
 
-    var xTickValues = xScale.ticks(6)
+    var xTickValues = xScale.ticks(5)
     polarG.append('g').attr('class', 'axis-x axis')
-      .call(d3.svg.axis().scale(xScale).tickValues(xTickValues))
+      .call(d3.svg.axis().scale(xScale)
+          .tickValues(xTickValues)
+          .tickFormat(function(d) { return d3.round(d) }))
 
-    var yScale = d3.scale.linear().domain([2, -2]).range([-R, R])
+    var yScale = d3.scale.linear().domain([2, -2]).range([-R/2, R/2])
 
     polarG.append('g').attr('class', 'axis-y axis')
-      .call(d3.svg.axis().orient('left').scale(yScale).ticks(6))
+      .call(d3.svg.axis().orient('left').scale(yScale).ticks(5))
 
     var arm = polarG.append('line').attr('class', 'arm')
     var arc = polarG.append('path').attr('class', 'arc')
@@ -728,18 +734,37 @@ myApp.directive('linkedCoordinates', function() {
       .attr({x1:0, y1: 0})
 
     var sineG = svg.append('g').attr('class', 'sine-g')
-      .attr('transform', 'translate(' + [w * 0.55, h * 0.33] + ')')
+      .attr('transform', 'translate(' + [w * 0.55, h * 0.25] + ')')
 
-    sineG.append('text').text('sin(θ)')
+    sineG.append('text').text('r * sin(θ)')
       .attr('transform', 'translate(' + [-50, 5] + ')')
       .style('text-anchor', 'end')
 
     var cosineG = svg.append('g').attr('class', 'cosine-g')
-      .attr('transform', 'translate(' + [w * 0.55, h * 0.66] + ')')
+      .attr('transform', 'translate(' + [w * 0.55, h * 0.75] + ')')
 
-    cosineG.append('text').text('cos(θ)')
+    cosineG.append('rect')
+      .attr({x: -R * .8, y: -R/2, width: R*3, height: R })
+      .style('fill', 'rgba(0, 0, 0, 0.0)')
+
+    cosineG.append('text').text('r * cos(θ)')
       .attr('transform', 'translate(' + [-50, 5] + ')')
       .style('text-anchor', 'end')
+
+    cosineG.on('mouseenter', function() {
+      var v = vector().array(polarGPos)
+      v.y = h * 0.75
+      polarG
+        .transition()
+        .duration(500)
+        .attr('transform', 'translate(' + v + ') rotate(-90)')
+    })
+    cosineG.on('mouseleave', function() {
+      polarG
+        .transition()
+        .duration(500)
+        .attr('transform', 'translate(' + polarGPos + ') rotate(0)')
+    })
 
     var thetaScale = d3.scale.linear().domain([0, pi * 2]).range([0, R * 2])
 
@@ -756,11 +781,11 @@ myApp.directive('linkedCoordinates', function() {
     sineG.call(appendThetaScale)
     cosineG.call(appendThetaScale)
 
-    var yScaleTrig = d3.scale.linear().domain([1, -1]).range([-40, 40])
+    var yScaleTrig = d3.scale.linear().domain([2, -2]).range([-R/2, R/2])
     
     function appendYScale(g) {
       g.append('g').attr('class', 'axis-y axis')
-        .call(d3.svg.axis().orient('left').scale(yScaleTrig).ticks(2))
+        .call(d3.svg.axis().orient('left').scale(yScaleTrig).ticks(5))
         .attr('transform', 'translate(-20, 0)')
     }
 
@@ -813,8 +838,8 @@ myApp.directive('linkedCoordinates', function() {
       )
       polarCosArm.attr({x2: x })
       polarSinArm.attr({y2: y })
-      // updateSineCos(-yScale.invert(r))
-      updateSineCos(1)
+      updateSineCos(-yScale.invert(r))
+      // updateSineCos(1)
     }
 
     // Add some nobs.

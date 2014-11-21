@@ -6,6 +6,13 @@ html
     include ../../templates/head
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "style.css" type="text/css")
+    script(type="text/x-mathjax-config").
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [['$','$'], ['\\(','\\)']],
+          skipTags: ["script","noscript","style","textarea","code"]
+        }
+      });
   body(ng-app="myApp" ng-controller="MainCtrl")
     section.menu
       a(href=basepath) Back
@@ -38,7 +45,10 @@ html
     section
       div(style="clear:both")
       linked-coordinates
+    // section Example math jax
+    //  $$\forall x, y : \mathbb{Z}, x > 3 \land y < 2 \Rightarrow x^2 - 2y > 5$$
     +footer
     +disqus
 
+  // script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=default")
   script(src=path + "script.js")
