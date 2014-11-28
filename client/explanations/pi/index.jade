@@ -1,0 +1,50 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      +authors
+      p Before we define π, let's define a circle. A circle is a set of points that all lie an equal distance away from a single center point. The distance from the center point is called the
+        evt(label="radius")
+        | and the distance along the outer edge of the circle is called the
+        evt(label="circumference")
+        | . The
+        evt(label="diameter")
+        | is the thickness of the circle at its widest and is 2 times the
+        evt(label="radius")
+        | .
+      //- div(ng-controller="CircleDemoCtrl")
+      circle-demo
+    section
+      p π is the ratio of the 
+        evt(label="circumference")
+        | to the
+        evt(label="diameter")
+        | and this ratio holds true of all sizes of circles. But don't get hung up on the idea that the number 3.14 is somehow special or mystical. It could have instead been defined as the
+        evt(label="circumference")
+        | over the
+        evt(label="radius")
+        |  and in fact, this might have made more sense. (see: 
+        a(href="http://www.tauday.com/") Tau Day
+        | .)
+    section
+      pi-demo
+      | wrap
+      input(type="range" min="0" max="1" step="0.01" ng-model="opts.fold")
+      | size
+      input(type="range" min="0.5" max="2" step="0.1" ng-model="opts.diameter")
+    +footer
+    +disqus
+  script(src=path + "script.js")

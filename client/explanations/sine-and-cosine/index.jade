@@ -22,21 +22,16 @@ html
         h3.by-line !{subtitle}
       +share
     section
-      p By 
-        if twitterCreator
-          a(href="http://twitter.com/" + twitterCreator) !{author}
-        else
-          !{author}
-
-    section
+      +authors
       p Sine and cosine &mdash; a.k.a., sin(θ) and cos(θ) &mdash; are functions revealing the shape of a right triangle. Looking out from a vertex with angle θ, sin(θ) is the ratio of the <tspan class="direct" style="background-color: #2ecc71;">opposite</tspan> side to the  <tspan class="direct" style="background-color: #9b59b6;">hypotenuse</tspan>, while cos(θ) is the ratio of the <tspan class="direct" style="background-color: #3498db;">adjacent</tspan> side to the <tspan class="direct" style="background-color: #9b59b6;">hypotenuse</tspan>. No matter the size of the triangle, the values of sin(θ) and cos(θ) are the same for a given θ, as illustrated below.
 
     section
       similar-triangles
-      p Look at the left-most figure above (the unit circle). The triangle's has length 1, and so (conveniently!) the ratio of its adjacent to its hypotenuse is cos(θ), and the ratio of its opposite to the hypotenuse is sin(θ). Therefore, by placing triangles at the point (0,0) of the x/y plane, the functions sin(θ) and cos(θ) can be found by recording the values of x and y for every θ. Below, click play to see this process unfold. Angles are in <a href='http://en.wikipedia.org/wiki/Radian'>radians</a> (i.e., π/4, π/2,...).
+      p Look at the left-most figure above (the unit circle). The triangle's hypotenuse has length 1, and so (conveniently!) the ratio of its adjacent to its hypotenuse is cos(θ), and the ratio of its opposite to the hypotenuse is sin(θ). Therefore, by placing triangles at the point (0,0) of the x/y plane, the functions sin(θ) and cos(θ) can be found by recording the values of x and y for every θ. Below, click play to see this process unfold. Angles are in <a href='http://en.wikipedia.org/wiki/Radian'>radians</a> (i.e., π/4, π/2,...).
       h1 Sin(θ)
-      ev-play-button(is-playing="opts.isPlaying" style="width:100%; height: 200px")
-        trig-transform(func="sine")
+      div(ng-controller="SineAnimationCtrl")
+        ev-play-button(is-playing="opts.isPlaying" style="width:100%; height: 200px")
+          trig-transform(func="sine")
     section(ng-controller="CosineAnimationCtrl")
       h1 Cos(θ)
       ev-play-button(is-playing="opts.isPlaying" style="width:100%; height: 200px")
@@ -59,8 +54,6 @@ html
     section
       div(style="clear:both")
       linked-coordinates
-
-
 
 
     +footer

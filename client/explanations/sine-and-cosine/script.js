@@ -1,15 +1,5 @@
 'use strict'
 
-var pi = Math.PI
-  , tau = pi * 2
-  , sqrt = Math.sqrt
-  , cos = Math.cos
-  , sin = Math.sin
-  , acos = Math.acos
-  , round = Math.round
-  , max = Math.max
-  , min = Math.min
-
 var myApp = angular.module('myApp', ['ev'])
 
 myApp.controller('MainCtrl', function($scope) {

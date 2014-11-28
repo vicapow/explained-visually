@@ -354,3 +354,38 @@ myApp.directive('ev4Thumb', function() {
   }
   return { link: link, restrict: 'E' }
 })
+
+
+myApp.directive('ev5Thumb', function() {
+  function link(scope, el, attr) {
+    var sel = d3.select(el[0])
+    var w = sel.node().clientWidth, h = sel.node().clientHeight
+    var svg = sel.append('svg').attr({width: w, height: h})
+    var m = { l: 220, t: 10, r: 10, b: 10 }
+    var g = svg.append('g').attr('transform', 'translate(' + [ w * 0.6, h * 0.5] + ')')
+    var s = g.append('g').attr('transform', 'scale(13) translate(0, 0) rotate(45)')
+    var dur = 500, r = 60
+    s.append('line').attr({x1: 0, x2: r, y1: 0, y2: 0})
+      .style('stroke-width', 4).style('stroke', '#3498db')
+    s.append('circle').attr({r: 10}).style('fill', '#3498db')
+    s.append('circle').attr({r: r})
+      .style({
+        stroke: '#9b59b6',
+        'stroke-width': 10,
+        fill: 'none'
+      })
+    svg.on('mouseenter', function() {
+      s
+        .transition()
+        .duration(dur)
+        .attr('transform', 'scale(1) rotate(0) ')
+    })
+    .on('mouseleave', function() {
+      s
+        .transition()
+        .duration(dur)
+        .attr('transform', 'scale(13) translate(0, 0) rotate(45)')
+    })
+  }
+  return { link: link, restrict: 'E' }
+})

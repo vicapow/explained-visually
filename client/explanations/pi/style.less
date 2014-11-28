@@ -1,0 +1,92 @@
+
+@primary: #3498db;
+@secondary: #2ecc71;
+@tertiary: #e74c3c;
+
+evt {
+  padding: 0px 4px 2px 4px;
+  font-weight: bold;
+  color: white;
+  display: inline-block;
+  div {
+    border-radius: 5px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+circle-demo {
+  cursor: pointer;
+  width: 100%;
+  height: 300px;
+  display: block;
+  // background-color: rgba(0, 0, 0, 0.1);
+  .circle {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-dasharray: 4, 4;
+  }
+  .center-point, .outer-point {
+    fill: @tertiary;
+  }
+  .center-line {
+    stroke: @tertiary;
+    stroke-width: 4;
+  }
+  .arc {
+    fill: @primary;
+    stroke: none;
+  }
+  .radius-label {
+    fill: @tertiary;
+    text-anchor: middle;
+  }
+  .diameter-g {
+    stroke: @secondary;
+    stroke-width: 4;
+  }
+}
+
+pi-demo {
+  width: 100%;
+  height: 300px;
+  display: block;
+  .circle {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.4);
+    stroke-dasharray: 2, 2;
+  }
+  .circum {
+    fill: none;
+    stroke: @primary;
+    stroke-width: 4;
+  }
+  .diameter {
+    stroke: @secondary;
+    stroke-width: 4;
+  }
+  .diameter-dash {
+    stroke: @secondary;
+    stroke-dasharray: 2, 2;
+  }
+  .circum-dash {
+    stroke: @primary;
+    stroke-dasharray: 2, 2;
+  }
+  .circum-label-g, .diameter-label-g {
+    text-anchor: middle;
+  }
+  .circum-label {
+    fill: @primary;
+  }
+ .diameter-label {
+    fill: @secondary;
+  }
+  .pi-label-g {
+    font-size: 28px;
+    line {
+      stroke: black;
+      shape-rendering: crispEdges;
+    }
+  }
+}

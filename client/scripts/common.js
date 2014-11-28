@@ -19,7 +19,10 @@ var zip = function(a, b) {
 function vec_add(a, b) { return [ a[0] + b[0], a[1] + b[1] ] }
 
 function vector(x, y) {
-  var v = {x: x, y: y}
+  var v
+  if(Array.isArray(x)) v = {x: x[0], y: x[1]}
+  else if (typeof x === 'number') v = {x: x, y: y}
+  else v = { x: x.x, y: x.y }
   // All methods should return a new vector object.
   v.rot = function(theta) {
     var x = v.x * cos(theta) - v.y * sin(theta)
@@ -42,6 +45,61 @@ function vector(x, y) {
   v.toString = function() { return v.array().toString() }
   return v
 }
+
+var matrix = function(m) {
+  m = m || [[]]
+  m.dim = function(rows, cols) {
+    if (!arguments.length) return [m.length, m[0].length]
+    var a = []
+    for(var i = 0; i < rows; i++) {
+      var ia = []
+      for(var j = 0; j < cols; j++) {
+        ia.push(0)
+      }
+      a.push(ia)
+    }
+    return matrix(a)
+  }
+  m.row = function(i) {
+    var l = m.dim()[1] // l => column length
+    var a = []
+    for(var j = 0; j < l; j++) a.push(m[i][j])
+    return a
+  }
+  m.col = function(j) {
+    var l = m.dim()[0] // l => row length
+    var a = []
+    for(var i = 0; i < l; i++) a.push(m[i][j])
+    return a
+  }
+  m.multi = function(b) {
+    // create a new nxm matrix
+    var r = matrix().dim(m.dim()[0], b.dim()[1])
+    var d = r.dim()
+    for(var i = 0; i < d[0]; i++)
+      for(var j = 0; j < d[1]; j++)
+        r[i][j] = array_dot(m.row(i), b.col(j))
+    return r
+  }
+  m.identity = function() {
+    var d = m.dim()
+    var a = []
+    for(var i = 0; i < d[0]; i++) {
+      var ia = []
+      for(var j = 0; j < d[1]; j++)
+        ia.push(i === j ? 1 : 0)
+      a.push(ia)
+    }
+    return matrix(a)
+  }
+  function array_dot(a, b) {
+    var sum = 0
+    for(var i = 0; i < a.length; i++) sum += a[i] * b[i]
+    return sum
+  }
+  return m
+}
+
 
 
 // Explained Visually common components.

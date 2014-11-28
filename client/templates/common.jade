@@ -17,19 +17,18 @@ mixin share
       }(document, 'script', 'twitter-wjs');
 
 mixin authors
-  section
-    p By 
-      if twitterCreator
-        a(href="http://twitter.com/" + twitterCreator) !{author}
+  p By 
+    if twitterCreator
+      a(href="http://twitter.com/" + twitterCreator) !{author}
+    else
+     !{author}
+  p
+    if authorText
+      | with text by 
+      if twitterCreatorText
+        a(href="http://twitter.com/" + twitterCreatorText) !{authorText}
       else
-       !{author}
-    p
-      if authorText
-        | /w text by 
-        if twitterCreatorText
-          a(href="http://twitter.com/" + twitterCreatorText) !{authorText}
-        else
-          !{authorText}
+        !{authorText}
 
 mixin mailchimpSignup
   div.

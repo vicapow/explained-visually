@@ -53,10 +53,31 @@
         "title": "Sine and Cosine"
       , "subtitle": "Explained Visually"
       , "slug": "sine-and-cosine"
-      , "quip": "Think of something witty and put it here."
+      , "quip": "Sine on the line."
       , "date": "2014/11/21"
-      , "twitterCreator": "vicapow"
       , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+      , "twitterCreatorText": "lewislehe"
+      , "authorText" : "Lewis Lehe"
+    }
+    , {
+        "title": "Pi (π)"
+      , "subtitle": "Explained Visually"
+      , "slug": "pi"
+      , "quip": "Pi me to the moon."
+      , "date": "2014/11/28"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+    }
+    , {
+        "title": "Linear Algebra"
+      , "hideFromHomepage": true
+      , "subtitle": "Explained Visually"
+      , "slug": "linear-algebra"
+      , "quip": ""
+      , "date": "2014/12/05"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
     }
   ]
 }
