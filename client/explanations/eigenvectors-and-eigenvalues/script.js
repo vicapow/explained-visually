@@ -8,9 +8,141 @@ myApp.controller('MainCtrl', function($scope) {
       [1, 0],
       [0, 1]
     ],
+    sampleVector: [1, 1],
     matrixB: [ [1], [1] ],
     matrixC: [ [1], [1] ]
   }
+})
+
+myApp.directive('matrixAsMapping', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var svg = el.append('svg').attr({width: w, height: h})
+    var defs = svg.append('defs')
+    var stage = svg.append('g')
+      .attr('transform', 'translate(' + [w / 2, h / 2] + ')')
+    var coord = stage.append('g').attr('class', 'coord')
+    var s = h - 40
+    var cW = s, cH = s
+    var xTicks = [-2, -1, 1, 2]
+    var yTicks = xTicks
+    var opts = scope.opts
+    var x = d3.scale.linear().domain([-2, 2]).range([-cW / 2, cW / 2])
+    var y = d3.scale.linear().domain([-2, 2]).range([cH / 2, -cH / 2])
+
+    function format(d) { return d3.round(d) }
+
+    coord.append('g').attr('class', 'axis axis-x')
+      .call(d3.svg.axis().scale(x).tickValues(xTicks).tickFormat(format))
+
+    coord.append('g').attr('class', 'axis axis-y')
+      .call(d3.svg.axis().scale(y).orient('left').tickValues(yTicks)
+        .tickFormat(format))
+
+
+    var basis1 = coord.append('line')
+      .attr({
+        class: 'basis basis-1'
+        , x1: 0, y1: 0
+        , 'marker-end': 'url(#mam-head-1)'
+      })
+
+    var basis2 = coord.append('line')
+      .attr({
+        class: 'basis basis-2'
+        , x1: 0, y1: 0
+        , 'marker-end': 'url(#mam-head-2)'
+      })
+
+    var sampleVector = coord.append('line')
+      .attr({
+        class: 'sample-vector'
+        , x1: 0, y1: 0
+        , 'marker-end': 'url(#mam-head-3)'
+      })
+
+    var sampleTransVector = coord.append('line')
+      .attr({
+        class: 'sample-transformed-vector'
+        , x1: 0, y1: 0
+        , 'marker-end': 'url(#mam-head-3)'
+      })
+
+    var markers = defs
+      .selectAll('marker').data(d3.range(3)).enter()
+        .append('marker')
+        .attr({
+          id: function(d) { return 'mam-head-' + (d + 1) }
+          , class: function(d) {
+            return 'head-' + ['primary', 'secondary', 'tertiary'][d]
+          }
+          , orient:'auto'
+          , markerWidth: 8, markerHeight: 16
+          , refX: 0, refY: 2
+        })
+    markers.append('path').attr('d', 'M 0,0 V4 L2,2 Z')
+
+    var nobR = 5
+    var nob1 = coord.append('circle')
+      .attr('class', 'nob')
+      .attr('r', nobR)
+      .call(drag, opts.matrixA[0])
+    var nob2 = coord.append('circle')
+      .attr('class', 'nob')
+      .attr('r', nobR)
+      .call(drag, opts.matrixA[1])
+
+    var sampleNob = coord.append('circle')
+      .attr('class', 'nob')
+      .attr('r', nobR)
+      .call(drag, opts.sampleVector)
+
+    function redraw() {
+      // Update the lines.
+      var m = matrix(opts.matrixA)
+      var b1 = vector(x(opts.matrixA[0][0]), y(opts.matrixA[0][1]))
+      var b2 = vector(x(opts.matrixA[1][0]), y(opts.matrixA[1][1]))
+      var sample = vector(x(opts.sampleVector[0]), y(opts.sampleVector[1]))
+      var sampleTransformed = sample.matrixMulti(opts.matrixA)
+      
+      // offset the vectors to make room for the marker heads.
+      var b1t = b1.sub(b1.unit().scale(nobR + 2))
+      var b2t = b2.sub(b2.unit().scale(nobR + 2))
+
+      basis1.attr({x2: b1t.x, y2: b1t.y})
+      basis2.attr({x2: b2t.x, y2: b2t.y})
+
+      sampleVector.attr({x2: sample.x, y2: sample.y})
+      sampleTransVector.attr({x2: sampleTransformed.x, y2: sampleTransformed.y})
+
+      // Update the nob positions.
+      nob1.attr({cx: b1.x, cy: b1.y})
+      nob2.attr({cx: b2.x, cy: b2.y})
+      sampleNob.attr({cx: sample.x, cy: sample.y})
+    }
+
+    function drag(g, basis) {
+      g.call(d3.behavior.drag()
+        .on('drag', function() {
+          scope.$apply(function() {
+            var pos = d3.mouse(stage.node()) // Position in pixels.
+            pos = [x.invert(pos[0]), y.invert(pos[1])] // In base coords.
+            basis[0] = pos[0]
+            basis[1] = pos[1]
+          })
+        })
+      )
+    }
+
+    redraw()
+
+    scope.$watch('opts', function() {
+      redraw()
+    }, true)
+
+  }
+  return {link: link, restrict: 'E'}
 })
 
 myApp.directive('playground', function() {
@@ -55,9 +187,8 @@ myApp.directive('playground', function() {
         [cW * c, cH * 2]]
       g.append('path').attr('class', 'outline')
         .attr('d', 'M' + lOutline.join('L'))
-      var rOutline = lOutline.map(function(p) {
-        return [-p[0] + cW * data[0].length, p[1]]
-      })
+      var rOutline = lOutline
+        .map(function(p) { return [-p[0] + cW * data[0].length, p[1]] })
       g.append('path').attr('class', 'outline')
         .attr('d', 'M' + rOutline.join('L'))
     }

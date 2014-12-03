@@ -22,12 +22,19 @@ function vector(x, y) {
   var v
   if(Array.isArray(x)) v = {x: x[0], y: x[1]}
   else if (typeof x === 'number') v = {x: x, y: y}
-  else v = { x: x.x, y: x.y }
+  else if (typeof x === 'object') v = { x: x.x, y: x.y }
+  else v = { x: 0, y: 0 }
   // All methods should return a new vector object.
   v.rot = function(theta) {
     var x = v.x * cos(theta) - v.y * sin(theta)
     var y = v.x * sin(theta) + v.y * cos(theta)
     return vector(x, y)
+  }
+  v.matrixMulti = function(m) {
+    return vector([
+        m[0][0] * v.x + m[0][1] * v.y
+      , m[1][0] * v.x + m[1][1] * v.y
+    ])
   }
   v.unit = function() { var l = v.len(); return vector(v.x / l, v.y / l) }
   v.len = function() { return sqrt( v.x * v.x + v.y * v.y ) }
@@ -48,6 +55,9 @@ function vector(x, y) {
 
 var matrix = function(m) {
   m = m || [[]]
+  m.fromVector = function(v) {
+    return matrix([[v.x], [v.y]])
+  }
   m.dim = function(rows, cols) {
     if (!arguments.length) return [m.length, m[0].length]
     var a = []

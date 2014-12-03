@@ -1,0 +1,82 @@
+@primary: #3498db;
+@secondary: #2ecc71;
+@tertiary: #e74c3c;
+
+playground {
+  width: 100%;
+  height: 300px;
+  display: block;
+  background-color: rgba(0, 0, 0, 0.1);
+  .plot {
+    .basis {
+      stroke: black;
+      stroke-width: 2;
+    }
+  }
+}
+
+matrix-as-mapping {
+  width: 100%;
+  height: 300px;
+  display: block;
+  // background-color: rgba(0, 0, 0, 0.1);
+  .basis {
+    stroke-width: 4;
+    &.basis-1 {
+      stroke: @primary;
+    }
+    &.basis-2 {
+      stroke: @secondary;
+    }
+  }
+  .sample-vector {
+    stroke-width: 4;
+    stroke-dasharray: 2, 2;
+    stroke: @tertiary;
+    opacity: 0.5;
+  }
+  .sample-transformed-vector {
+    stroke-width: 4;
+    stroke: @tertiary;
+  }
+  .head-primary {
+    fill: @primary;
+  }
+  .head-secondary {
+    fill: @secondary;
+  }
+  .head-tertiary {
+    fill: @tertiary;
+  }
+  .coord {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .nob {
+    opacity: 0;
+    transition: 0.25s all;
+    cursor: pointer;
+  }
+  &:hover {
+    .nob {
+      opacity: 1;
+    }
+  }
+}
+
+.matrix {
+  text {
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .outline {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.8);
+    stroke-width: 3;
+    shape-rendering: crispEdges;
+  }
+}

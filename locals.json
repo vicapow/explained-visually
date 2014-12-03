@@ -70,11 +70,11 @@
       , "twitterCreator": "vicapow"
     }
     , {
-        "title": "Linear Algebra"
+        "title": "Eigenvectors And Eigenvalues"
       , "hideFromHomepage": true
       , "subtitle": "Explained Visually"
-      , "slug": "linear-algebra"
-      , "quip": ""
+      , "slug": "eigenvectors-and-eigenvalues"
+      , "quip": "Now do it eigen."
       , "date": "2014/12/05"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
