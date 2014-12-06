@@ -1,16 +1,33 @@
-
-;'use strict';
+'use strict'
 
 var pi = Math.PI
+  , abs = Math.abs
   , tau = pi * 2
   , sqrt = Math.sqrt
   , cos = Math.cos
   , sin = Math.sin
   , acos = Math.acos
   , round = Math.round
+  , floor = Math.floor
   , max = Math.max
   , min = Math.min
   , random = Math.random
+
+function hyphen(obj) {
+  if (obj instanceof String || typeof obj === 'string')
+    return hyphenate(obj)
+  function hyphenate(str) {
+    return str.split('').map(function(c, i) {
+      if (i !== 0 && c !== c.toLowerCase()) return '-' + c.toLowerCase()
+      return c.toLowerCase()
+    }).join('')
+  }
+  var ret = {}
+  Object.keys(obj).map(function(key) {
+    ret[hyphenate(key)] = obj[key]
+  })
+  return ret
+}
 
 var zip = function(a, b) {
   return a.map(function(a, i) { return [a, b[i]] })
@@ -31,10 +48,10 @@ function vector(x, y) {
     return vector(x, y)
   }
   v.matrixMulti = function(m) {
-    return vector([
-        m[0][0] * v.x + m[0][1] * v.y
-      , m[1][0] * v.x + m[1][1] * v.y
-    ])
+    return vector(
+        m[0][0] * v.x + m[1][0] * v.y
+      , m[0][1] * v.x + m[1][1] * v.y
+    )
   }
   v.unit = function() { var l = v.len(); return vector(v.x / l, v.y / l) }
   v.len = function() { return sqrt( v.x * v.x + v.y * v.y ) }
@@ -49,6 +66,7 @@ function vector(x, y) {
       return [v.x, v.y]
     }
   }
+  v.to = function(func) { return func(v) }
   v.toString = function() { return v.array().toString() }
   return v
 }
@@ -69,6 +87,28 @@ var matrix = function(m) {
       a.push(ia)
     }
     return matrix(a)
+  }
+  m.eigenValues = function() {
+    var a = m[0][0], b = m[1][0], c = m[0][1], d = m[1][1]
+    var e = (a + d) / 2
+    var ed = sqrt( e * e + b * c - a * d )
+    var e1 = e + ed
+    var e2 = e - ed
+    return [e1, e2]
+  }
+  m.eigenVectors = function() {
+    var a = m[0][0], b = m[1][0], c = m[0][1], d = m[1][1]
+    var thres = 1e-16
+    var e = m.eigenValues()
+    var eVecs = [ [1, 0], [0, 1] ]
+    if (c > thres || c < -thres) /* c !== 0 */ {
+      eVecs[0] = [ e[0] - d, c ]
+      eVecs[1] = [ e[1] - d, c ]
+    } else if (b > thres || b < -thres) /* b !== 0 */ {
+      eVecs[0] = [ b, e[0] - a ]
+      eVecs[1] = [ b, e[1] - a ]
+    }
+    return eVecs
   }
   m.row = function(i) {
     var l = m.dim()[1] // l => column length

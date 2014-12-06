@@ -1,6 +1,7 @@
 @primary: #3498db;
 @secondary: #2ecc71;
 @tertiary: #e74c3c;
+@quaternary: #9b59b6;
 
 playground {
   width: 100%;
@@ -15,11 +16,202 @@ playground {
   }
 }
 
-matrix-as-mapping {
+matrix-as-image-transform {
   width: 100%;
-  height: 300px;
+  height: 400px;
   display: block;
   // background-color: rgba(0, 0, 0, 0.1);
+}
+
+matrix-as-mapping {
+  width: 100%;
+  height: 400px;
+  display: block;
+  position: relative;
+  @trans: 0.25s all;
+  .a1 {
+    color: @primary;
+  }
+  .a2 {
+    color: @secondary;
+  }
+  .x0, .y0 {
+    color: #e74c3c;
+  }
+  .x1, .y1 {
+    color: #9b59b6;
+  }
+  .vectors {
+    .vector {
+      stroke-width: 4;
+    }
+  }
+  .equation {
+    width: 350px;
+    // background-color: rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'helvetica Neue';
+    .symbol, .vector {
+      height: 100px;
+      line-height: 100px;
+      text-align: center;
+      font-size: 24px;
+      margin-right: 5px;
+      display: block;
+      float: left;
+    }
+    .symbol {
+      position: relative;
+      .label, .value {
+        transition: @trans;
+      }
+      .value {
+        opacity: 0;
+      }
+      .label {
+        opacity: 1;
+        position: absolute;
+        top: 0;
+        width: 100%;
+      }
+    }
+    .vector {
+      // background-color: rgba(255, 0, 0, 0.1);
+      .top, .bottom {
+        height: 50px;
+        line-height: 50px;
+        position: relative;
+      }
+      .top .symbol, .top .value,
+      .bottom .symbol, .bottom .value {
+        width: 100%;
+        height: 50px;
+        line-height: 50px;
+      }
+      .top .value, .bottom .value {
+        top: 0;
+        position: absolute;
+      }
+
+      @w: 6px;
+      .border-l, .border-r {
+        width: @w * 2;
+        height: 100px;
+        display: block;
+        float: left;
+      }
+      .border-l {
+        border: @w/2 solid #333;
+        border-right: none;
+      }
+      .center {
+        display: block;
+        float: left;
+      }
+      .border-r {
+        border: @w/2 solid #333;
+        border-left: none;
+      }
+    }
+    .vector {
+      .border-l, .border-r {
+        transition: @trans;
+      }
+      .symbol {
+        opacity: 1;
+        transition: @trans;
+      }
+      .value {
+        opacity: 0;
+        transition: @trans;
+      }
+    }
+    .vector.b1 {
+      .border-l, .border-r {
+        border-color: @primary;
+      }
+      color: @primary;
+    }
+    .vector.b2 {
+      .border-l, .border-r {
+        border-color: @secondary;
+      }
+      color: @secondary;
+    }
+    .vector.x1 {
+      .border-l, .border-r {
+        border-color: @quaternary;
+      }
+      color: @quaternary;
+    }
+    transition: @trans;
+    .x0, .x1, .y0, .y1 {
+      transition: @trans;
+    }
+  }
+  .equation.dim {
+    @color: rgba(0, 0, 0, 0.2);
+    color: @color;
+    .x0, .x1 {
+      color: @color;
+    }
+    .y0, .y1 {
+      color: @color;
+    }
+    .vector, .vector.b1, .vector.b2 {
+      .border-l, .border-r {
+        border-color: @color;
+      }
+      color: @color;
+    }
+  }
+  .equation.dim.b1 {
+    .vector.b1 {
+      .border-l, .border-r {
+        border-color: @primary;
+      }
+      .symbol {
+        opacity: 0;
+      }
+      .value {
+        opacity: 1;
+      }
+      color: @primary;
+    }
+  }
+  .equation.dim.b2 {
+    .vector.b2 {
+      .border-l, .border-r {
+        border-color: @secondary;
+      }
+      color: @secondary;
+      .symbol {
+        opacity: 0;
+      }
+      .value {
+        opacity: 1;
+      }
+      color: @secondary;
+    }
+  }
+  .equation.dim.sample {
+    .x0, .y0 {
+      color: #e74c3c;
+    }
+    .x1, .y1 {
+      color: #9b59b6;
+    }
+    .symbol {
+      .value {
+        opacity: 1;
+      }
+      .label {
+        opacity: 0;
+      }
+    }
+  }
   .basis {
     stroke-width: 4;
     &.basis-1 {
@@ -29,24 +221,14 @@ matrix-as-mapping {
       stroke: @secondary;
     }
   }
-  .sample-vector {
+  .point {
+    fill: rgba(0, 0, 0, 0.6);
+  }
+  .sample-difference {
     stroke-width: 4;
     stroke-dasharray: 2, 2;
     stroke: @tertiary;
     opacity: 0.5;
-  }
-  .sample-transformed-vector {
-    stroke-width: 4;
-    stroke: @tertiary;
-  }
-  .head-primary {
-    fill: @primary;
-  }
-  .head-secondary {
-    fill: @secondary;
-  }
-  .head-tertiary {
-    fill: @tertiary;
   }
   .coord {
     -webkit-touch-callout: none;
@@ -60,10 +242,15 @@ matrix-as-mapping {
     opacity: 0;
     transition: 0.25s all;
     cursor: pointer;
+    fill: rgba(255, 255, 255, 0.4);
+    stroke: rgba(0, 0, 0, 0.5);
+    &:hover {
+      opacity: 1;
+    }
   }
   &:hover {
     .nob {
-      opacity: 1;
+      opacity: 0.4;
     }
   }
 }
