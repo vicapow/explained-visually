@@ -1,0 +1,137 @@
+[
+  {
+      "name": "Bret Victor"
+    , "src": "http://worrydream.com/"
+    , "twitter": "worrydream"
+    , "works": [
+      {
+          "title": "Explorable Explanations"
+        , "src": "http://worrydream.com/ExplorableExplanations/"
+      }, {
+          "title": "Scientific Communication As Sequential Art"
+        , "src": "http://worrydream.com/ScientificCommunicationAsSequentialArt/"
+      }, {
+          "title" : "Up and Down the Ladder of Abstraction"
+        , "src": "http://worrydream.com/LadderOfAbstraction/"
+      }, {
+          "title": "Simulation as a Practical Tool"
+        , "src": "http://worrydream.com/SimulationAsAPracticalTool/"
+      }
+    ]
+  }, {
+      "name": "Mike Bostock"
+    , "src": "http://bost.ocks.org/mike/"
+    , "twitter": "mbostock"
+    , "works": [
+      {
+          "title": "Visualizing Algorithms"
+        , "src": "http://bost.ocks.org/mike/algorithms/"
+      }, {
+          "title": "Is It Better to Rent or Buy?"
+        , "src": "http://www.nytimes.com/interactive/2014/upshot/buy-rent-calculator.html"
+      }, {
+          "title": "Who Will Win The Senate?"
+        , "src": "http://www.nytimes.com/newsgraphics/2014/senate-model/"
+      }, {
+          "title": "Fisher–Yates Shuffle"
+        , "src" : "http://bost.ocks.org/mike/shuffle/"
+      }
+    ]
+  }, {
+      "name": "Amit Patel"
+    , "src": "http://www.redblobgames.com/"
+    , "twitter": "redblobgames"
+    , "works": [
+      {
+         "title": "Introduction to A*"
+        , "src": "http://www.redblobgames.com/pathfinding/a-star/introduction.html"
+      }, {
+         "title": "2D Visibility"
+        , "src": "http://www.redblobgames.com/articles/visibility/"
+      }, {
+        "title": "Probability and Games: Damage Rolls"
+        , "src": "http://www.redblobgames.com/articles/probability/damage-rolls.html"
+      }, {
+          "title": "Curved Paths"
+        , "src": "http://www.redblobgames.com/articles/curved-paths/"
+      }, {
+          "title": "Noise Functions and Map Generation"
+        , "src": "http://www.redblobgames.com/articles/noise/introduction.html"
+      }
+    ]
+  }, {
+      "name": "Jason Davies"
+    , "src": "http://www.jasondavies.com/"
+    , "twitter": "jasondavies"
+    , "works": [
+      {
+          "title": "Monte Carlo simulation of bifurcations in the logistic map"
+        , "src": "http://www.jasondavies.com/bifurcation/"
+      }, {
+          "title": "Proof of Pythagoras’ Theorem"
+        , "src": "http://www.jasondavies.com/pythagoras-proof/"
+      }, {
+          "title": "Geographic Clipping"
+        , "src": "http://www.jasondavies.com/maps/clip/"
+      }, {
+         "title": "Rotate the World"
+        , "src": "http://www.jasondavies.com/maps/rotate/"
+      }, {
+          "title": "Random Points on a Sphere"
+        , "src": "http://www.jasondavies.com/maps/random-points/"
+      }
+    ]
+  }, {
+      "name": "Nicky Case"
+    , "src": "http://ncase.me/"
+    , "twitter": "ncasenmare"
+    , "works": [
+      {
+          "title": "Parable of the Polygons"
+        , "src": "http://ncase.me/polygons/"
+      }, {
+          "title": "Sight & Light"
+        , "src": "http://ncase.me/sight-and-light/"
+      }
+    ]
+  }, {
+      "name": "Daniel Shiffman"
+    , "src": "http://shiffman.net/"
+    , "twitter": "shiffman"
+    , "works": [
+      {
+          "title": "The Nature of Code"
+        , "src": "http://natureofcode.com/book/chapter-1-vectors/"
+      }
+    ]
+  }, {
+      "name": "Steven Wittens"
+    , "src": "http://acko.net/"
+    , "twitter": "unconed"
+    , "works": [
+      {
+          "title": "To Infinity and Beyond"
+        , "src": "http://acko.net/blog/to-infinity-and-beyond/"
+      }, {
+          "title": "How to fold a Julia Fractal"
+        , "src": "http://acko.net/blog/how-to-fold-a-julia-fractal/"
+      }, {
+          "title": "MathBox"
+        , "src": "http://acko.net/blog/making-mathbox/"
+      }
+    ]
+  }, {
+      "name": "Toby Schachman"
+    , "src": "http://tobyschachman.com/"
+    , "twitter": "mandy3284"
+    , "works" : [
+      {
+          "title": "Recursive Drawing"
+        , "src": "http://recursivedrawing.com/"
+      }, {
+          "title": "Shadershop"
+        , "src": "http://tobyschachman.com/Shadershop/"
+      }
+    ]
+  }
+]

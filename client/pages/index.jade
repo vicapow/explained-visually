@@ -47,5 +47,29 @@ html
     br
     script(type='text/javascript')
       include script.js
+    section
+      h1 Inspirational and related work
+      p
+        :markdown
+          Explained visually was inspired by the work of [Bret Victor](http://worrydream.com/)'s [Explorable Explanations](http://worrydream.com/ExplorableExplanations/) as well as the amazing work from the people listed below.
+
+      for person in people
+        p
+          b !{person.name}
+          |  
+          if person.twitter
+            a(href="http://twitter.com/" + person.twitter) @!{person.twitter}
+            if person.src
+              |  | 
+          if person.src
+            | 
+            a(href=person.src) !{person.hostname}
+        if person.works
+          p
+            for work, i in person.works
+              a(href=work.src) !{work.title}
+              if i !== person.works.length - 1
+                br
+
   mixin googleAnalytics
 

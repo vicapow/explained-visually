@@ -49,8 +49,8 @@ function vector(x, y) {
   }
   v.matrixMulti = function(m) {
     return vector(
-        m[0][0] * v.x + m[1][0] * v.y
-      , m[0][1] * v.x + m[1][1] * v.y
+        m[0][0] * v.x + m[0][1] * v.y
+      , m[1][0] * v.x + m[1][1] * v.y
     )
   }
   v.unit = function() { var l = v.len(); return vector(v.x / l, v.y / l) }
@@ -72,6 +72,7 @@ function vector(x, y) {
 }
 
 var matrix = function(m) {
+  // Note: Several functions assume a 2 x 2 matrix.
   m = m || [[]]
   m.fromVector = function(v) {
     return matrix([[v.x], [v.y]])
@@ -97,7 +98,7 @@ var matrix = function(m) {
     return [e1, e2]
   }
   m.eigenVectors = function() {
-    var a = m[0][0], b = m[1][0], c = m[0][1], d = m[1][1]
+    var a = m[0][0], b = m[0][1], c = m[1][0], d = m[1][1]
     var thres = 1e-16
     var e = m.eigenValues()
     var eVecs = [ [1, 0], [0, 1] ]
@@ -110,6 +111,17 @@ var matrix = function(m) {
     }
     return eVecs
   }
+  m.det = function() {
+    var a = m[0][0], b = m[0][1], c = m[1][0], d = m[1][1]
+    return (a * d - b * c)
+  }
+  m.inverse = function() {
+    var a = m[0][0], b = m[0][1], c = m[1][0], d = m[1][1]
+    return matrix([
+      [d, -b],
+      [-c, a]
+    ]).scale(1 / m.det())
+  }
   m.row = function(i) {
     var l = m.dim()[1] // l => column length
     var a = []
@@ -121,6 +133,26 @@ var matrix = function(m) {
     var a = []
     for(var i = 0; i < l; i++) a.push(m[i][j])
     return a
+  }
+  m.scale = function(s) {
+    var d = m.dim()
+    var r = matrix().dim(d[0], d[1]) // Result.
+    for(var i = 0; i < d[0]; i++) {
+      for(var j = 0; j < d[1]; j++) {
+        r[i][j] = m[i][j] * s
+      }
+    }
+    return r
+  }
+  m.transpose = function() {
+    var d = m.dim()
+    var r = matrix().dim(d[1], d[0])
+    for(var i = 0; i < d[0]; i++) { // rows
+      for(var j = 0; j < d[1]; j++) { // columns
+        r[j][i] = m[i][j]
+      }
+    }
+    return r
   }
   m.multi = function(b) {
     // create a new nxm matrix
