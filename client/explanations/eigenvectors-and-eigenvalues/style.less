@@ -238,26 +238,122 @@ eigen-vectors, matrix-as-image-transform {
     -ms-user-select: none;
     user-select: none;
   }
-  .nob {
-    opacity: 0;
-    transition: 0.25s all;
-    cursor: pointer;
-    fill: rgba(255, 255, 255, 0.4);
-    stroke: rgba(0, 0, 0, 0.5);
-    &:hover {
-      opacity: 1;
-    }
-  }
-  &:hover {
-    .nob {
-      opacity: 0.7;
-    }
-  }
 }
 
 eigen-space {
   width: 100%;
   height: 300px;
   display: block;
-  background-color: rgba(0, 0, 0, 0.1);
+}
+
+stochastic-matrix-multiplication,
+repeated-matrix-multiplication {
+  width: 100%;
+  height: 300px;
+  display: block;
+  svg text {
+    font-family: 'helvetica Neue';
+  }
+}
+
+.nob circle{
+  fill: rgba(0, 0, 0, 0.02);
+  stroke: rgba(0, 0, 0, 0.02);
+}
+
+repeated-matrix-multiplication {
+  // background-color: rgba(0, 0, 0, 0.1);
+  .sample-path {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.3);
+    stroke-dasharray: 2,2;
+  }
+}
+
+matrix-equation {
+  @h: 50px;
+  @fontSize: 18px;
+  @matrixFontSize: 14px;
+  @trans: 0.25s all;
+  height: @h;
+  display: block;
+  // background-color: rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-family: 'helvetica Neue';
+  // font-family: sans-serif;
+  .element, .vector, .matrix {
+    height: @h;
+    line-height: @h;
+    text-align: center;
+    font-size: @fontSize;
+    margin-right: 5px;
+    display: inline-block;
+    vertical-align: top;
+    // background-color: rgba(0, 0, 255, 0.4);
+  }
+  .vector, .matrix {
+    .top, .bottom {
+      height: @h / 2;
+      line-height: @h / 2;
+      position: relative;
+    }
+    .top .label, .top .value,
+    .bottom .label, .bottom .value {
+      width: 100%;
+      height: @h / 2;
+      line-height: @h / 2;
+      font-size: @matrixFontSize;
+    }
+    .top .label, .bottom .label {
+      top: 0;
+      position: absolute;
+    }
+    .top .left, .bottom .left,
+    .top .right, .bottom .right {
+      float: left;
+      position: relative;
+    }
+    .top .left, .bottom .left {
+      margin-right: 5px;
+    }
+
+    @bw: 4px;
+    .border-l, .border-r {
+      width: @bw * 2;
+      height: @h;
+      display: block;
+      float: left;
+    }
+    .border-l {
+      border: @bw/2 solid #333;
+      border-right: none;
+    }
+    .center {
+      display: block;
+      float: left;
+    }
+    .border-r {
+      border: @bw/2 solid #333;
+      border-left: none;
+    }
+    .label {
+      opacity: 1;
+      transition: @trans;
+    }
+    .value {
+      opacity: 0;
+      transition: @trans;
+    }
+  }
+  .element.dim, .vector.dim, .matrix.dim {
+    opacity: 0.3;
+  }
+  .element.active, .vector.active, .matrix.active {
+    .label {
+      opacity: 0;
+    }
+    .value {
+      opacity: 1;
+    }
+  }
 }

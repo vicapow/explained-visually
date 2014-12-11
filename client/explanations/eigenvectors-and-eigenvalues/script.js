@@ -6,7 +6,9 @@ myApp.controller('MainCtrl', function($scope) {
   $scope.opts = {
       basis1: [1, 0]
     , basis2: [0, 1]
-    , sampleVector: [1, 1]
+    , sample: [1, 1]
+    , samples: []
+    , numSamples: 10
   }
 })
 
@@ -16,6 +18,7 @@ var color = {
   , tertiary: '#e74c3c'
   , quaternary: '#9b59b6'
   , eigen: '#cbcbcb'
+  , difference: '#cbcbcb'
 }
 
 var format = d3.format('.1f')
@@ -100,6 +103,12 @@ function drag(g, vec, constraint, cn, scope, stage, x, y) {
   g.on('mouseleave', endHighlight)
 }
 
+function highlight(g, drag, begin, end) {
+  g.on('mouseenter', begin)
+  drag.on('dragstart', begin).on('dragend', end)
+  g.on('mouseleave', end)
+}
+
 function derivedState(opts) {
   var b1 = vector(opts.basis1)
   var b2 = vector(opts.basis2)
@@ -107,7 +116,7 @@ function derivedState(opts) {
     [b1.x, b2.x],
     [b1.y, b2.y]
   ])
-  var sample = vector(opts.sampleVector)
+  var sample = vector(opts.sample)
   var st = sample.matrixMulti(m)
   var sampleTransformed = st
   var std = sampleTransformed.sub(sample)
@@ -119,7 +128,6 @@ function derivedState(opts) {
   // e1 = e1.scale(1 / l), e2 = e2.scale(1 / l)
 
   eigenVectors = [e1.array(), e2.array()]
-
 
   var mt = [
     [ m[0][0], m[0][1], 0],
@@ -135,6 +143,7 @@ function derivedState(opts) {
       matrix: m
     , transformMatrix: mt
     , eigenVectors: eigenVectors
+    , eigens: eigenVectors.map(vector)
     , qInverse: qInverse
     , q: q
     , b1: b1
@@ -158,6 +167,7 @@ function addVectors(g, data) {
       , stroke: function(d) { return color[d.style] }
       , 'stroke-dasharray': function(d) { return d.dash }
       , 'stroke-width': function(d) { return d['stroke-width'] }
+      , opacity: function(d) { return d.opacity }
     })
   return vectors
 }
@@ -171,6 +181,14 @@ function updateVectors(vectors, data, o) {
       , x2: function(d) { return d._p2[0] }
       , y2: function(d) { return d._p2[1] }
     })
+}
+
+function buildNobs(data, scope, coord) {
+  var nobs = coord.append('g').attr('class', 'nobs')
+    .selectAll('.nob').data(data).enter()
+      .append('g').attr('class', 'nob')
+  nobs.append('circle').attr('class', 'nob').attr('r', 20)
+  return nobs
 }
 
 function buildEquation(equation) {
@@ -220,6 +238,37 @@ function buildEquation(equation) {
   }
 }
 
+var nobs = {
+  sample: function(x, y) {
+    return {
+      get: function(o) {
+        return [x(o.sample.x), y(o.sample.y)]
+      }
+      , set: function(scope, p) {
+        scope.opts.sample = sampleConstraint([x.invert(p[0]), y.invert(p[1])])
+      }
+    }
+  }
+  , basis1: function(x, y) {
+    return {
+        get: function(o) {
+          return [ x(o.b1.x), y(o.b1.y) ]
+        }
+      , set: function(scope, p) {
+        scope.opts.basis1 = basisConstraint([x.invert(p[0]), y.invert(p[1])])
+      }
+    }
+  }
+  , basis2: function(x, y) {
+    return {
+        get: function(o) { return [ x(o.b2.x), y(o.b2.y) ] }
+      , set: function(scope, p) {
+        scope.opts.basis2 = basisConstraint([x.invert(p[0]), y.invert(p[1])])
+      }
+    }
+  }
+}
+
 myApp.directive('matrixAsImageTransform', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])
@@ -261,13 +310,13 @@ myApp.directive('matrixAsImageTransform', function() {
     originalImage.append('image')
       .attr('transform', 'translate(' + - imageS / 2 + ', -' + imageS / 2 + ')')
       .attr({ width: imageS, height: imageS, 'xlink:href': 'resources/lenna.png' })
-      .style('opacity', '0.6')
+      .style('opacity', '0.3')
 
     var image = plot3.append('g')
     image.append('image')
       .attr('transform', 'scale(1, -1) translate(' + - imageS / 2 + ', -' + imageS / 2 + ')')
       .attr({ width: imageS, height: imageS, 'xlink:href': 'resources/lenna.png' })
-      .style('opacity', '0.6')
+      .style('opacity', '0.3')
 
 
     svg.append('defs').call(addMarkers)
@@ -280,6 +329,7 @@ myApp.directive('matrixAsImageTransform', function() {
       , p2: function(o) { return o.sample.to(pixels) }
       , style: 'tertiary'
       , 'stroke-width': 2
+      , opacity: 0.3
     }]
 
     var plot1Vectors = addVectors(plot1, plot1VectorData)
@@ -321,29 +371,31 @@ myApp.directive('matrixAsImageTransform', function() {
         , p2: function(o) { return o.st.to(pixels) }
         , style: 'primary'
         , dash: dash
-      // }, {
-      //   name: 'sample-difference'
-      //   , p1: function(o) { return o.sample.to(pixels) }
-      //   , p2: function(o) { return o.st.to(pixels) }
-      //   , style: 'difference'
-      //   , dash: dash
-      //   , head: false
-      //   , 'stroke-width': 2
-      // }
+      }, {
+        name: 'difference'
+        , p1: function(o) { return o.sample.to(pixels) }
+        , p2: function(o) { return o.st.to(pixels) }
+        , style: 'difference'
+        , dash: dash
+        , head: false
+        , 'stroke-width': 4
       }, {
         name: 'sample'
         , p1: origin
         , p2: function(o) { return o.sample.to(pixels) }
         , style: 'tertiary'
+        , opacity: 0.1
       }, {
         name: 'sample-transformed'
         , p1: origin
         , p2: function(o) { return o.st.to(pixels) }
         , style: 'quaternary'
+        , opacity: 0.1
       }
     ]
+
     plot2VectorData.forEach(function(d) {
-      d['stroke-width'] = d.name.match('sample') ? 2 : 4
+      d['stroke-width'] = d['stroke-width'] || (d.name.match('sample') ? 2 : 4)
     })
 
     var plot2Vectors = addVectors(plot2, plot2VectorData)
@@ -354,37 +406,74 @@ myApp.directive('matrixAsImageTransform', function() {
       , p2: function(o) { return o.st.to(pixels) }
       , style: 'quaternary'
       , 'stroke-width': 2
+      , opacity: 0.3
     }]
 
     var plot3Vectors = addVectors(plot3, plot3VectorData)
 
     var samplePoint = plot1.append('g').attr('class', 'point')
     samplePoint.append('circle').attr('r', 4)
+      .attr('fill', color.tertiary)
+    samplePoint.append('text')
+      .attr('fill', 'rgba(255, 255, 255, 0.7)')
+      .attr('transform', 'translate(11, 1)')
     samplePoint.append('text')
       .attr('fill', color.tertiary)
       .attr('transform', 'translate(10, 0)')
 
+    var samplePointPlot2 = plot2.append('g').attr('class', 'point')
+    samplePointPlot2.append('circle').attr('r', 4)
+      .attr('fill', color.tertiary)
+
 
     var sampleTransformPoint = plot3.append('g').attr('class', 'point')
     sampleTransformPoint.append('circle').attr('r', 4)
+      .attr('fill', color.quaternary)
+    sampleTransformPoint.append('text')
+      .attr('fill', 'rgba(255, 255, 255, 0.7)')
+      .attr('text-anchor', 'end')
+      .attr('transform', 'translate(-9, 1)')
     sampleTransformPoint.append('text')
       .attr('fill', color.quaternary)
-      .attr('transform', 'translate(10, 0)')
+      .attr('text-anchor', 'end')
+      .attr('transform', 'translate(-10, 0)')
 
-    var sampleNob = plot1.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, scope.opts.sampleVector, sampleConstraint, 'sample', scope, plot1, x, y)
+    var sampleTransformPointPlot2 = plot2.append('g').attr('class', 'point')
+    sampleTransformPointPlot2.append('circle').attr('r', 4)
+      .attr('fill', color.quaternary)
 
-    var basis1Nob = plot2.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, scope.opts.basis1, basisConstraint, 'b1', scope, plot2, x, y)
+    var plot1NobData = [nobs.sample(x, y)]
+    plot1NobData[0].plot = plot1.node()
+    plot1NobData[0].cn = 'sample'
 
-    var basis2Nob = plot2.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, scope.opts.basis2, basisConstraint, 'b2', scope, plot2, x, y)
+    var plot1Nobs = buildNobs(plot1NobData, scope, plot1)
+
+    var plot2NobData = [
+        extend(nobs.basis1(x, y), { plot: plot2.node(), cn: 'b1' })
+      , extend(nobs.basis2(x, y), { plot: plot2.node(), cn: 'b2' })
+    ]
+
+    var plot2Nobs = buildNobs(plot2NobData, scope, plot2)
+
+    var nobDrag = d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() {
+          var p = d3.mouse(d.plot)
+          d.set(scope, p)
+        }.bind(this))
+      })
+
+    function beginHighlight(d) {
+      scope.$apply(function() { scope.opts.highlight = d.cn })
+    }
+    function endHighlight(d) {
+      scope.$apply(function() { scope.opts.highlight = null })
+    }
+
+    [plot1Nobs, plot2Nobs].forEach(function(nobs) {
+      nobs.call(highlight, nobDrag, beginHighlight, endHighlight)
+          .call(nobDrag)
+    })
 
     function transform(v) { return 'translate(' + [x(v.x), y(v.y)] + ')'}
     function redraw() {
@@ -393,15 +482,20 @@ myApp.directive('matrixAsImageTransform', function() {
       updateVectors(plot1Vectors, plot1VectorData, o)
       updateVectors(plot2Vectors, plot2VectorData, o)
       updateVectors(plot3Vectors, plot3VectorData, o)
-      sampleNob.attr({cx: x(o.sample.x), cy: y(o.sample.y)})
       samplePoint.attr('transform', transform(o.sample))
-      basis1Nob.attr('transform', transform(o.b1))
-      basis2Nob.attr('transform', transform(o.b2))
-      samplePoint.select('text')
+      samplePointPlot2.attr('transform', transform(o.sample))
+      samplePoint.selectAll('text')
         .text('(x\u2080=' + format(o.sample.x) + ', y\u2080=' + format(o.sample.y) + ')')
       sampleTransformPoint.attr('transform', transform(o.st))
-      sampleTransformPoint.select('text')
+      sampleTransformPointPlot2.attr('transform', transform(o.st))
+      sampleTransformPoint.selectAll('text')
         .text('(x\u2081=' + format(o.st.x) + ', y\u2081=' + format(o.st.y) + ')')
+
+      plot1NobData.forEach(function(d) { d._p = d.get(o) })
+      plot1Nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+
+      plot2NobData.forEach(function(d) { d._p = d.get(o) })
+      plot2Nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
 
       equation.select('.symbol.x0 .value').text(format(o.sample.x, 1))
       equation.select('.symbol.y0 .value').text(format(o.sample.y, 1))
@@ -469,13 +563,12 @@ myApp.directive('eigenVectors', function() {
         , p2: function(o) { return o.b2.to(pixels) }
         , style: 'secondary'
       }, {
-        name: 'sample-difference'
+        name: 'difference'
         , p1: function(o) { return o.sample.to(pixels) }
         , p2: function(o) { return o.st.to(pixels) }
         , style: 'difference'
         , dash: dash
-        , head: false
-        , 'stroke-width': 2
+        , 'stroke-width': 4
       }, {
         name: 'sample'
         , p1: origin
@@ -490,7 +583,7 @@ myApp.directive('eigenVectors', function() {
     ]
 
     vectorData.forEach(function(d) {
-      d['stroke-width'] = d.name.match('sample') ? 2 : 4
+      d['stroke-width'] = d['stroke-width'] || d.name.match('sample') ? 2 : 4
     })
 
     var eigens = [
@@ -528,15 +621,18 @@ myApp.directive('eigenVectors', function() {
     var vectors = addVectors(coord, vectorData)
     defs.call(addMarkers)
 
-    var nob1 = coord.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, opts.basis1, basisConstraint, 'b1', scope, stage, x, y)
+    var nobData = [
+        extend(nobs.sample(x, y), { cn: 'b1' })
+      , extend(nobs.basis1(x, y), { cn: 'b2' })
+      , extend(nobs.basis2(x, y), { cn: 'sample' })
+    ]
 
-    var nob2 = coord.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, opts.basis2, basisConstraint, 'b2', scope, stage, x, y)
+    var myNobs = buildNobs(nobData, scope, coord)
+
+    myNobs.call(d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() { d.set(scope, d3.mouse(coord.node())) })
+      }))
 
     var samplePoint = coord.append('g')
       .attr('class', 'point')
@@ -545,11 +641,6 @@ myApp.directive('eigenVectors', function() {
     var samplePointTransform = coord.append('g')
       .attr('class', 'point')
     samplePointTransform.append('circle').attr('r', 4)
-
-    var sampleNob = coord.append('circle')
-      .attr('class', 'nob')
-      .attr('r', nobR)
-      .call(drag, opts.sampleVector, sampleConstraint, 'sample', scope, stage, x, y)
 
     function transform(v) { return 'translate(' + [x(v.x), y(v.y)] + ')'}
 
@@ -560,9 +651,8 @@ myApp.directive('eigenVectors', function() {
       updateVectors(vectors, vectorData, o)
 
       // Update the nob positions.
-      nob1.attr({cx: x(o.b1.x), cy: y(o.b1.y)})
-      nob2.attr({cx: x(o.b2.x), cy: y(o.b2.y)})
-      sampleNob.attr({cx: x(o.sample.x), cy: y(o.sample.y)})
+      nobData.forEach(function(d) { return d._p = d.get(o) })
+      myNobs.attr('transform', function(d) { return 'translate(' + d._p + ')'})
       samplePoint.attr('transform', transform(o.sample))
       samplePointTransform.attr('transform', transform(o.st))
     }
@@ -602,7 +692,7 @@ myApp.directive('eigenSpace', function() {
 
     var vectorData = [
       {
-        name: 'sample'
+          name: 'sample'
         , p1: origin
         , p2: function(o) {
           return o.sample.matrixMulti(o.qInverse).to(pixels)
@@ -610,12 +700,13 @@ myApp.directive('eigenSpace', function() {
         , style: 'tertiary'
         , 'stroke-width': 2
       }, {
-        name: 'sample-transformed'
+          name: 'sample-transformed'
         , p1: origin
         , p2: function(o) {
           return o.st.matrixMulti(o.qInverse).to(pixels)
         }
         , style: 'quaternary'
+        , 'stroke-width': 2
       }
     ]
 
@@ -626,6 +717,465 @@ myApp.directive('eigenSpace', function() {
       updateVectors(plotVectors, vectorData, o)
     }
     scope.$watch('opts', redraw, true)
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.controller('StochasticMatrixMultiplicationCtrl', function($scope) {
+  var opts = $scope.opts = {
+    states: [
+        [0.8, 0.1]
+      , [0.2, 0.9]
+    ]
+    , sample: vector(0.9, 0.1).array()
+    , samples: []
+    , numSamples: 6
+    , activeElement: null
+  }
+  $scope.isActive = function(target) {
+    return target === opts.activeElement
+  }
+  $scope.isDim = function(target) {
+    return opts.activeElement && target !== opts.activeElement
+  }
+  $scope.stateMatrixLabels = [
+    ['a\u2081\u2081', 'a\u2081\u2082'],
+    ['a\u2082\u2081', 'a\u2082\u2082']
+  ]
+  $scope.pLabels = [
+      'p\u2080'
+    , 'p\u2081'
+    , 'p\u2082'
+    , 'p\u2083'
+    , 'p\u2084'
+    , 'p\u2085'
+  ]
+  // $scope.pLabels = [
+  //     ['ρ\u2070\u2081', 'ρ\u2070\u2082']
+  //   , ['ρ\u00B9\u2081', 'ρ\u00B9\u2082']
+  //   , ['ρ\u00B2\u2081', 'ρ\u00B2\u2082']
+  //   , ['ρ\u00B3\u2081', 'ρ\u00B3\u2082']
+  //   , ['ρ\u2074\u2081', 'ρ\u2074\u2082']
+  //   , ['ρ\u2075\u2081', 'ρ\u2075\u2082']
+  // ]
+  $scope.symboleEqLabel = '='
+  $scope.symbolDotLabel = '\u22C5'
+})
+
+myApp.directive('stochasticMatrixMultiplication', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var m = { l: 10, t: 25, r: 10, b: 25 }
+    var svg = el.append('svg').attr({width: w, height: h})
+    svg.append('rect').attr({width: w, height: h}).attr('fill', 'rgba(0, 0, 0, 0)')
+    var stage = svg.append('g')
+      .attr('transform', 'translate(' + [w * 0.4, h / 2] + ')')
+      .attr('class', 'coord')
+    var s = h - m.t - m.b
+    var cW = s, cH = s
+    var x = d3.scale.linear().domain([0, 1]).range([0, cW ])
+    var y = d3.scale.linear().domain([0, 1]).range([0, -cH])
+    function pixels(v) { v = vector(v); return [x(v.x), y(v.y)] }
+
+    var coord = stage.append('g').attr('class', 'coord')
+      .attr('transform', 'translate(' + [-cW / 2, cH / 2] + ')')
+
+    coord.append('g').attr('class', 'axis axis-x')
+      .call(d3.svg.axis().scale(x).tickValues([0, 1]).tickFormat(tickFormat))
+
+    coord.append('g').attr('class', 'axis axis-y')
+      .call(d3.svg.axis().scale(y).orient('left').tickValues([0, 1])
+        .tickFormat(tickFormat))
+
+    var vectorData = [
+      {
+          name: 'eigen-vector-1'
+        , p1: origin
+        , p2: function(o) { return o.eigens[0].to(pixels) }
+        , style: 'tertiary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-2'
+        , p1: origin
+        , p2: function(o) { return o.eigens[1].to(pixels) }
+        , style: 'tertiary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'basis-1'
+        , p1: origin
+        , p2: function(o) { return vector([o.states[0][0], o.states[1][0]]).to(pixels) }
+        , style: 'secondary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'basis-2'
+        , p1: origin
+        , p2: function(o) { return vector([o.states[0][1], o.states[1][1]]).to(pixels) }
+        , style: 'secondary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'sample-x'
+        , p1: function(o) { return vector([o.sample[0], 0]).to(pixels) }
+        , p2: function(o) { return vector(o.sample).to(pixels) }
+        , style: 'primary'
+        , 'stroke-width': 4
+        , dash: dash
+        , head: false
+        , opacity: 0.3
+      }, {
+          name: 'sample-y'
+        , p1: function(o) { return vector([0, o.sample[1]]).to(pixels) }
+        , p2: function(o) { return vector(o.sample).to(pixels) }
+        , style: 'primary'
+        , 'stroke-width': 4
+        , dash: dash
+        , head: false
+        , opacity: 0.3
+      }
+    ]
+
+    function derivedState(opts) {
+      var o = {}
+      Object.keys(opts).forEach(function(key) { o[key] = opts[key] }) // Extend
+      o.states = matrix(o.states)
+      o.eigens = o.states.eigenVectors().map(vector)
+      var m = max(o.eigens[0].len(), o.eigens[1].len())
+      o.eigens = o.eigens.map(function(e) { return e.scale(1 / m) })
+
+      var c = o.sample, n = scope.opts.numSamples
+      o.samples = [{name: 0, pos: c }].concat(d3.range(n - 2).map(function(d, i) {
+        c = vector(c).matrixMulti(opts.states)
+        return { pos: c.array(), name: i + 1 }
+      })).concat([
+        { 
+          pos: (function() {
+            for(var i = 0; i < 100; i++)
+              c = vector(c).matrixMulti(opts.states)
+            return c.array()
+          })()
+          , name: '∞'
+        }
+      ])
+      opts.samples = o.samples
+      return o
+    }
+
+    var vectors = addVectors(coord, vectorData)
+
+    var samples = coord.append('g').attr('class', 'samples')
+
+    var sample = samples.selectAll('g').data(d3.range(scope.opts.numSamples))
+      .enter().append('g').attr('class', 'sample')
+    sample.append('circle')
+      .attr({fill: color.primary, opacity: 0.7, r: 4 })
+    sample.append('text')
+      .attr('transform', 'translate(' + [5, -5] + ')')
+      .text('ρ')
+    sample.append('text')
+      .attr('class', 'idx')
+      .attr('transform', 'translate(' + [15, 0] + ')')
+      .style('font-size', 10)
+
+    sample.on('mouseenter', function(d) {
+      scope.$apply(function() {
+        if (!isNaN(+d.name)) scope.opts.activeElement = 'p' + d.name
+      })
+    })
+    sample.on('mouseleave', function(d) {
+      scope.$apply(function() {
+        scope.opts.activeElement = null
+      })
+    })
+
+    function redraw() {
+      var o = derivedState(scope.opts)
+      updateVectors(vectors, vectorData, o)
+      sample
+        .data(o.samples)
+        .attr('transform', function(d) { return 'translate(' + pixels(d.pos) + ')' })
+      sample.select('.idx').text(function(d, i) { return d.name })
+    }
+    scope.$watch('opts', redraw, true)
+
+    svg.call(d3.behavior.drag()
+      .on('drag', function() {
+        var px = x.invert(d3.mouse(coord.node())[0])
+        if (px < 0) px = 0; else if (px > 1) px = 1
+        var py = 1 - px
+        var p = [ px, py ]
+        scope.$apply(function() {
+          scope.opts.sample = p
+        })
+      }))
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('matrixEquation', function() {
+  return {
+      restrict: 'E'
+    , transclude: true
+    , template: '<div ng-transclude></div>'
+  }
+})
+myApp.directive('eqElement', function($parse) {
+  function link(scope, el, attr) {
+    scope.label = scope.label || $parse(attr.label)(scope)
+  }
+  return {
+      restrict: 'E'
+    , link: link
+    , replace: true
+    , scope: { dim: '=', value: '=', label: '=' }
+    , template: '<div ng-class="{element: true, dim: dim}">'
+      + '<div class="value">{{value}}</div>'
+      + '<div class="label">{{label}}</div>'
+    + '</div>'
+  }
+})
+myApp.directive('eqVector', function($parse) {
+  function link(scope, el, attr) {
+    scope.label = scope.label || $parse(attr.labels)(scope)
+  }
+  return {
+      restrict: 'E'
+    , link: link
+    , replace: true
+    , scope: { values: '=', label: '=', labels: '=', active: '=', dim: '=' }
+    , template: '<div ng-class="{vector: true, active: active, dim: dim}">'
+      + '<div ng-style="{ opacity: (label && !active) ? 0 : 1, transition: \'0.25s all\' }">'
+        + '<div class="border-l"></div>'
+        + '<div class="center">'
+          + '<div class="top">'
+            + '<div class="value">{{values[0] | number:2 }}</div>'
+            + '<div class="label">{{labels[0]}}</div>'
+          + '</div>'
+          + '<div class="bottom">'
+            + '<div class="value">{{values[1] | number:2 }}</div>'
+            + '<div class="label">{{labels[1]}}</div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="border-r"></div>'
+      + '</div>'
+      + '<div ng-style=" { opacity: (label && !active) ? 1 : 0, position: \'absolute\', \'margin-left\': \'10px\', \'transition\': \'0.25s all\' }">'
+        + '<div class="label">{{label}}</div>'
+      + '</div>'
+    + '</div>'
+  }
+})
+myApp.directive('eqMatrix', function() {
+  return {
+      restrict: 'E'
+    , replace: true
+    , scope: { values: '=', labels: '=', active: '=', dim: '=' }
+    , template: '<div ng-class="{matrix: true, active: active, dim: dim}">'
+      + '<div class="border-l"></div>'
+        + '<div class="center">'
+          + '<div class="top">'
+            + '<div class="left">'
+              + '<div class="label">{{labels[0][0]}}</div>'
+              + '<div class="value">{{values[0][0] | number:2}}</div>'
+            + '</div>'
+            + '<div class="right">'
+              + '<div class="label">{{labels[0][1]}}</div>'
+              + '<div class="value">{{values[0][1] | number:2}}</div>'
+            + '</div>'
+          + '</div>'
+          + '<div class="bottom">'
+            + '<div class="left">'
+              + '<div class="label">{{labels[1][0]}}</div>'
+              + '<div class="value">{{values[1][0] | number:2}}</div>'
+            + '</div>'
+            + '<div class="right">'
+              + '<div class="label">{{labels[1][1]}}</div>'
+              + '<div class="value">{{values[1][1] | number:2}}</div>'
+            + '</div>'
+          + '</div>'
+        + '</div>'
+      + '<div class="border-r"></div>'
+    + '</div>'
+  }
+})
+
+myApp.directive('repeatedMatrixMultiplication', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var m = { l: 10, t: 25, r: 10, b: 25 }
+    var svg = el.append('svg').attr({width: w, height: h})
+    svg.append('rect').attr({width: w, height: h}).attr('fill', 'rgba(0, 0, 0, 0)')
+    var stage = svg.append('g')
+      .attr('transform', 'translate(' + [w / 2, h / 2] + ')')
+      .attr('class', 'coord')
+    var s = h - m.t - m.b
+    var cW = s, cH = s
+    var ticks = [-2, 1, 1, 2]
+    var x = d3.scale.linear().domain([-domainL, domainL]).range([-cW / 2, cW / 2])
+    var y = d3.scale.linear().domain([-domainL, domainL]).range([cH / 2, -cH / 2])
+    function pixels(v) { v = vector(v); return [x(v.x), y(v.y)] }
+
+    var coord = stage.append('g').attr('class', 'coord')
+      .attr('transform', 'translate(' + [ 0, 0] + ')')
+
+    coord.append('g').attr('class', 'axis axis-x')
+      .call(d3.svg.axis().scale(x).tickValues(ticks).tickFormat(tickFormat))
+
+    coord.append('g').attr('class', 'axis axis-y')
+      .call(d3.svg.axis().scale(y).orient('left').tickValues(ticks)
+        .tickFormat(tickFormat))
+
+    var vectorData = [
+      {
+          name: 'eigen-vector-1'
+        , p1: origin
+        , p2: function(o) { return o.eigens[0].to(pixels) }
+        , style: 'tertiary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-1-extended'
+        , p1: function(o) { return o.eigens[0].unit().scale(-10).to(pixels) }
+        , p2: function(o) { return o.eigens[0].unit().scale(10).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-2'
+        , p1: origin
+        , p2: function(o) { return o.eigens[1].to(pixels) }
+        , style: 'tertiary'
+        , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-2-extended'
+        , p1: function(o) { return o.eigens[1].unit().scale(-100).to(pixels) }
+        , p2: function(o) { return o.eigens[1].unit().scale(100).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
+        , opacity: 0.3
+      }, {
+          name: 'basis-1'
+        , p1: origin
+        , p2: function(o) { return vector(o.basis1).to(pixels) }
+        , style: 'primary'
+        , 'stroke-width': 4
+        , opacity: 1
+      }, {
+          name: 'basis-2'
+        , p1: origin
+        , p2: function(o) { return vector(o.basis2).to(pixels) }
+        , style: 'secondary'
+        , 'stroke-width': 4
+        , opacity: 1
+      }
+      // }, {
+      //     name: 'sample-x'
+      //   , p1: function(o) { return vector([o.sample[0], 0]).to(pixels) }
+      //   , p2: function(o) { return vector(o.sample).to(pixels) }
+      //   , style: 'primary'
+      //   , 'stroke-width': 4
+      //   , dash: dash
+      //   , head: false
+      //   , opacity: 0.3
+      // }, {
+      //     name: 'sample-y'
+      //   , p1: function(o) { return vector([0, o.sample[1]]).to(pixels) }
+      //   , p2: function(o) { return vector(o.sample).to(pixels) }
+      //   , style: 'primary'
+      //   , 'stroke-width': 4
+      //   , dash: dash
+      //   , head: false
+      //   , opacity: 0.3
+      // }
+    ]
+
+    function myDerivedState(opts) {
+      var o = {}
+      Object.keys(opts).forEach(function(key) { o[key] = opts[key] }) // Extend
+      var _o = derivedState(o)
+      Object.keys(_o).map(function(k) { o[k] = _o[k] })
+      o.states = matrix([o.basis1, o.basis2])
+      o.eigens = o.states.eigenVectors().map(vector)
+      var m = max(o.eigens[0].len(), o.eigens[1].len())
+      o.eigens = o.eigens.map(function(e) { return e.scale(1 / m) })
+
+      var c = o.sample, n = scope.opts.numSamples
+      o.samples = [{name: 0, pos: c.array() }].concat(d3.range(n - 1).map(function(d, i) {
+        c = vector(c).matrixMulti(o.states)
+        return { pos: c.array(), name: i + 1 }
+      }))
+      opts.samples = o.samples
+      return o
+    }
+
+    var vectors = addVectors(coord, vectorData)
+
+    var samples = coord.append('g').attr('class', 'samples')
+
+    var sample = samples.selectAll('g').data(d3.range(scope.opts.numSamples))
+      .enter().append('g').attr('class', 'sample')
+    sample.append('circle')
+      .attr({fill: color.primary, opacity: 0.7, r: 4 })
+    sample.append('text')
+      .attr('transform', 'translate(' + [5, -10] + ')')
+      .text('ρ')
+    sample.append('text')
+      .attr('class', 'idx')
+      .attr('transform', 'translate(' + [15, -5] + ')')
+      .style('font-size', 10)
+
+    sample.on('mouseenter', function(d) {
+      scope.$apply(function() {
+        if (!isNaN(+d.name)) scope.opts.activeElement = 'p' + d.name
+      })
+    })
+    sample.on('mouseleave', function(d) {
+      scope.$apply(function() {
+        scope.opts.activeElement = null
+      })
+    })
+
+    var nobData = [nobs.basis1(x, y), nobs.basis2(x, y), nobs.sample(x, y)]
+    var myNobs = buildNobs(nobData, scope, coord)
+
+    myNobs.call(d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() { d.set(scope, d3.mouse(coord.node())) })
+      }))
+
+    var samplePath = coord.append('path')
+
+    function redraw() {
+      var o = myDerivedState(scope.opts)
+      updateVectors(vectors, vectorData, o)
+      sample
+        .data(o.samples)
+        .attr('transform', function(d) { return 'translate(' + pixels(d.pos) + ')' })
+      sample.select('.idx').text(function(d, i) { return d.name })
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      myNobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+      samplePath
+        .attr('d',  'M' + o.samples.map(function(d) { return [x(d.pos[0]), y(d.pos[1]) ] }).join('L'))
+        .attr('class', 'sample-path')
+    }
+    scope.$watch('opts', redraw, true)
+
+    // svg.call(d3.behavior.drag()
+    //   .on('drag', function() {
+    //     var px = x.invert(d3.mouse(coord.node())[0])
+    //     if (px < 0) px = 0; else if (px > 1) px = 1
+    //     var py = 1 - px
+    //     var p = [ px, py ]
+    //     scope.$apply(function() {
+    //       scope.opts.sample = p
+    //     })
+    //   }))
   }
   return { link: link, restrict: 'E' }
 })

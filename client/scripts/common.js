@@ -13,6 +13,12 @@ var pi = Math.PI
   , min = Math.min
   , random = Math.random
 
+
+function extend(obj1, obj2) {
+  Object.keys(obj2).forEach(function(key) { obj1[key] = obj2[key] })
+  return obj1
+}
+
 function hyphen(obj) {
   if (obj instanceof String || typeof obj === 'string')
     return hyphenate(obj)
