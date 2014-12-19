@@ -60,6 +60,12 @@ migration-vector-notation {
   }
 }
 
+migration-linear-combination {
+  &:extend(.full-width-visualization);
+  // background-color: rgba(0, 0, 0, 0.1);
+  height: 250px;
+}
+
 matrix-as-image-transform {
   &:extend(.full-width-visualization);
   height: 500px;
@@ -87,6 +93,7 @@ eigen-vectors {
     }
   }
 }
+
 eigen-vectors, matrix-as-image-transform {
   @trans: 0.25s all;
   position: relative;
@@ -396,6 +403,37 @@ matrix-equation {
     }
     .value {
       opacity: 1;
+    }
+  }
+  .element {
+    &.primary {
+      color: @primary;
+    }
+    &.secondary {
+      color: @secondary;
+    }
+    &.tertiary {
+      color: @tertiary;
+    }
+  }
+  .vector {
+    &.primary {
+      color: @primary;
+      .border-l, .border-r {
+        border-color: @primary;
+      }
+    }
+    &.secondary {
+      color: @secondary;
+      .border-l, .border-r {
+        border-color: @secondary;
+      }
+    }
+    &.tertiary {
+      color: @tertiary;
+      .border-l, .border-r {
+        border-color: @tertiary;
+      }
     }
   }
 }

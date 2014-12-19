@@ -14,6 +14,7 @@ var pi = Math.PI
   , min = Math.min
   , random = Math.random
 
+var modulo = function(a, n) { return ( (a % n) + n ) % n }
 
 function extend(obj1, obj2) {
   Object.keys(obj2).forEach(function(key) { obj1[key] = obj2[key] })
@@ -317,7 +318,6 @@ ev.directive('evTooltip', function() {
   }
   return {
       link: link
-    , scope: true
     , restrict: 'A'
   }
 })

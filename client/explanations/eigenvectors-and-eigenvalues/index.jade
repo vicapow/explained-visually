@@ -24,16 +24,14 @@ html
           span.primary California
           |  and 
           span.secondary New York
-          | . This ignores people migrating from other states. Our model assumes they don't exist and/or don't matter (sorry Pennsylvania!).  It also ignores the fact that people are born our die.
-        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. These transition preferences can also be visualized as vectors, one for each state, and a vector representing the ratio of people currently in each state. Adjust the ratios and see how they effect the map above.
+          | . This ignores people migrating from other states. Our model assumes they don't exist and/or don't matter (sorry Pennsylvania!).  It also ignores the fact that people are born or die.
+        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. These transition preferences can also be visualized as vectors, one for each state, and a vector representing the ratio of people currently in each state. Adjust the ratios to see how they effect the map above.
         sf-to-ny-data-as-vectors
-        p 
-          :markdown
-            Let's use vector notation to make referring to all the vectors above a bit easier.
+        p Let's use vector notation to make referring to all the vectors above a bit easier.
         migration-vector-notation
-        p One way to calculate the population ratio one month from now (
+        p One (boring) way to calculate the population ratio one month from now (
           span.tertiary P₁
-          | ) is to use basic arithmetic. For the population of California one month from now (t=1), we have the following equation:
+          | ) is to use arithmetic. For the population of CA a month from now (t=1), we get this equation:
         p(style="text-align: center")
           span(ev-tooltip="The proportion of people in CA at t=1")
             span.tertiary P₁[
@@ -57,7 +55,7 @@ html
             span.secondary B₂[
             span.primary CA
             span.secondary ]
-        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
         p(style="text-align: center")
           b {{opts.samples[1][0] | number:2 }}
           | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
@@ -65,7 +63,7 @@ html
           | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
           | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[1] | number:2 }}
 
-        p And for the population of New York at t=1 we have the following equation:
+        p And for the population of NY at t=1 we get...
         p(style="text-align: center")
           span(ev-tooltip="The proportion of people in NY at t=1")
             span.tertiary P₁[
@@ -90,36 +88,78 @@ html
           span(ev-tooltip="The proportion of people in NY that will stay in NY.")
             span.secondary B₂[NY]
         
-        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
         p(style="text-align: center")
           b {{opts.samples[1][1] | number:2 }}
           | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
           | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis1[1] | number:2 }}
           | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
           | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[0] | number:2 }}
-        p For simple problems like this, we can get by with arithmetic but if we were dealing with all of the US states and every state could have people migrating from any other state, doing so would become impractical. This is where linear algebra can help.
+        p For simple problems like this, we can get by with arithmetic but if we were dealing with all of the US states and every state could have people migrating to any other state, doing so would become difficult. This is where linear algebra can help condence our notation.
         p(style="text-align: center")
           span(ev-tooltip="A vector representing the proportion of people in each state at t=1.")
             span.tertiary P₁
-          |  = 
+          |  &nbsp;&nbsp;=&nbsp;&nbsp;
           span(ev-tooltip="A single scalar representing the proportion of people in CA at t=0 and the first component of the vector P₀.")
             span.tertiary P₀[
             span.primary CA
             span.tertiary ]
-          |  × 
+          | &nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;
           span(ev-tooltip="A vector representing what the people in CA will do (either stay in CA, or move to NY).")
             span.primary B₁
-          |  + 
+          | &nbsp;&nbsp;&nbsp;+&nbsp;&nbsp;&nbsp;
           span(ev-tooltip="A single scalar representing the proportion of people in NY at t=0 and the second component of the vector P₀.")
             span.tertiary P₀[
             span.secondary NY
             span.tertiary ]
-          |  × 
+          | &nbsp;&nbsp;×&nbsp;&nbsp; 
           span(ev-tooltip="A vector representing what the people in NY will do (either leave for CA, or stay in NY).")
             span.secondary B₂
-        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
-        p Introduce a way of thinking about P1 as a linear combation of the transition columns of A and P0.
-        ev-placeholder(title="Linear combinations for calculating P\u2081")
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
+
+        matrix-equation
+          eq-vector(ev-tooltip="P₁" class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
+          | &nbsp;
+          eq-element(label="'='")
+          eq-element(ev-tooltip="P₀[CA]" class="tertiary" label="opts.sample[0] | number:2")
+          | &nbsp;
+          eq-element(label="'×'")
+          | &nbsp;
+          eq-vector(ev-tooltip="B₁" class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
+          | &nbsp;
+          eq-element(label="'+'")
+          | &nbsp;
+          eq-element(ev-tooltip="P₀[NY]" class="tertiary" label="opts.sample[1] | number:2")
+          | &nbsp;
+          eq-element(label="'×'")
+          | &nbsp;
+          eq-vector(ev-tooltip="B₂" class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
+
+        P
+          :markdown
+            Using this notation, we are describing P₁ as a [linear combination](https://en.wikipedia.org/wiki/Linear_combination) of P₀ applied to B₁ and B₂. This notation _really_ cuts down on how much typing we have to do, especially for larger, more interesting problems. We can also use this notation to help think about and visualize what's happening in a new way. The below interactive illustrates this by stepping through the process. Click "next" to begin.
+        div(ng-controller="migrationLinearCombinationCtrl")
+          div(style="text-align:center")
+            button.btn(ng-click="next()" ng-style="{ 'background-color': isLastKeyFrame ? 'rgba(0, 0, 0, 0.1)' : null }") {{isLastKeyFrame ? 'Reset' : 'Next'}}
+          migration-linear-combination
+        div(style="padding-right:70px;padding-left:70px;")
+          matrix-equation(style="width:25%;float:left")
+            eq-element(class="primary" label="'B₁'")
+            eq-element(label="'='")
+            eq-vector(class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
+          matrix-equation(style="width:25%;float:left")
+            eq-element(class="secondary" label="'B₁'")
+            eq-element(label="'='")
+            eq-vector(class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
+          matrix-equation(style="width:25%;float:left")
+            eq-element(class="tertiary" label="'P₀'")
+            eq-element(label="'='")
+            eq-vector(class="tertiary" values="opts.sample" labels="['P₀[CA]', 'P₀[NY]']" active="true")
+          matrix-equation(style="width:25%;float:left")
+            eq-element(class="tertiary" label="'P₁'")
+            eq-element(label="'='")
+            eq-vector(class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
+          div(style="clear:both")
         p Repeat the same process for P2.
         ev-placeholder(title="Linear combinations for calculating P\u2082")
         p  Describe arbitrary repeated application of A.
