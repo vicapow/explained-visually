@@ -10,6 +10,7 @@ var app = express()
 var jade = require('jade')
 var localsStore = require('./localsStore')
 var locals = localsStore.refresh()
+var argv = require('minimist')(process.argv.slice(2))
 
 app.get('/ev/:slug/', function(req, res, next) {
   var slug = req.params.slug
@@ -18,7 +19,7 @@ app.get('/ev/:slug/', function(req, res, next) {
   var file = fs.readFileSync(filename)
   var fn = jade.compile(file.toString(), { filename: filename, pretty: true })
   var myLocals = localsStore.forSlug(slug)
-  myLocals.dev = false
+  myLocals.dev = argv.dev || myLocals.dev
   res.send(fn(myLocals))
 })
 
@@ -38,4 +39,4 @@ app.get(/\/ev\/([^\/]*)\/(.*)/, function(req, res, next) {
 
 app.use(express.static(__dirname + '/build'))
 
-var server = app.listen(3000)
+var server = app.listen(argv.port || 3000)

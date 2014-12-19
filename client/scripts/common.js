@@ -7,6 +7,7 @@ var pi = Math.PI
   , cos = Math.cos
   , sin = Math.sin
   , acos = Math.acos
+  , asin = Math.asin
   , round = Math.round
   , floor = Math.floor
   , max = Math.max
@@ -17,6 +18,11 @@ var pi = Math.PI
 function extend(obj1, obj2) {
   Object.keys(obj2).forEach(function(key) { obj1[key] = obj2[key] })
   return obj1
+}
+
+function alphaify(color, alpha) {
+  var  c = d3.rgb(color)
+  return 'rgba(' + [c.r, c.g, c.b].join(',') + ', ' + alpha + ')'
 }
 
 function hyphen(obj) {
@@ -49,9 +55,15 @@ function vector(x, y) {
   else v = { x: 0, y: 0 }
   // All methods should return a new vector object.
   v.rot = function(theta) {
-    var x = v.x * cos(theta) - v.y * sin(theta)
-    var y = v.x * sin(theta) + v.y * cos(theta)
-    return vector(x, y)
+    if (arguments.length) {
+      var x = v.x * cos(theta) - v.y * sin(theta)
+      var y = v.x * sin(theta) + v.y * cos(theta)
+      return vector(x, y)
+    } else {
+      var a = v.unit()
+      // returns the angle theta in the range (-pi, pi)
+      return acos(a.x) * ((a.y < 0) ? -1 : 1)
+    }
   }
   v.matrixMulti = function(m) {
     return vector(
@@ -245,5 +257,67 @@ ev.directive('evPlayButton', function() {
       + '<div ng-transclude></div>'
       + '<svg class="play-container"></svg>'
     + '</div>'
+  }
+})
+
+ev.directive('evPlaceholder', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var svg = el.append('svg').attr({width: w, height: h})
+    var m = { l: 0, t: 0, r: 0, b: 0 }
+    svg.append('text')
+      .attr('transform', 'translate(' + [ w / 2, h / 2 + 5 ] + ')')
+      .attr('text-anchor', 'middle')
+      .text(attr.title)
+  }
+  return { link: link, restrict: 'E' }
+})
+
+ev.directive('evTooltip', function() {
+  function getTooltipLayer() {
+    var tooltipLayer = d3.select('body').select('.layer.ev-tooltips')
+    if (!tooltipLayer.node()) {
+      tooltipLayer = d3.select('body').append('div')
+        .attr('class', 'layer ev-tooltips')
+    }
+    return tooltipLayer
+  }
+  function link(scope, el, attr) {
+    var el = d3.select(el[0])
+    var tooltipLayer = getTooltipLayer()
+    var tooltip = tooltipLayer.append('div').attr('class', 'ev-tooltip')
+      .style('display', 'none')
+      .style('opacity', 0)
+    var content = tooltip.append('div').attr('class', 'content')
+    var yPadding = 12
+    el.on('mouseenter', function() {
+      // console.log('mouse enter') 
+      tooltip.style('display', 'block')
+      content.text(attr.evTooltip)
+      var xo = window.pageXOffset
+      var yo = window.pageYOffset
+      var elbb = el.node().getBoundingClientRect()
+      var tpbb = tooltip.node().getBoundingClientRect()
+      xo = xo + elbb.left + elbb.width / 2 - tpbb.width / 2
+      yo = yo + elbb.top - tpbb.height - yPadding
+      tooltip
+        .style('left', xo + 'px')
+        .style('top', yo + 'px')
+        .style('opacity', 0)
+        .transition()
+        .style('opacity', 1)
+    }).on('mouseleave', function() {
+      // console.log('mouse leave')
+      tooltip
+        .transition()
+        .style('opacity', 0)
+        .style('display', 'none')
+    })
+  }
+  return {
+      link: link
+    , scope: true
+    , restrict: 'A'
   }
 })

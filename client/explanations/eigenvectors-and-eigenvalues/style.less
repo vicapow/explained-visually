@@ -3,6 +3,16 @@
 @tertiary: #e74c3c;
 @quaternary: #9b59b6;
 
+span.primary {
+  color: @primary;
+}
+span.secondary {
+  color: @secondary;
+}
+span.tertiary {
+  color: @tertiary;
+}
+
 playground {
   width: 100%;
   height: 300px;
@@ -16,17 +26,49 @@ playground {
   }
 }
 
-matrix-as-image-transform {
+.full-width-visualization {
   width: 100%;
-  height: 500px;
+  height: 300px;
   display: block;
+  svg text {
+    font-family: 'helvetica Neue';
+  }
+  // background-color: rgba(0, 0, 0, 0.1);
+}
+
+sf-to-ny-migration-map {
+  &:extend(.full-width-visualization);
+  .us-bg {
+    fill: rgba(0, 0, 0, 0.1);
+  }
+  .arrow {
+    stroke-width: 10;
+    fill: none;
+    stroke: black;
+  }
+}
+
+sf-to-ny-data-as-vectors {
+  &:extend(.full-width-visualization);
+}
+
+migration-vector-notation {
+  &:extend(.full-width-visualization);
+  height: 100px;
+  svg path {
+    shape-rendering: crispEdges;
+  }
+}
+
+matrix-as-image-transform {
+  &:extend(.full-width-visualization);
+  height: 500px;
   // background-color: rgba(0, 0, 0, 0.1);
 }
 
 eigen-vectors {
-  width: 100%;
+  &:extend(.full-width-visualization);
   height: 320px;
-  display: block;
   .a1 {
     color: @primary;
   }
@@ -241,24 +283,24 @@ eigen-vectors, matrix-as-image-transform {
 }
 
 eigen-space {
-  width: 100%;
-  height: 300px;
-  display: block;
+  &:extend(.full-width-visualization);
 }
-
-stochastic-matrix-multiplication,
+stochastic-matrix-multiplication {
+  &:extend(.full-width-visualization);
+}
 repeated-matrix-multiplication {
-  width: 100%;
-  height: 300px;
-  display: block;
-  svg text {
-    font-family: 'helvetica Neue';
-  }
+  &:extend(.full-width-visualization);
 }
 
-.nob circle{
-  fill: rgba(0, 0, 0, 0.02);
-  stroke: rgba(0, 0, 0, 0.02);
+.nob {
+  transition: 0.25s all;
+  circle{
+    fill: rgba(0, 0, 0, 0.04);
+    stroke: rgba(0, 0, 0, 0.04);
+  }
+  &:hover {
+    fill: rgba(0, 0, 0, 0.2);
+  }
 }
 
 repeated-matrix-multiplication {
@@ -355,5 +397,30 @@ matrix-equation {
     .value {
       opacity: 1;
     }
+  }
+}
+
+stochastic-matrix-multiplication {
+  // background-color: rgba(255, 0, 0, 0.2);
+}
+
+migration {
+  &:extend(.full-width-visualization);
+  // background-color: rgba(0, 0, 0, 0.1);
+  transition: 0.25s all;
+  position: relative;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  svg, canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .travel-path {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke: none;
+    stroke-width: 2;
   }
 }

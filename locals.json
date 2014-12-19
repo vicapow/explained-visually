@@ -79,5 +79,15 @@
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
     }
+    , {
+        "title": "Variance"
+      , "hideFromHomepage": true
+      , "subtitle": "Explained Visually"
+      , "slug": "variance"
+      , "quip": "Close enough."
+      , "date": "2014/12/19"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+    }
   ]
 }

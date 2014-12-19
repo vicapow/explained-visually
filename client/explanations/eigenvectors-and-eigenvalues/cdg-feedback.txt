@@ -1,0 +1,18 @@
++ make it more specific (mention SF and NY)
++ make a connection to the geometric
++ when you flipped it across, that make it clearer.
++ break it down, breaking time into space
++ what all can be done with the penny image and why eigen vectors help with that.
++ draw your own thing and transform
++ start specific sf, ny
++ light projected, something really specific and concrete
++ how are these two things using the same exact eigen vector thing.
++ what concept is being explained
++ two specific examples
++ go point by point, see it happen
++ it's probably more abstract then you think it is
++ the idea that the whole is the sum of its parts (kind of a big idea)
++ people don't normally think of images
++ i want to see all the different types of transformations
++ what are the eigen vectors of all these different things
++ i want to see the eigen values.

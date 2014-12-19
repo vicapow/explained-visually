@@ -3,13 +3,25 @@
 var myApp = angular.module('myApp', ['ev'])
 
 myApp.controller('MainCtrl', function($scope) {
+
+})
+
+myApp.controller('MigrationCtrl', function($scope) {
   $scope.opts = {
-      basis1: [1, 0]
-    , basis2: [0, 1]
-    , sample: [1, 1]
+      basis1: [0.9, 0.1]
+    , basis2: [0.3, 0.7]
+    , sample: [0.8, 0.2]
     , samples: []
-    , numSamples: 10
+    , numSamples: 6
   }
+  $scope.$watch('opts', function(opts) {
+    var b1 = opts.basis1, b2 = opts.basis2, cur = vector(opts.sample)
+    var B = matrix([b1, b2]).transpose()
+    var samples = d3.range(9)
+      .map(function() { return cur = cur.matrixMulti(B), cur.array() })
+    samples.unshift(opts.sample)
+    opts.samples = samples
+  }, true)
 })
 
 var color = {
@@ -125,7 +137,6 @@ function derivedState(opts) {
   var e1 = vector(eigenVectors[0])
   var e2 = vector(eigenVectors[1])
   var l = Math.max(e1.len(), e2.len())
-  // e1 = e1.scale(1 / l), e2 = e2.scale(1 / l)
 
   eigenVectors = [e1.array(), e2.array()]
 
@@ -137,7 +148,6 @@ function derivedState(opts) {
 
   var q = matrix(eigenVectors).transpose()
   var qInverse = q.inverse()
-
 
   return {
       matrix: m
@@ -187,7 +197,29 @@ function buildNobs(data, scope, coord) {
   var nobs = coord.append('g').attr('class', 'nobs')
     .selectAll('.nob').data(data).enter()
       .append('g').attr('class', 'nob')
-  nobs.append('circle').attr('class', 'nob').attr('r', 20)
+  var circle = nobs.append('circle').attr('class', 'nob').attr('r', 20)
+  function loop(g) {
+    g.transition()
+    .duration(1000)
+    .ease('ease-out')
+    .attr({r: 25})
+    .style({fill: 'rgba(0, 0, 0, 0.2)'})
+    .transition()
+    .ease('ease-in')
+    .duration(1000)
+    .attr({r: 20})
+    .style({fill: 'rgba(0, 0, 0, 0.1)'})
+    .each('end', function() { return loop(d3.select(this)) })
+  }
+  circle.call(loop)
+    .on('mousedown', function() {
+      d3.selectAll('.nob').transition().each('end', null)
+        .transition()
+        .duration(1000)
+        .ease('ease-out')
+        .attr({r: 20})
+        .style({fill: null})
+    })
   return nobs
 }
 
@@ -268,6 +300,560 @@ var nobs = {
     }
   }
 }
+
+myApp.directive('sfToNyMigrationMap', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0]).style('position', 'relative')
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var expand = { l: 0, t: 100, r: 0, b: 100 }
+    var svg = el.append('svg')
+      .attr({width: w + expand.l + expand.r, height: h + expand.t + expand.b })
+      .style({
+          position: 'absolute'
+        , top: -expand.t + 'px'
+        , left: -expand.l + 'px'
+      })
+    var defs = svg.append('defs')
+    var stage = svg.append('g')
+      .attr('transform', 'translate(' + [expand.l, expand.t] + ')')
+    var p = 10
+    var m = { l: p, t: p, r: p, b: p }
+    var usPath = stage.append('path').attr('class', 'us-bg')
+    var proj = d3.geo.albersUsa().scale(580).translate([w / 2, h / 2])
+    var path = d3.geo.path().projection(proj)
+    var rScale = d3.scale.sqrt() .domain([0, 1]) .range([0, 100])
+    var wScale = d3.scale.linear().domain([0, 1]).range([0, 30]).clamp(true)
+    var loc = { sf: proj([-122.4167, 37.7833]), ny: proj([-74.0059, 40.7127]) }
+    var sfDot = stage.append('circle')
+      .attr('transform', 'translate(' + loc.sf + ')')
+      .attr({fill: color.primary})
+      .style('opacity', 0.6)
+    var nyDot = stage.append('circle')
+      .attr('transform', 'translate(' + loc.ny + ')')
+      .attr({fill: color.secondary})
+      .style('opacity', 0.6)
+
+    // Load the background map.
+    d3.json('../resources/us.json', function(err, us) {
+      if (err) throw err
+      us = topojson.feature(us, us.objects.land).geometry
+      usPath.attr('d', path(us))
+    })
+
+    var makers = defs.selectAll('marker')
+      .data(Object.keys(color))
+      .enter().append('marker')
+      .attr('class', 'link-marker')
+      .attr('id', function(d) { return 'sf-to-ny-marker-' + d  })
+      .attr('orient', 'auto')
+      .attr({markerWidth: 2, markerHeight: 4, refX: 1.5, refY: 2})
+      .append('path')
+        .attr('d', 'M 0,0 V4 L2,2 Z')
+        .style('fill', function(d) { return color[d] })
+
+    var arrows = stage.append('g').attr('class', 'arrows')
+    function arrow() { return arrows.append('path').attr('class', 'arrow') }
+    var sfToNyArrow = arrow(), nyToSfArrow = arrow()
+    var nyToNyArrow = arrow(), sfToSfArrow = arrow()
+
+    var nyLabel = stage.append('text').text('New York')
+      .attr('text-anchor', 'middle')
+    var sfLabel = stage.append('text').text('California')
+      .attr('text-anchor', 'middle')
+
+    function drawCrossArrow(g, p1, p2, thickness, style) {
+      var r = scope.opts.sample[style === 'primary' ? 0 : 1]
+      p1 = vector(p1), p2 = vector(p2)
+      var diff = p2.sub(p1).unit()
+      var theta = pi * 0.25, rP = 90
+      var unit = diff.rot(-theta)
+      var p11 = unit.scale(rScale(r)).add(p1)
+      var p12 = unit.scale(rScale(r) + rP).add(p1)
+      unit = diff.rot(theta - pi)
+      var p21 = unit.scale(rScale(1 - r) + rP).add(p2)
+      var p22 = unit.scale(rScale(1 - r)).add(p2)
+      g
+        .attr('marker-end', 'url(#sf-to-ny-marker-' + style + ')')
+        .attr('class', 'arrow')
+        .attr('d', 'M' + p11 + 'C' + p12 + ' ' + p21 + ' ' + p22)
+        .style('stroke', color[style])
+        .style('stroke-width', thickness)
+    }
+
+    function drawLoopbackArrow(g, p1, p2, thickness, style) {
+      var r = scope.opts.sample[style === 'primary' ? 0 : 1]
+      p1 = vector(p1), p2 = vector(p2)
+      var diff = p2.sub(p1).unit()
+      var theta = pi * 0.82, rP = 160
+      var unit = diff.rot(-theta)
+      var p11 = unit.scale(rScale(r)).add(p1)
+      var p12 = unit.scale(rScale(r) + rP).add(p1)
+      unit = diff.rot(theta)
+      var p21 = unit.scale(rScale(r) + rP).add(p1)
+      var p22 = unit.scale(rScale(r)).add(p1)
+      g
+        .attr('marker-end', 'url(#sf-to-ny-marker-' + style + ')')
+        .attr('class', 'arrow')
+        .attr('d', 'M' + p11 + 'C' + p12 + ' ' + p21 + ' ' + p22)
+        .style('stroke', color[style])
+        .style('stroke-width', thickness)
+    }
+
+    function pathNobPosWithOffset(g, basis, idx) {
+      return function(o) {
+        var el = g.node()
+        var l = el.getTotalLength()
+        var p1 = vector(el.getPointAtLength(l * 0.49))
+        var p2 = vector(el.getPointAtLength(l * 0.50))
+        var p3 = vector(el.getPointAtLength(l * 0.51))
+        var normal = p3.sub(p1).rot(pi / 2)
+        var offset = wScale(o[basis][idx])
+        if (normal.len() > 0) normal = normal.unit().scale(offset)
+        return p2.add(normal).array()
+      }
+    }
+
+    function pathNobSetFromPos(g, basis, idx) {
+      return function(scope, p) {
+        var el = g.node()
+        var l = el.getTotalLength()
+        var p1 = vector(el.getPointAtLength(l * 0.49))
+        var p2 = vector(el.getPointAtLength(l * 0.50))
+        var p3 = vector(el.getPointAtLength(l * 0.51))
+        var tanget = p3.sub(p1)
+        if (tanget.len() > 0) tanget = tanget.unit()
+        else tanget = vector(1, 0)
+        var rot = tanget.rot() - pi
+        var m = vector(p).sub(p2).rot(-rot)
+        m.x = 0
+        if (m.y > 0) m.y = 0
+        scope.opts[basis][idx] = wScale.invert(m.len())
+        scope.opts[basis][1 - idx] = 1 - scope.opts[basis][idx]
+      }
+    }
+
+    var nobData = [
+      {
+        get: function(o) {
+          return vector(loc.sf).add(vector([rScale(o.sample[0]), 0])).array()
+        }
+        , set: function(scope, p) {
+          var r = rScale.invert(p[0])
+          r = ( r < 0 ) ? 0 : ( r > 1) ? 1 : r
+          scope.opts.sample = [r, 1 - r]
+        }
+        , plot: sfDot.node()
+      }, {
+        get: function(o) {
+          return vector(loc.ny).add(vector([rScale(o.sample[1]), 0])).array()
+        }
+        , set: function(scope, p) {
+          var r = rScale.invert(p[0])
+          r = ( r < 0 ) ? 0 : ( r > 1) ? 1 : r
+          scope.opts.sample = [1 - r, r]
+        }
+        , plot: nyDot.node()
+      }, {
+          get: pathNobPosWithOffset(nyToSfArrow, 'basis2', 0)
+        , set: pathNobSetFromPos(nyToSfArrow, 'basis2', 0)
+        , plot: stage.node()
+      }
+      , {
+          get: pathNobPosWithOffset(sfToNyArrow, 'basis1', 1)
+        , set: pathNobSetFromPos(sfToNyArrow, 'basis1', 1)
+        , plot: stage.node()
+      }
+      , {
+          get: pathNobPosWithOffset(nyToNyArrow, 'basis2', 1)
+        , set: pathNobSetFromPos(nyToNyArrow, 'basis2', 1)
+        , plot: stage.node()
+      }
+      , {
+          get: pathNobPosWithOffset(sfToSfArrow, 'basis1', 0)
+        , set: pathNobSetFromPos(sfToSfArrow, 'basis1', 0)
+        , plot: stage.node()
+      }
+    ]
+
+    var nobs = buildNobs(nobData, scope, stage)
+
+    var nobDrag = d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() {
+          var p = d3.mouse(d.plot)
+          d.set(scope, p)
+        }.bind(this))
+      })
+
+    nobs.call(nobDrag)
+
+    function draw() {
+      var rSF = rScale(scope.opts.sample[0])
+      var rNY = rScale(scope.opts.sample[1])
+      sfDot.attr('r', rSF)
+      nyDot.attr('r', rNY)
+      var o = scope.opts
+      sfToNyArrow.call(drawCrossArrow, loc.sf, loc.ny
+        , wScale(scope.opts.basis1[1]), 'primary')
+      sfToSfArrow.call(drawLoopbackArrow, loc.sf, loc.ny
+        , wScale(scope.opts.basis1[0]), 'primary')
+      nyToSfArrow.call(drawCrossArrow, loc.ny, loc.sf
+        , wScale(scope.opts.basis2[0]), 'secondary')
+      nyToNyArrow.call(drawLoopbackArrow, loc.ny, loc.sf
+        , wScale(scope.opts.basis2[1]), 'secondary')
+      nyLabel.attr('transform', 'translate('
+        + vector(loc.ny).add(vector([0, rNY + 20])) + ')')
+      sfLabel.attr('transform', 'translate('
+        + vector(loc.sf).add(vector([0, rSF + 20])) + ')')
+      // The nobs need to be draw after the arrows because their position
+      // depends on the path locations.
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+    }
+
+    scope.$watch('opts', draw, true)
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('sfToNyDataAsVectors', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var svg = el.append('svg').attr({width: w, height: h})
+    var p = 10
+    var m = { l: p, t: p, r: p, b: p}
+    var defs = svg.append('defs')
+    var stage = svg.append('g')
+    var plotPoints = d3.range(3)
+    var plotSpacing = d3.scale.ordinal()
+      .domain(plotPoints)
+      .rangeBands([m.l, w - m.r], 0.5, 0.5)
+    var band = plotSpacing.rangeBand()
+    var xScales = plotPoints.map(function(d) {
+      return d3.scale.linear()
+        .domain([0, 1]).range([plotSpacing(d), plotSpacing(d) + band])
+        .clamp(true)
+    })
+    var format = function(d) { return d3.round(d) }
+    var yOffset = 70
+    var yScale = d3.scale.linear().domain([0, 1])
+      .range([h - m.t - yOffset, h - m.t - yOffset - band])
+    var yAxis = d3.svg.axis().scale(yScale).tickValues([0, 1]).orient('left').tickFormat(format)
+    var plots = stage.selectAll('g').data(plotPoints).enter().append('g')
+
+    // X Axis
+    plots.append('g')
+      .attr('class', 'axis x-axis').each(function(d) {
+        var xAxis = d3.svg.axis().scale(xScales[d]).tickValues([0, 1]).tickFormat(format)
+        d3.select(this).call(xAxis)
+      }).attr('transform', function(d) {
+        return 'translate(' + [0, yScale.range()[0] ] + ')'
+      })
+    // Y Axis
+    plots.append('g')
+      .attr('class', 'axis y-axis')
+      .call(yAxis)
+      .attr('transform', function(d) {
+        return 'translate(' + [plotSpacing(d), 0] + ')'
+      })
+
+    // Vectors
+
+    function XYLine(i) {
+      return {
+          name: 'xy-plot' + i
+        , p1: function() { return [ xScales[i](1), yScale(0) ] }
+        , p2: function() { return [ xScales[i](0), yScale(1) ] }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: dash
+        , head: false
+      }
+    }
+
+    function axisLine(i, name, style, axis) {
+      return {
+          name: 'x-line-plot' + i
+        , p1: function(o) {
+          var p = o[name]
+          if (axis === 'x') return [ xScales[i](p[0]), yScale(0) ]
+          else return [ xScales[i](0), yScale(p[1]) ]
+        }
+        , p2: function(o) {
+          var p = o[name]
+          if (axis === 'x') return [ xScales[i](p[0]), yScale(p[1]) ]
+          else return [ xScales[i](p[0]), yScale(p[1]) ]
+        }
+        , style: style
+        , 'stroke-width': 2
+        , dash: dash
+        , head: false
+      }
+    }
+
+    function ratioVector(i, name, style) {
+      return {
+          name: name
+        , p1: function() {
+          return [ xScales[i](0), yScale(0) ]
+        }
+        , p2: function(o) {
+          var r = o[name][0]
+          return [ xScales[i](r), yScale(1 - r) ]
+        }
+        , 'stroke-width': 4
+        , style: style
+      }
+    }
+
+    var vectorData = d3.range(3).map(XYLine)
+      .concat([
+          axisLine(0, 'basis1', 'primary', 'x'),
+          axisLine(0, 'basis1', 'primary', 'y'),
+          axisLine(1, 'basis2', 'secondary', 'x'),
+          axisLine(1, 'basis2', 'secondary', 'y'),
+          axisLine(2, 'sample', 'tertiary', 'x'),
+          axisLine(2, 'sample', 'tertiary', 'y')
+        ])
+      .concat([
+          ratioVector(0, 'basis1', 'primary')
+        , ratioVector(1, 'basis2', 'secondary')
+        , ratioVector(2, 'sample', 'tertiary')
+      ])
+    var vectors = addVectors(stage, vectorData)
+
+    // Labels
+
+    var axisValueLabelsData = [
+        { name: 'basis1', axis: 0, plot: 0, style: 'primary' }
+      , { name: 'basis1', axis: 1, plot: 0, style: 'primary' }
+      , { name: 'basis2', axis: 0, plot: 1, style: 'secondary' }
+      , { name: 'basis2', axis: 1, plot: 1, style: 'secondary' }
+      , { name: 'sample', axis: 0, plot: 2, style: 'tertiary' }
+      , { name: 'sample', axis: 1, plot: 2, style: 'tertiary' }
+    ]
+    var axisLabelsG = stage.append('g').attr('class', 'axis-labels')
+    var axisValueLabels = axisLabelsG.selectAll('text.value').data(axisValueLabelsData)
+      .enter().append('text')
+      .attr('text-anchor', 'middle')
+      .attr('class', 'value')
+      .style('fill', function(d) { return color[d.style] })
+
+    var pad = 10
+    var axisLabelsData = [
+      { label: 'NY', plot: 0, x: 0, y: 1 },
+      { label: 'CA', plot: 0, x: 1, y: 0 }
+    ]
+    axisLabelsData = axisLabelsData
+      .concat(axisLabelsData
+        .map(function(d) { var o = extend({}, d); o.plot = 1; return o }))
+      .concat(axisLabelsData
+        .map(function(d) { var o = extend({}, d); o.plot = 2; return o }))
+    axisLabelsG.selectAll('text.axis-label')
+      .data(axisLabelsData).enter()
+      .append('text').attr('class', 'axis-label')
+        .attr('transform', function(d) {
+          var x = xScales[d.plot].range()[d.x], y = yScale.range()[d.y]
+          if (!d.x) y = y - pad
+          else x = x + pad, y = y + 7
+          return 'translate(' + [x, y] + ')'
+        })
+        .style('text-anchor', function(d) { return !d.x ? 'middle': 'start' })
+        .style('fill', function(d) {
+          return color[d.label === 'CA' ? 'primary' : 'secondary'] })
+        .text(function(d) { return d.label })
+
+    var axisAnnotationData = [
+      {
+        pos: [ d3.mean(xScales[0].range()), yScale.range()[1] - 40 ],
+        label: 'Of the people in California...',
+        title: true
+      }, {
+        pos: [ d3.mean(xScales[0].range()), yScale.range()[0] + 60 ],
+        label: 'stay in CA'
+      }, {
+        pos: [ xScales[0].range()[0] - 65, d3.mean(yScale.range()) ],
+        rot: -90,
+        label: 'leave for NY'
+      }, {
+        pos: [ d3.mean(xScales[1].range()), yScale.range()[1] - 40 ],
+        label: 'Of the people in New York...',
+        title: true
+      }, {
+        pos: [ d3.mean(xScales[1].range()), yScale.range()[0] + 60 ],
+        label: 'leave for CA'
+      }, {
+        pos: [ xScales[1].range()[0] - 65, d3.mean(yScale.range()) ],
+        rot: -90,
+        label: 'stay in NY'
+      }, {
+        pos: [ d3.mean(xScales[2].range()), yScale.range()[1] - 40 ],
+        label: 'Where everyone starts',
+        title: true
+      }, {
+        pos: [ d3.mean(xScales[2].range()), yScale.range()[0] + 60 ],
+        label: 'start in CA'
+      }, {
+        pos: [ xScales[2].range()[0] - 65, d3.mean(yScale.range()) ],
+        rot: -90,
+        label: 'start in NY'
+      }
+    ]
+
+    axisLabelsG.selectAll('text.basis-annotation').data(axisAnnotationData)
+      .enter().append('text').attr('class', 'basis-annotation')
+      .attr('transform', function(d) {
+        return 'translate(' + d.pos + ') rotate(' + (d.rot || 0) + ')'
+      })
+      .attr('text-anchor', 'middle')
+      .style('fill', function(d) {
+        return d.title ? null : 'rgba(0, 0, 0, 0.4)'
+      })
+      .text(function(d) { return d.label })
+
+    // Nobs
+
+    function vectorNob(i, name) {
+      return {
+        get: function(o) {
+          var p = o[name]
+          return [ xScales[i](p[0]), yScale(p[1]) ]
+        }
+        , set: function(scope, p) {
+          var v = [ xScales[i].invert(p[0]), yScale.invert(p[1]) ]
+          v[1] = 1 - v[0]
+          scope.opts[name] = v
+        }
+      }
+    }
+
+    var nobData = [vectorNob(0, 'basis1'), vectorNob(1, 'basis2')
+      , vectorNob(2, 'sample')]
+
+    var nobs = buildNobs(nobData, scope, stage)
+
+    var nobDrag = d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() {
+          d.set(scope, d3.mouse(stage.node()))
+        }.bind(this))
+      })
+
+    nobs.call(nobDrag)
+
+    scope.$watch('opts', redraw, true)
+    function redraw() {
+      var o = scope.opts
+      updateVectors(vectors, vectorData, o)
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+      axisValueLabels
+        .attr('transform', function(d) {
+          var p, pad = 40
+          if (d.axis === 0) p = [xScales[d.plot](o[d.name][0]), yScale(0) + pad]
+          else p = [xScales[d.plot](0) - pad, yScale(o[d.name][1]) + 5]
+          return 'translate(' + p + ')'
+        })
+        .text(function(d) { return d3.round(o[d.name][d.axis], 2) })
+    }
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('migrationVectorNotation', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var mP = 10
+    var m = { l: mP, t: mP, r: mP, b: mP }
+    var svg = el.append('svg').attr({width: w, height: h})
+    var stage = svg.append('g')
+    var plotPoints = d3.range(3)
+    var plotSpacing = d3.scale.ordinal()
+      .domain(plotPoints)
+      .rangeBands([m.l, w - m.r], 0.5, 0.5)
+    var band = plotSpacing.rangeBand()
+    var xScales = plotPoints.map(function(d) {
+      return d3.scale.linear()
+        .domain([0, 1]).range([plotSpacing(d), plotSpacing(d) + band])
+        .clamp(true)
+    })
+
+    function vectorNotation(g, name, myColor) {
+      var text = g.append('text').attr('class', 'lhs')
+      text.append('tspan').text(name).style('fill', myColor)
+      text.append('tspan').text(' = ')
+      text.append('tspan').attr('class', 'x')
+      text.append('tspan').text(' ( ')
+      text.append('tspan').text('\u2192').style('fill', color.primary)
+      text.append('tspan').text(' )  + ')
+      text.append('tspan').attr('class', 'y')
+      text.append('tspan').text(' ( ')
+      text.append('tspan').text('\u2191').style('fill', color.secondary)
+      text.append('tspan').text(' ) = ')
+      
+      function buildBrackets(g, opts) {
+        if (!opts) opts = {}
+        var vW = opts.vW || 5
+        var vH = opts.vH || 50
+        var vS = opts.vS || 25
+        var v = opts.v || [0, 0]
+        var style = extend({
+            stroke: 'black'
+          , 'stroke-width': 2
+          , fill: 'none'
+        }, opts.style || {})
+        g.append('path').style(style)
+          .attr('d', 'M' + [v[0] + vW, v[1] + 0] + 'l'
+            + [[-vW, 0], [0, vH], [vW, 0]].join('l'))
+        g.append('path').style(style)
+          .attr('d', 'M' + [v[0] + vW + vS, v[1]] + 'l'
+            + [[vW, 0], [0, vH], [-vW, 0]].join('l'))
+      }
+
+      var brackets = g.append('g').attr('class', 'brackets')
+      brackets.call(buildBrackets, { v: [0, -29 ] })
+        .attr('transform', 'translate(' + [220, 0] + ')')
+      brackets.append('text').attr('class', 'x')
+        .attr('text-anchor', 'middle')
+        .attr('transform', 'translate(' + [18, -12] + ')')
+        .style('fill', color.primary)
+      brackets.append('text').attr('class', 'y')
+        .attr('text-anchor', 'middle')
+        .attr('transform', 'translate(' + [18, 15] + ')')
+        .style('fill', color.secondary)
+    }
+
+    var basis1 = stage.append('g').attr('class', 'basis-1')
+      .call(vectorNotation, 'B\u2081', color.primary)
+
+    var basis2 = stage.append('g').attr('class', 'basis-2')
+      .call(vectorNotation, 'B\u2082', color.secondary)
+
+    var sample = stage.append('g').attr('class', 'sample')
+      .call(vectorNotation, 'P\u2080', color.tertiary)
+
+    function updateNotation(g, vec, idx) {
+      g.selectAll('.x').text(d3.round(vec[0], 2))
+      g.selectAll('.y').text(d3.round(vec[1], 2))
+      var cW = g.select('.lhs').node().getBBox().width + 6
+      g.select('.brackets').attr('transform', 'translate(' + [cW, 0] + ')')
+      cW = g.node().getBBox().width
+      g.attr('transform', 'translate('
+        + [plotSpacing(idx) + band / 2 - cW / 2, h / 2] + ')')
+    }
+
+    function redraw() {
+      updateNotation(basis1, scope.opts.basis1, 0)
+      updateNotation(basis2, scope.opts.basis2, 1)
+      updateNotation(sample, scope.opts.sample, 2)
+    }
+    scope.$watch('opts', redraw, true)
+
+  }
+  return { link: link, restrict: 'E' }
+})
 
 myApp.directive('matrixAsImageTransform', function() {
   function link(scope, el, attr) {
@@ -485,11 +1071,11 @@ myApp.directive('matrixAsImageTransform', function() {
       samplePoint.attr('transform', transform(o.sample))
       samplePointPlot2.attr('transform', transform(o.sample))
       samplePoint.selectAll('text')
-        .text('(x\u2080=' + format(o.sample.x) + ', y\u2080=' + format(o.sample.y) + ')')
+        .text('p\u2080 = (' + format(o.sample.x) + ', ' + format(o.sample.y) + ')')
       sampleTransformPoint.attr('transform', transform(o.st))
       sampleTransformPointPlot2.attr('transform', transform(o.st))
       sampleTransformPoint.selectAll('text')
-        .text('(x\u2081=' + format(o.st.x) + ', y\u2081=' + format(o.st.y) + ')')
+        .text('p\u2081 = (' + format(o.st.x) + ', ' + format(o.st.y) + ')')
 
       plot1NobData.forEach(function(d) { d._p = d.get(o) })
       plot1Nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
@@ -558,10 +1144,26 @@ myApp.directive('eigenVectors', function() {
         , p2: function(o) { return o.b1.to(pixels) }
         , style: 'primary'
       }, {
+          name: 'eigen-vector-1-extended'
+        , p1: function(o) { return o.eigens[0].unit().scale(-10).to(pixels) }
+        , p2: function(o) { return o.eigens[0].unit().scale(10).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
+        , opacity: 0.3
+      }, {
         name: 'basis-2'
         , p1: origin
         , p2: function(o) { return o.b2.to(pixels) }
         , style: 'secondary'
+      }, {
+          name: 'eigen-vector-2-extended'
+        , p1: function(o) { return o.eigens[1].unit().scale(-10).to(pixels) }
+        , p2: function(o) { return o.eigens[1].unit().scale(10).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
+        , opacity: 0.3
       }, {
         name: 'difference'
         , p1: function(o) { return o.sample.to(pixels) }
@@ -600,26 +1202,17 @@ myApp.directive('eigenVectors', function() {
       }
     ]
 
-    var samples = d3.range(5 * 5).map(function(d) {
-      var i = d % 5, j = floor(d / 5)
-      var pi = i - 2, pj = j - 2
-      return {
-        name: 'sample-' + i + '-' + j
-        , p1: origin
-        , p2: function(o) {
-          return vector([pi, pj]).matrixMulti(o.m).array()
-        }
-        , style: 'eigen'
-        // , head: false
-      }
-    })
-
-    // vectorData = samples.concat(vectorData)
-
     vectorData = eigens.concat(vectorData)
 
     var vectors = addVectors(coord, vectorData)
     defs.call(addMarkers)
+
+    var samplePoint = coord.append('g')
+      .attr('class', 'point')
+    samplePoint.append('circle').attr('r', 4)
+
+    var samplePointTransform = coord.append('g').attr('class', 'point')
+    samplePointTransform.append('circle').attr('r', 4)
 
     var nobData = [
         extend(nobs.sample(x, y), { cn: 'b1' })
@@ -633,14 +1226,6 @@ myApp.directive('eigenVectors', function() {
       .on('drag', function(d) {
         scope.$apply(function() { d.set(scope, d3.mouse(coord.node())) })
       }))
-
-    var samplePoint = coord.append('g')
-      .attr('class', 'point')
-    samplePoint.append('circle').attr('r', 4)
-
-    var samplePointTransform = coord.append('g')
-      .attr('class', 'point')
-    samplePointTransform.append('circle').attr('r', 4)
 
     function transform(v) { return 'translate(' + [x(v.x), y(v.y)] + ')'}
 
@@ -722,15 +1307,19 @@ myApp.directive('eigenSpace', function() {
 })
 
 myApp.controller('StochasticMatrixMultiplicationCtrl', function($scope) {
+  var sample = vector(0.9, 0.1).array()
   var opts = $scope.opts = {
     states: [
         [0.8, 0.1]
       , [0.2, 0.9]
     ]
-    , sample: vector(0.9, 0.1).array()
-    , samples: []
+    , sample: sample
+    , samples: [{ name: '0', pos: sample }]
     , numSamples: 6
     , activeElement: null
+    , sideA: [0, 0]
+    , sideB: [0, 0]
+    , topPath: null
   }
   $scope.isActive = function(target) {
     return target === opts.activeElement
@@ -750,14 +1339,6 @@ myApp.controller('StochasticMatrixMultiplicationCtrl', function($scope) {
     , 'p\u2084'
     , 'p\u2085'
   ]
-  // $scope.pLabels = [
-  //     ['ρ\u2070\u2081', 'ρ\u2070\u2082']
-  //   , ['ρ\u00B9\u2081', 'ρ\u00B9\u2082']
-  //   , ['ρ\u00B2\u2081', 'ρ\u00B2\u2082']
-  //   , ['ρ\u00B3\u2081', 'ρ\u00B3\u2082']
-  //   , ['ρ\u2074\u2081', 'ρ\u2074\u2082']
-  //   , ['ρ\u2075\u2081', 'ρ\u2075\u2082']
-  // ]
   $scope.symboleEqLabel = '='
   $scope.symbolDotLabel = '\u22C5'
 })
@@ -770,12 +1351,13 @@ myApp.directive('stochasticMatrixMultiplication', function() {
     var svg = el.append('svg').attr({width: w, height: h})
     svg.append('rect').attr({width: w, height: h}).attr('fill', 'rgba(0, 0, 0, 0)')
     var stage = svg.append('g')
-      .attr('transform', 'translate(' + [w * 0.4, h / 2] + ')')
+      .attr('transform', 'translate(' + [w * 0.5, h * 0.5] + ')')
       .attr('class', 'coord')
     var s = h - m.t - m.b
     var cW = s, cH = s
     var x = d3.scale.linear().domain([0, 1]).range([0, cW ])
     var y = d3.scale.linear().domain([0, 1]).range([0, -cH])
+
     function pixels(v) { v = vector(v); return [x(v.x), y(v.y)] }
 
     var coord = stage.append('g').attr('class', 'coord')
@@ -793,31 +1375,45 @@ myApp.directive('stochasticMatrixMultiplication', function() {
           name: 'eigen-vector-1'
         , p1: origin
         , p2: function(o) { return o.eigens[0].to(pixels) }
-        , style: 'tertiary'
+        , style: 'eigen'
         , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-1-extended'
+        , p1: function(o) { return o.eigens[0].unit().scale(-5).to(pixels) }
+        , p2: function(o) { return o.eigens[0].unit().scale(5).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
         , opacity: 0.3
       }, {
           name: 'eigen-vector-2'
         , p1: origin
         , p2: function(o) { return o.eigens[1].to(pixels) }
-        , style: 'tertiary'
+        , style: 'eigen'
         , 'stroke-width': 4
+        , opacity: 0.3
+      }, {
+          name: 'eigen-vector-2-extended'
+        , p1: function(o) { return o.eigens[1].unit().scale(-5).to(pixels) }
+        , p2: function(o) { return o.eigens[1].unit().scale(5).to(pixels) }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: '1, 1'
         , opacity: 0.3
       }, {
           name: 'basis-1'
         , p1: origin
         , p2: function(o) { return vector([o.states[0][0], o.states[1][0]]).to(pixels) }
-        , style: 'secondary'
+        , style: 'primary'
         , 'stroke-width': 4
-        , opacity: 0.3
       }, {
           name: 'basis-2'
         , p1: origin
         , p2: function(o) { return vector([o.states[0][1], o.states[1][1]]).to(pixels) }
         , style: 'secondary'
         , 'stroke-width': 4
-        , opacity: 0.3
-      }, {
+      } /*, {
           name: 'sample-x'
         , p1: function(o) { return vector([o.sample[0], 0]).to(pixels) }
         , p2: function(o) { return vector(o.sample).to(pixels) }
@@ -835,7 +1431,7 @@ myApp.directive('stochasticMatrixMultiplication', function() {
         , dash: dash
         , head: false
         , opacity: 0.3
-      }
+      } */
     ]
 
     function derivedState(opts) {
@@ -845,21 +1441,6 @@ myApp.directive('stochasticMatrixMultiplication', function() {
       o.eigens = o.states.eigenVectors().map(vector)
       var m = max(o.eigens[0].len(), o.eigens[1].len())
       o.eigens = o.eigens.map(function(e) { return e.scale(1 / m) })
-
-      var c = o.sample, n = scope.opts.numSamples
-      o.samples = [{name: 0, pos: c }].concat(d3.range(n - 2).map(function(d, i) {
-        c = vector(c).matrixMulti(opts.states)
-        return { pos: c.array(), name: i + 1 }
-      })).concat([
-        { 
-          pos: (function() {
-            for(var i = 0; i < 100; i++)
-              c = vector(c).matrixMulti(opts.states)
-            return c.array()
-          })()
-          , name: '∞'
-        }
-      ])
       opts.samples = o.samples
       return o
     }
@@ -868,49 +1449,97 @@ myApp.directive('stochasticMatrixMultiplication', function() {
 
     var samples = coord.append('g').attr('class', 'samples')
 
-    var sample = samples.selectAll('g').data(d3.range(scope.opts.numSamples))
-      .enter().append('g').attr('class', 'sample')
-    sample.append('circle')
-      .attr({fill: color.primary, opacity: 0.7, r: 4 })
-    sample.append('text')
-      .attr('transform', 'translate(' + [5, -5] + ')')
-      .text('ρ')
-    sample.append('text')
-      .attr('class', 'idx')
-      .attr('transform', 'translate(' + [15, 0] + ')')
-      .style('font-size', 10)
+    var nobData = [
+      {
+        get: function(o) {
+          // Get pixel value of nob.
+          return [x(o.states[0][0]), y(o.states[1][0])]
+        }
+        , set: function(scope, p) {
+          // set scope from pixel value.
+          var _y = y.invert(p[1])
+          if (_y < 0) _y = 0; else if (_y > 1) _y = 1
+          scope.opts.states[0][0] = 1 - _y
+          scope.opts.states[1][0] = _y
+          scope.opts.samples = [{ name: '0', pos: scope.opts.sample }]
+        }
+      }, {
+        get: function(o) {
+          // Get pixel value of nob.
+          return [x(o.states[0][1]), y(o.states[1][1])]
+        }
+        , set: function(scope, p) {
+          // set scope from pixel value.
+          var _y = y.invert(p[1])
+          if (_y < 0) _y = 0; else if (_y > 1) _y = 1
+          scope.opts.states[0][1] = 1 - _y
+          scope.opts.states[1][1] = _y
+          scope.opts.samples = [{ name: '0', pos: scope.opts.sample }]
+        }
+      }, {
+        get: function(o) {
+          // Get pixel value of nob.
+          return [x(o.sample[0]), y(o.sample[1])]
+        }
+        , set: function(scope, p) {
+          // set scope from pixel value.
+          var _y = y.invert(p[1])
+          if (_y < 0) _y = 0; else if (_y > 1) _y = 1
+          scope.opts.sample[0] = 1 - _y
+          scope.opts.sample[1] = _y
+          scope.opts.samples = [{ name: '0', pos: scope.opts.sample }]
+        }
+      }
+    ]
 
-    sample.on('mouseenter', function(d) {
-      scope.$apply(function() {
-        if (!isNaN(+d.name)) scope.opts.activeElement = 'p' + d.name
-      })
-    })
-    sample.on('mouseleave', function(d) {
-      scope.$apply(function() {
-        scope.opts.activeElement = null
-      })
-    })
+    var myNobs = buildNobs(nobData, scope, coord)
+      .call(d3.behavior.drag()
+        .on('drag', function(d) {
+          scope.$apply(function() {
+            var p = d3.mouse(coord.node())
+            d.set(scope, p)
+          }.bind(this))
+        })
+      )
 
     function redraw() {
       var o = derivedState(scope.opts)
       updateVectors(vectors, vectorData, o)
-      sample
-        .data(o.samples)
-        .attr('transform', function(d) { return 'translate(' + pixels(d.pos) + ')' })
-      sample.select('.idx').text(function(d, i) { return d.name })
+      // var sampleData = [{ name: 'p0', pos: o.sample }].concat(o.samples)
+      var sampleData = o.samples
+      var sampleJoin = samples.selectAll('.sample').data(sampleData)
+      var sampleEnter = sampleJoin.enter().append('g')
+      
+      sampleEnter.attr('class', 'sample')
+        .style('opacity', 0)
+        .transition().ease('cubic-in')
+        .style('opacity', 1)
+      sampleEnter.append('circle')
+        .attr({r: 30})
+        .transition().ease('cubic-in')
+        .attr({fill: color.primary, opacity: 0.7, r: 4 })
+      sampleEnter.append('text')
+        .attr('transform', 'translate(' + [5, -5] + ')')
+        .text('ρ')
+      sampleEnter.append('text')
+        .attr('class', 'idx')
+        .attr('transform', 'translate(' + [15, 0] + ')')
+        .style('font-size', 10)
+        .text(function(d, i) { return d.name })
+      sampleJoin.exit()
+        .style('opacity', 1)
+        .transition().ease('cubic-out')
+        .style('opacity', 0)
+        .remove()
+
+      sampleJoin.attr('transform', function(d) {
+        return 'translate(' + pixels(vector(d.pos)) + ')'
+      })
+
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      myNobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
     }
     scope.$watch('opts', redraw, true)
-
-    svg.call(d3.behavior.drag()
-      .on('drag', function() {
-        var px = x.invert(d3.mouse(coord.node())[0])
-        if (px < 0) px = 0; else if (px > 1) px = 1
-        var py = 1 - px
-        var p = [ px, py ]
-        scope.$apply(function() {
-          scope.opts.sample = p
-        })
-      }))
   }
   return { link: link, restrict: 'E' }
 })
@@ -1019,7 +1648,7 @@ myApp.directive('repeatedMatrixMultiplication', function() {
     function pixels(v) { v = vector(v); return [x(v.x), y(v.y)] }
 
     var coord = stage.append('g').attr('class', 'coord')
-      .attr('transform', 'translate(' + [ 0, 0] + ')')
+      .attr('transform', 'translate(' + [0, 0] + ')')
 
     coord.append('g').attr('class', 'axis axis-x')
       .call(d3.svg.axis().scale(x).tickValues(ticks).tickFormat(tickFormat))
@@ -1033,9 +1662,9 @@ myApp.directive('repeatedMatrixMultiplication', function() {
           name: 'eigen-vector-1'
         , p1: origin
         , p2: function(o) { return o.eigens[0].to(pixels) }
-        , style: 'tertiary'
+        , style: 'eigen'
         , 'stroke-width': 4
-        , opacity: 0.3
+        , opacity: 1
       }, {
           name: 'eigen-vector-1-extended'
         , p1: function(o) { return o.eigens[0].unit().scale(-10).to(pixels) }
@@ -1048,9 +1677,9 @@ myApp.directive('repeatedMatrixMultiplication', function() {
           name: 'eigen-vector-2'
         , p1: origin
         , p2: function(o) { return o.eigens[1].to(pixels) }
-        , style: 'tertiary'
+        , style: 'eigen'
         , 'stroke-width': 4
-        , opacity: 0.3
+        , opacity: 1
       }, {
           name: 'eigen-vector-2-extended'
         , p1: function(o) { return o.eigens[1].unit().scale(-100).to(pixels) }
@@ -1098,8 +1727,7 @@ myApp.directive('repeatedMatrixMultiplication', function() {
     function myDerivedState(opts) {
       var o = {}
       Object.keys(opts).forEach(function(key) { o[key] = opts[key] }) // Extend
-      var _o = derivedState(o)
-      Object.keys(_o).map(function(k) { o[k] = _o[k] })
+      o = extend(o, derivedState(o))
       o.states = matrix([o.basis1, o.basis2])
       o.eigens = o.states.eigenVectors().map(vector)
       var m = max(o.eigens[0].len(), o.eigens[1].len())
@@ -1165,17 +1793,330 @@ myApp.directive('repeatedMatrixMultiplication', function() {
         .attr('class', 'sample-path')
     }
     scope.$watch('opts', redraw, true)
+  }
+  return { link: link, restrict: 'E' }
+})
 
-    // svg.call(d3.behavior.drag()
-    //   .on('drag', function() {
-    //     var px = x.invert(d3.mouse(coord.node())[0])
-    //     if (px < 0) px = 0; else if (px > 1) px = 1
-    //     var py = 1 - px
-    //     var p = [ px, py ]
-    //     scope.$apply(function() {
-    //       scope.opts.sample = p
-    //     })
-    //   }))
+myApp.directive('migration', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var m = { l: 10, t: 10, r: 10, b: 10 }
+    var n = 300 // Number of nodes
+    var canvas = el.append('canvas').attr({width: w, height: h})
+    var svg = el.append('svg').attr({width: w, height: h})
+    var stage = svg.append('g')
+    var nodes
+    var ctx = canvas.node().getContext('2d')
+    var lC = w * 1 / 3, rC = w * 2 / 3 // Left and right, center
+      // .attr('transform', 'translate(' + [w / 2, h / 2] + ')')
+    var force = d3.layout.force()
+      .size([w, h])
+      .gravity(0)
+      .linkDistance(0)
+      // .linkStrength(1)
+      // .friction(0)
+      .charge(function(d) { return d.charge })
+
+
+    function initNodesLinks(ratio, n) {
+      var setPos = true
+      var nodes = d3.range(n + 4).map(function(d, i) {
+        var node = { charge: -30}
+        if(setPos) node.y = h * 0.5 + 100 * random() - 50
+        if (i < 4)
+          extend(node, { fixed: true, style: 'tertiary', charge: 0 })
+        else if ( (i - 4) < n * ratio ) {
+          node.style = 'primary'
+          if (setPos) node.x = lC + 100 * random() - 50
+        } else {
+          node.style = 'secondary'
+          if (setPos) node.x = rC + 100 * random() - 50
+        }
+        return node
+      })
+      var links = nodes.slice(4)
+        .map(function(d, i) { return {
+          source: d.style === 'primary' ? 2 : 3, target: i + 4 }
+        })
+      return { nodes: nodes, links: links }
+    }
+
+    var fillStyles = {
+      primary: alphaify(color.primary, 1),
+      secondary: alphaify(color.secondary, 1),
+      tertiary: alphaify(color.tertiary, 1)
+    }
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, w, h)
+      nodes.forEach(function(d) {
+        var r = 4
+        if(d.style === 'tertiary') return
+        ctx.beginPath()
+        ctx.fillStyle = fillStyles[d.style]
+        ctx.arc(d.x, d.y, r, 0, tau)
+        ctx.fill()
+        // ctx.fillText(d.index, d.x, d.y)
+      })
+    }
+
+    var nobData = []
+
+    var topPath = stage.append('path').attr('class', 'travel-path')
+    var bottomPath = stage.append('path').attr('class', 'travel-path')
+
+    var speedScale = d3.scale.linear().domain([0, 1]).range([0, w * 0.3])
+    var barsG = stage.append('g').attr('class', 'bars')
+      .attr('transform', function(d) {
+        return 'translate(' + [0, h - m.b - 20] + ')'
+      })
+    var barW = 130, barH = 4
+    var barG = barsG.append('g').selectAll('.bar').data(d3.range(2))
+      .enter().append('g').attr('class', 'bar')
+    barG.attr('transform', function(d) {
+      var offset = 20 // offset
+      return 'translate(' + [ d === 0 ? lC - offset : rC + offset, 0] + ')'
+    })
+    barG.append('rect').attr('class', 'bg')
+      .style('fill', 'rgba(0, 0, 0, 0.1)')
+      .attr({width: barW, height: barH, x: -barW / 2, y: -barH / 2})
+    barG.append('rect').attr('class', 'fg')
+      .style('fill', function(d) { return d === 0 ? color.primary : color.secondary })
+      .attr({height: barH, x: -barW / 2, y: -barH / 2})
+    var barGText = barG.append('text')
+      .attr('transform', 'translate(0,15)')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 12)
+
+    // slidersG.append('rect')
+    //   .attr('class', 'bg')
+    //   .attr({width: 4, height: rh, y: sScale(1) })
+    //   .style('fill', 'rgba(0, 0, 0, 0.1)')
+
+    // var sliderRects = slidersG.append('rect')
+    //   .attr('class', 'fg')
+    //   .style('fill', 'rgba(0, 0, 0, 0.1)')
+
+    var myNobs = buildNobs(nobData, scope, stage)
+      .call(d3.behavior.drag()
+        .on('drag', function(d) {
+          scope.$apply(function() {
+            var p = d3.mouse(stage.node())
+            d.set(scope, p)
+          }.bind(this))
+        })
+      )
+
+    var cover = stage.append('g')
+    cover.append('rect')
+      .attr({width: w, height: h})
+      .style('fill', 'rgba(0, 0, 0, 0.7)')
+    cover
+      .append('text')
+        .attr({'transform': 'translate(' + [w / 2, h / 2 + 8] + ')'})
+        .attr({'text-anchor': 'middle', fill: 'white', 'font-size': 28})
+        .text('Hover over to play/restart')
+
+    scope.$watch('opts', function() {
+      var o = scope.opts
+      var ratioAStay = scope.opts.states[0][0]
+      var ratioBStay = scope.opts.states[1][1]
+      topPath.attr('d', 'M' + o.topPath[0] + 'C' + o.topPath.slice(1).join(' '))
+      bottomPath.attr('d', 'M' + o.bottomPath[0] + 'C' + o.bottomPath.slice(1).join(' '))
+      // sliderRects.attr({
+      //     width: 4
+      //   , height: function(d) {
+      //     return rh * o.states[d][d]
+      //   }
+      //   , y: function(d) {
+      //     return sScale(o.states[d][d])
+      //   }
+      // })
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      myNobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+      barG.selectAll('.fg').attr('width', function(d) {
+        return barW * (d === 0 ? ratioAStay: ratioBStay)
+      })
+      barGText.text(function(d) {
+        return d3.round((d === 0 ? ratioAStay : ratioBStay) * 100) + '% stay'
+      })
+    }, true)
+
+    scope.$watch('opts.sample', startOver, true)
+    function startOver() {
+      initBake()
+    }
+
+    function posNode(node, p) { node.px = node.x = p.x, node.py = node.y = p.y }
+
+    var ease = d3.ease('cubic-in-out')
+    // var ease = d3.ease('linear')
+    var rotating = false
+    var doneWithIntro = false
+    var startT = 0
+    var first = true
+    var t = 0
+    var gT = 0 // time minus intro delay
+    var dur = 2000
+    var delay = 2000
+    var stop = true
+    var didSkipFirstSample = false
+
+    function initBake() {
+      var objs = initNodesLinks(scope.opts.sample[0], n)
+      nodes = objs.nodes
+      initFixedPointLocations()
+      force.nodes(nodes)
+        .links(objs.links)
+        .on('tick', function() {})
+        .start()
+      for(var i = 0; i < 10; i++) force.tick()
+      force.stop()
+      redrawCanvas()
+    }
+
+    function initFixedPointLocations() {
+      posNode(nodes[0], vector(scope.opts.topPath[0]))
+      posNode(nodes[1], vector(scope.opts.bottomPath[0]))
+      posNode(nodes[2], vector(scope.opts.topPath[0]))
+      posNode(nodes[3], vector(scope.opts.bottomPath[0]))
+    }
+
+    function beginAnimation() {
+      initBake()
+      force.on('tick', redrawCanvas)
+      initFixedPointLocations()
+      stop = false
+      didSkipFirstSample = false
+    }
+
+    function endAnimation() {
+      force.stop()
+      stop = true
+    }
+
+    function loop(dt) {
+      if (stop) return
+      t = round(t + dt)
+      var lt = t // local time
+      var path1 = topPath.node(), path2 = bottomPath.node()
+      var l1 = path1.getTotalLength(), l2 = path2.getTotalLength()
+
+      if (lt > delay) {
+        lt = gT = lt - delay
+        lt = lt - startT
+        if (first) {
+          pickUpTransitionNodes()
+          first = false
+        }
+        if (lt < dur) {
+          rotating = true
+          lt = ease(lt / dur)
+          posNode(nodes[0], path1.getPointAtLength(l1 * lt))
+          posNode(nodes[1], path2.getPointAtLength(l2 * lt))
+        } else {
+          if (rotating) {
+            rotating = false
+            dropoffTransitionNodes()
+            posNode(nodes[0], path1.getPointAtLength(0))
+            posNode(nodes[1], path2.getPointAtLength(0))
+          }
+          if (lt > dur + dur * 0.1) {
+            startT = gT
+            scope.$apply(function() {
+              var ratioA = nodes
+                .filter(function(d) { return d.style === 'primary' }).length / n
+              if (didSkipFirstSample)
+                scope.opts.samples.push({
+                    pos: [ratioA, 1 - ratioA]
+                  , name: (scope.opts.samples.length)
+                })
+              didSkipFirstSample = true
+            })
+            pickUpTransitionNodes()
+          }
+        }
+      }
+      force.start()
+    }
+
+    var previousT = 0
+    d3.timer(function(t) { loop(t - previousT), previousT = t })
+
+    // Find all the nodes attached to moving `A` and attached them to 
+    // `B` stationary.
+    function dropoffTransitionNodes() {
+      var links = force.links().map(function(link) {
+        if (link.source.index === 0) {
+          link.source = nodes[3]
+          link.target.style = 'secondary'
+        }
+        if (link.source.index === 1) {
+          link.source = nodes[2]
+          link.target.style = 'primary'
+        }
+        return link
+      })
+      force.links(links)
+    }
+    
+    function pickUpTransitionNodes() {
+      var ratioAStay = scope.opts.states[0][0]
+      var ratioBStay = scope.opts.states[1][1]
+      var links = force.links()
+      var sideALinks = links
+        .filter(function(link) { return link.source === nodes[2] })
+        .sort(function(a, b) { return b.target.y - a.target.y })
+      sideALinks.forEach(function(link, i) {
+        if (i >= ratioAStay * sideALinks.length) {
+          link.source = nodes[0] // moving `A`
+        }
+      })
+      var sideBLinks = links
+        .filter(function(link) { return link.source === nodes[3] })
+        .sort(function(a, b) { return a.target.y - b.target.y })
+      sideBLinks.forEach(function(link, i) {
+        if (i >= ratioBStay * sideBLinks.length) {
+          link.source = nodes[1] // moving `B`
+        }
+      })
+      force.links(links)
+    }
+
+    scope.opts.sideA = [ lC, h / 2]
+    scope.opts.sideB = [ rC, h / 2]
+    var hO = -50
+    scope.opts.topPath = [
+      [lC, h / 2],
+      [lC, -hO],
+      [rC, -hO],
+      [rC, h / 2],
+    ]
+    scope.opts.bottomPath = [
+      [lC, h / 2],
+      [lC, h + hO],
+      [rC, h + hO],
+      [rC, h / 2],
+    ].reverse()
+
+    var mouseActive = false
+    svg.on('mouseenter', function() {
+      beginAnimation()
+      mouseActive = true
+      cover.transition().style('opacity', 0)
+    })
+
+    svg.on('mouseleave', function() {
+      endAnimation()
+      mouseActive = false
+      cover.transition().style('opacity', 1)
+    })
+
+    beginAnimation()
+    setTimeout(function() {
+      if (!mouseActive) endAnimation()
+    }, delay)
+
   }
   return { link: link, restrict: 'E' }
 })

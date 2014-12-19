@@ -1,20 +1,21 @@
 mixin share
-  .share
-    a.twitter-share-button(href="https://twitter.com/share" data-via="setosaio") Tweet
-    iframe.fb-iframe(src='//www.facebook.com/plugins/like.php?href=' + encodeURIComponent(href) + '&width=150&height=24&layout=button_count&action=like&show_faces=false&share=true'
-        scrolling="no" frameborder="0" style="border:none; overflow:hidden; height: 20px; width: 150px" allowTransparency="true")
-    script(type='text/javascript').
-      !function(d,s,id){
-        var js
-          , fjs = d.getElementsByTagName(s)[0]
-          , p = /^http:/.test(d.location) ? 'http' : 'https';
-        if(!d.getElementById(id)) {
-          js = d.createElement(s);
-          js.id = id;
-          js.src = p + '://platform.twitter.com/widgets.js';
-          fjs.parentNode.insertBefore(js,fjs);
-        }
-      }(document, 'script', 'twitter-wjs');
+  if !dev
+    .share
+      a.twitter-share-button(href="https://twitter.com/share" data-via="setosaio") Tweet
+      iframe.fb-iframe(src='//www.facebook.com/plugins/like.php?href=' + encodeURIComponent(href) + '&width=150&height=24&layout=button_count&action=like&show_faces=false&share=true'
+          scrolling="no" frameborder="0" style="border:none; overflow:hidden; height: 20px; width: 150px" allowTransparency="true")
+      script(type='text/javascript').
+        !function(d,s,id) {
+          var js
+            , fjs = d.getElementsByTagName(s)[0]
+            , p = /^http:/.test(d.location) ? 'http' : 'https';
+          if(!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = p + '://platform.twitter.com/widgets.js';
+            fjs.parentNode.insertBefore(js,fjs);
+          }
+        }(document, 'script', 'twitter-wjs');
 
 mixin authors
   p By 

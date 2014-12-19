@@ -6216,10 +6216,13 @@
     };
     force.start = function() {
       var i, n = nodes.length, m = links.length, w = size[0], h = size[1], neighbors, o;
+
+      // init index and weight
       for (i = 0; i < n; ++i) {
         (o = nodes[i]).index = i;
         o.weight = 0;
       }
+      // convert link source/target ids to node objects.
       for (i = 0; i < m; ++i) {
         o = links[i];
         if (typeof o.source == "number") o.source = nodes[o.source];
@@ -6227,6 +6230,7 @@
         ++o.source.weight;
         ++o.target.weight;
       }
+      // Init x/y position of nodes
       for (i = 0; i < n; ++i) {
         o = nodes[i];
         if (isNaN(o.x)) o.x = position("x", w);

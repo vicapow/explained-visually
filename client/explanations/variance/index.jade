@@ -1,0 +1,29 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
+      h3 Variance
+      variance-demo
+    if !dev
+      +footer
+      +disqus
+  script(type="text/javascript")
+    include script.js

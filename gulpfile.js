@@ -30,11 +30,6 @@ gulp.task('pages', ['locals'], function() {
     .pipe(jade({ pretty: true }))
     .pipe(gulp.dest(out + '/'))
 })
-gulp.watch(pagesSrc, ['pages'])
-gulp.watch(src + '/explanations/*', ['pages'])
-gulp.watch(src + '/explanations/**/*.jade', ['pages'])
-gulp.watch(src + '/templates/*.jade', ['pages'])
-gulp.watch(src + '/pages/*', ['pages'])
 
 // Styles.
 
@@ -44,7 +39,6 @@ gulp.task('styles', ['export-less-globals'], function() {
     .pipe(less())
     .pipe(gulp.dest(out))
 })
-gulp.watch(stylesSrc, ['styles'])
 
 // Generate less global variables.
 gulp.task('export-less-globals', ['locals'], function(cb) {
@@ -62,12 +56,13 @@ gulp.task('export-less-globals', ['locals'], function(cb) {
 })
 
 gulp.task('resources', ['locals'], function(cb) {
-  fse.copySync(src + '/img', out + '/img')
   function from(name) { return src + '/explanations/' + name }
   function to(name) { return out + '/' + name }
   function copy(name) {
     fse.copySync(from(name), to(name))
   }
+  fse.copySync(src + '/resources', out + '/resources')
+  fse.copySync(src + '/img', out + '/img')
   locals.explanations.forEach(function(d) {
     // Throw an error if any of the thumbnails are missing.
     try { copy(d.slug + '/thumb-preview.png') } catch(e) {
@@ -86,18 +81,22 @@ gulp.task('resources', ['locals'], function(cb) {
   cb()
 })
 
-gulp.watch(src + '/explanations/**/*.js', ['resources'])
-
 gulp.task('scripts', function(cb) {
   fse.copy(src + '/scripts', out + '/scripts', cb)
 })
-
-gulp.watch(src + '/scripts/*', ['scripts'])
 
 gulp.task('locals', function(cb) {
   locals = localsStore.refresh()
   cb()
 })
 
+gulp.watch(pagesSrc, ['pages'])
+gulp.watch(src + '/explanations/*', ['pages'])
+gulp.watch(src + '/explanations/**/*.jade', ['pages'])
+gulp.watch(src + '/templates/*.jade', ['pages'])
+gulp.watch(src + '/pages/*', ['pages'])
+gulp.watch(stylesSrc, ['styles'])
+gulp.watch(src + '/explanations/**/*.js', ['resources'])
+gulp.watch(src + '/scripts/*', ['scripts'])
 gulp.watch('./locals.json', ['default'])
 

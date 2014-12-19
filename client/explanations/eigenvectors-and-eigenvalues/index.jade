@@ -7,25 +7,156 @@ html
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "style.css" type="text/css")
   body(ng-app="myApp" ng-controller="MainCtrl")
-    section.menu
-      a(href=basepath) Back
-    section.title
-      .title-region
-        h1.title !{title}
-        h3.by-line !{subtitle}
-      +share
-    section
-      +authors
-      h1 Transforms
-      matrix-as-image-transform
-      h1 Eigen Vectors
-      eigen-vectors
-      h1 Eigen Space
-      //- eigen-space
-      repeated-matrix-multiplication
-      div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
-        stochastic-matrix-multiplication
-    +footer
-    +disqus
+    div(ng-controller="MigrationCtrl")
+      section.menu
+        a(href=basepath) Back
+      section.title
+        .title-region
+          h1.title !{title}
+          h3.by-line !{subtitle}
+        +share
+      section
+        +authors
+        p Eigen vectors and values are mathametical concepts in linear algebra used extensively in machine learning and other fields. This explanation will focus on convaying a sense of what they are and their usefulness. Let's start things off with a simple (and albeit contrived) example.
+        sf-to-ny-migration-map
+        //- h1 Predicting population growth
+        p For our example, let's try to calculate the future population of the each of the states of America. Actually, our real goal is to learn what an eigen vector is useful for so let's stick to using only two states for now; 
+          span.primary California
+          |  and 
+          span.secondary New York
+          | . This ignores people migrating from other states. Our model assumes they don't exist and/or don't matter (sorry Pennsylvania!).  It also ignores the fact that people are born our die.
+        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. These transition preferences can also be visualized as vectors, one for each state, and a vector representing the ratio of people currently in each state. Adjust the ratios and see how they effect the map above.
+        sf-to-ny-data-as-vectors
+        p 
+          :markdown
+            Let's use vector notation to make referring to all the vectors above a bit easier.
+        migration-vector-notation
+        p One way to calculate the population ratio one month from now (
+          span.tertiary P₁
+          | ) is to use basic arithmetic. For the population of California one month from now (t=1), we have the following equation:
+        p(style="text-align: center")
+          span(ev-tooltip="The proportion of people in CA at t=1")
+            span.tertiary P₁[
+            span.primary CA
+            span.tertiary ]
+          |  = 
+          span(ev-tooltip="The proportion of people in CA at t=0")
+            span.tertiary P₀[
+            span.primary CA
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="The proportion of people in CA that will stay in CA.")
+            span.primary B₁[CA] 
+          |  + 
+          span(ev-tooltip="The proportion of people in NY at t=0")
+            span.tertiary P₀[
+            span.secondary NY
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="The proportion of people in NY that will leave for CA.")
+            span.secondary B₂[
+            span.primary CA
+            span.secondary ]
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
+        p(style="text-align: center")
+          b {{opts.samples[1][0] | number:2 }}
+          | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
+          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis1[0] | number:2 }}
+          | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
+          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[1] | number:2 }}
 
+        p And for the population of New York at t=1 we have the following equation:
+        p(style="text-align: center")
+          span(ev-tooltip="The proportion of people in NY at t=1")
+            span.tertiary P₁[
+            span.secondary NY
+            span.tertiary ]
+          |  = 
+          span(ev-tooltip="The proportion of people in CA at t=0")
+            span.tertiary P₀[
+            span.primary CA
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="The proportion of people in CA that will leave for NY.")
+            span.primary B₁[
+            span.secondary NY
+            span.primary ]
+          |  + 
+          span(ev-tooltip="The proportion of people in NY at t=0")
+            span.tertiary P₀[
+            span.secondary NY
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="The proportion of people in NY that will stay in NY.")
+            span.secondary B₂[NY]
+        
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
+        p(style="text-align: center")
+          b {{opts.samples[1][1] | number:2 }}
+          | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
+          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis1[1] | number:2 }}
+          | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
+          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[0] | number:2 }}
+        p For simple problems like this, we can get by with arithmetic but if we were dealing with all of the US states and every state could have people migrating from any other state, doing so would become impractical. This is where linear algebra can help.
+        p(style="text-align: center")
+          span(ev-tooltip="A vector representing the proportion of people in each state at t=1.")
+            span.tertiary P₁
+          |  = 
+          span(ev-tooltip="A single scalar representing the proportion of people in CA at t=0 and the first component of the vector P₀.")
+            span.tertiary P₀[
+            span.primary CA
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="A vector representing what the people in CA will do (either stay in CA, or move to NY).")
+            span.primary B₁
+          |  + 
+          span(ev-tooltip="A single scalar representing the proportion of people in NY at t=0 and the second component of the vector P₀.")
+            span.tertiary P₀[
+            span.secondary NY
+            span.tertiary ]
+          |  × 
+          span(ev-tooltip="A vector representing what the people in NY will do (either leave for CA, or stay in NY).")
+            span.secondary B₂
+        p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") for the current parameters, that's...
+        p Introduce a way of thinking about P1 as a linear combation of the transition columns of A and P0.
+        ev-placeholder(title="Linear combinations for calculating P\u2081")
+        p Repeat the same process for P2.
+        ev-placeholder(title="Linear combinations for calculating P\u2082")
+        p  Describe arbitrary repeated application of A.
+        ev-placeholder(title="Repeated application of the transition matrix along side simulation.")
+        p What happens when P_n -> ∞ and how that relates to eigen vectors.
+        ev-placeholder(title="Eigen vector visualization")
+
+      //- div(ng-controller="GeneralCtrl")
+        h1 Linear combinations, more generally
+        p Mention that the matrix above was a special case. Show how a linear combination works with a single point for non-stochastic matrices. The linear combation will be animated along the basis.
+        ev-placeholder(title="Linear combination of a single point")
+        p Show how a linear combination works with multiple points by allowing the user to draw a path/shape. Each point will animate to its new location.
+        ev-placeholder(title="Linear combination of multiple drawn points")
+        p Show how a image transformation is the same thing as a matrix transformation by repeatedly transforming the drawn shape. Allow the user to step forward/backward.
+        ev-placeholder(title="Repeated matrix transformation")
+        p Show a single point being multiplied to the matrix multiple times. Alow the user to step forward/backward.
+        ev-placeholder(title="Tracking the path of only a single point")
+        p See the entire trajectory of the repeated matrix multiplication of a single point.
+        ev-placeholder(title="Trajectories")
+        p  
+        h1 Transforms
+        matrix-as-image-transform
+        h1 Eigen Vectors
+        eigen-vectors
+        //- eigen-space
+        repeated-matrix-multiplication
+    section
+      h1 Migration
+      div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
+        migration(style="width:70%;float:left")
+        stochastic-matrix-multiplication(style="width:30%;float:left")
+        div(style="clear:both")
+    section
+        div(style="height:400px;width:100%;display:block;")
+    div.layer.tooltips
+    if !dev
+      +footer
+      +disqus
+  script(src=basepath + "scripts/topojson.js" charset="utf-8")
   script(src=path + "script.js")

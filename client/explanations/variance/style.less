@@ -1,0 +1,21 @@
+@primary: #3498db;
+@secondary: #2ecc71;
+@tertiary: #e74c3c;
+@quaternary: #9b59b6;
+
+
+.full-width-visualization {
+  width: 100%;
+  height: 300px;
+  display: block;
+  svg text {
+    font-family: 'helvetica Neue';
+  }
+  // background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+variance-demo {
+  &:extend(.full-width-visualization);
+  height: 400px;
+}
