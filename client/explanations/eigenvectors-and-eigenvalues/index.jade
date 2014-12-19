@@ -138,9 +138,28 @@ html
         P
           :markdown
             Using this notation, we are describing P₁ as a [linear combination](https://en.wikipedia.org/wiki/Linear_combination) of P₀ applied to B₁ and B₂. This notation _really_ cuts down on how much typing we have to do, especially for larger, more interesting problems. We can also use this notation to help think about and visualize what's happening in a new way. The below interactive illustrates this by stepping through the process. Click "next" to begin.
-        div(ng-controller="migrationLinearCombinationCtrl")
+        div(ng-controller="migrationLinearCombinationCtrl" style="position:relative")
           div(style="text-align:center")
             button.btn(ng-click="next()" ng-style="{ 'background-color': isLastKeyFrame ? 'rgba(0, 0, 0, 0.1)' : null }") {{isLastKeyFrame ? 'Reset' : 'Next'}}
+          div.matrix-equation-highlight
+            div.element-spotlight(ng-style="higlightedElementStyle")
+          matrix-equation(style="padding: 10px;height: inherit;")
+            eq-vector(ev-tooltip="P₁" class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
+            | &nbsp;
+            eq-element(label="'='")
+            eq-element(ev-tooltip="P₀[CA]" class="tertiary" label="opts.sample[0] | number:2")
+            | &nbsp;
+            eq-element(label="'×'")
+            | &nbsp;
+            eq-vector(ev-tooltip="B₁" class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
+            | &nbsp;
+            eq-element(label="'+'")
+            | &nbsp;
+            eq-element(ev-tooltip="P₀[NY]" class="tertiary" label="opts.sample[1] | number:2")
+            | &nbsp;
+            eq-element(label="'×'")
+            | &nbsp;
+            eq-vector(ev-tooltip="B₂" class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
           migration-linear-combination
         div(style="padding-right:70px;padding-left:70px;")
           matrix-equation(style="width:25%;float:left")
@@ -148,7 +167,7 @@ html
             eq-element(label="'='")
             eq-vector(class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
           matrix-equation(style="width:25%;float:left")
-            eq-element(class="secondary" label="'B₁'")
+            eq-element(class="secondary" label="'B₂'")
             eq-element(label="'='")
             eq-vector(class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
           matrix-equation(style="width:25%;float:left")
@@ -160,7 +179,10 @@ html
             eq-element(label="'='")
             eq-vector(class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
           div(style="clear:both")
-        p Repeat the same process for P2.
+          br
+          br
+        p This may seem all abstract, but try to hold on to what everything means. "B1" is how people act when in CA, "B2" is how people act in NY, "P0" is where people start off, "P1" is where people end up one month from now. In other words, we use what we know, B1 and B2 and P0, to calculate what we don't know, P1.
+        p To calculate the populations two months from now (t=2), we can do all the same math, but replace P0 with our newly calculated value of P1.
         ev-placeholder(title="Linear combinations for calculating P\u2082")
         p  Describe arbitrary repeated application of A.
         ev-placeholder(title="Repeated application of the transition matrix along side simulation.")

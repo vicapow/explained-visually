@@ -863,6 +863,17 @@ myApp.directive('migrationVectorNotation', function() {
 
 myApp.controller('migrationLinearCombinationCtrl', function($scope) {
   $scope.isLastKeyFrame = false
+  $scope.$watch('playhead', function(playhead) {
+    var aOpac = 0.7
+    var style = $scope.higlightedElementStyle = {}
+    if (playhead === 0) style.left = 460, style.opacity = aOpac
+    else if (playhead === 1 || playhead === 2) style.left = 381, style.opacity = aOpac
+    else if (playhead === 3) style.left = 615, style.opacity = aOpac
+    else if (playhead === 4) style.left = 537, style.opacity = aOpac
+    else if (playhead === 5) style.left = 310, style.opacity = aOpac
+    else style.left = 450, style.opacity = 0
+    style.left = style.left + 'px'
+  })
   $scope.next = function() { $scope.$broadcast('next') }
 })
 
