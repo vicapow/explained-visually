@@ -1299,6 +1299,427 @@ myApp.directive('migrationLinearCombination', function() {
   return { link: link, restrict: 'E' }
 })
 
+myApp.directive('migrationRepeatedLinearCombination', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var w = el.node().clientWidth, h = el.node().clientHeight
+    var svg = el.append('svg').attr({width: w, height: h})
+    var p = 10
+    var m = { l: p, t: p, r: p, b: p}
+    var defs = svg.append('defs').call(addMarkers)
+    var stage = svg.append('g')
+    var plotPoints = d3.range(5)
+    var plotSpacing = d3.scale.ordinal()
+      .domain(plotPoints)
+      .rangeBands([m.l, w - m.r], 0.5, 0.5)
+    var band = plotSpacing.rangeBand()
+    var xScales = plotPoints.map(function(d) {
+      return d3.scale.linear()
+        .domain([0, 1]).range([plotSpacing(d), plotSpacing(d) + band])
+        .clamp(true)
+    })
+    xScales[xScales.length - 1].clamp(false)
+    var format = function(d) { return d3.round(d) }
+    var yOffset = 70
+    var yScale = d3.scale.linear().domain([0, 1])
+      .range([h - m.b - yOffset, h - m.b - yOffset - band])
+    var yAxis = d3.svg.axis().scale(yScale).tickValues([0, 1]).orient('left').tickFormat(format)
+    var plots = stage.selectAll('g').data(plotPoints).enter().append('g')
+
+    // X Axis
+    plots.append('g')
+      .attr('class', 'axis x-axis').each(function(d) {
+        var xAxis = d3.svg.axis().scale(xScales[d]).tickValues([0, 1]).tickFormat(format)
+        d3.select(this).call(xAxis)
+      }).attr('transform', function(d) {
+        return 'translate(' + [0, yScale.range()[0] ] + ')'
+      })
+    // Y Axis
+    plots.append('g')
+      .attr('class', 'axis y-axis')
+      .call(yAxis)
+      .attr('transform', function(d) {
+        return 'translate(' + [plotSpacing(d), 0] + ')'
+      })
+
+    // Vectors
+
+    function XYLine(i) {
+      return {
+          name: 'xy-plot' + i
+        , p1: function() { return [ xScales[i](1), yScale(0) ] }
+        , p2: function() { return [ xScales[i](0), yScale(1) ] }
+        , style: 'eigen'
+        , 'stroke-width': 2
+        , dash: dash
+        , head: false
+      }
+    }
+
+    function axisLine(i, name, style, axis) {
+      var path = name.split('.'), point
+      if (path.length === 1) point = function(o) { return o[name] }
+      else point = function(o) { return o[path[0]][path[1]] }
+      return {
+          name: 'x-line-plot' + i
+        , p1: function(o) {
+          var p = point(o)
+          if (axis === 'x') return [ xScales[i](p[0]), yScale(0) ]
+          else return [ xScales[i](0), yScale(p[1]) ]
+        }
+        , p2: function(o) {
+          var p = point(o)
+          if (axis === 'x') return [ xScales[i](p[0]), yScale(p[1]) ]
+          else return [ xScales[i](p[0]), yScale(p[1]) ]
+        }
+        , style: style
+        , 'stroke-width': 2
+        , dash: dash
+        , head: false
+      }
+    }
+
+    function ratioVector(i, name, style) {
+      var path = name.split('.'), point
+      if (path.length === 1) point = function(o) { return o[name] }
+      else point = function(o) { return o[path[0]][path[1]] }
+      return {
+          name: name
+        , p1: function() {
+          return [ xScales[i](0), yScale(0) ]
+        }
+        , p2: function(o) {
+          var r = point(o)[0]
+          return [ xScales[i](r), yScale(1 - r) ]
+        }
+        , 'stroke-width': 8
+        , head: true
+        , style: style
+      }
+    }
+
+    var vectorData = d3.range(plotPoints.length).map(XYLine)
+      .concat([
+          axisLine(0, 'basis1', 'primary', 'x')
+        , axisLine(0, 'basis1', 'primary', 'y')
+        , axisLine(1, 'basis2', 'secondary', 'x')
+        , axisLine(1, 'basis2', 'secondary', 'y')
+        , axisLine(2, 'sample', 'tertiary', 'x')
+        , axisLine(2, 'sample', 'tertiary', 'y')
+        , axisLine(3, 'samples.1', 'eigen', 'x')
+        , axisLine(3, 'samples.1', 'eigen', 'y')
+      ])
+      .concat([
+          extend(ratioVector(3, 'samples.1', 'eigen'), { opacity: 0.6 })
+        , ratioVector(0, 'basis1', 'primary')
+        , ratioVector(0, 'basis1', 'primary')
+        , ratioVector(1, 'basis2', 'secondary')
+        , ratioVector(2, 'sample', 'tertiary')
+      ])
+    var vectors = addVectors(stage, vectorData)
+
+    // Labels
+
+    var axisValueLabelsData = [
+        { name: 'basis1', axis: 0, plot: 0, style: 'primary' }
+      , { name: 'basis1', axis: 1, plot: 0, style: 'primary' }
+      , { name: 'basis2', axis: 0, plot: 1, style: 'secondary' }
+      , { name: 'basis2', axis: 1, plot: 1, style: 'secondary' }
+      , { name: 'sample', axis: 0, plot: 2, style: 'tertiary' }
+      , { name: 'sample', axis: 1, plot: 2, style: 'tertiary' }
+      , {
+          get: function(o) { return o.samples[1] }
+        , axis: 0, plot: 3, style: 'eigen'
+      }
+      , {
+          get: function(o) { return o.samples[1] }
+        , axis: 1, plot: 3, style: 'eigen'
+      }
+    ]
+    var axisLabelsG = stage.append('g').attr('class', 'axis-labels')
+    var axisValueLabels = axisLabelsG.selectAll('text.value')
+      .data(axisValueLabelsData)
+      .enter().append('text')
+        .attr('text-anchor', 'middle')
+        .attr('class', 'value')
+        .style('fill', function(d) { return color[d.style] })
+
+    var pad = 10
+    var axisLabelsData = [].concat.apply([], d3.range(plotPoints.length)
+      .map(function(i) {
+        return [
+            { label: 'NY', plot: i, x: 0, y: 1 }
+          , { label: 'CA', plot: i, x: 1, y: 0 }
+        ]
+      }))
+    console.log('axisLabelsData', axisLabelsData)
+
+    axisLabelsG.selectAll('text.axis-label')
+      .data(axisLabelsData).enter()
+      .append('text').attr('class', 'axis-label')
+        .attr('transform', function(d) {
+          var x = xScales[d.plot].range()[d.x], y = yScale.range()[d.y]
+          if (!d.x) y = y - pad
+          else x = x + pad, y = y + 7
+          return 'translate(' + [x, y] + ')'
+        })
+        .style('text-anchor', function(d) { return !d.x ? 'middle': 'start' })
+        .style('fill', function(d) {
+          return color[d.label === 'CA' ? 'primary' : 'secondary'] })
+        .text(function(d) { return d.label })
+
+    var axisAnnotationData = [
+      {
+          pos: [ d3.mean(xScales[0].range()), yScale.range()[1] - 40 ]
+        , label: 'B₁'
+        , title: true
+      }, {
+          pos: [ d3.mean(xScales[1].range()), yScale.range()[1] - 40 ]
+        , label: 'B₂'
+        , title: true
+      }, {
+          pos: [ d3.mean(xScales[2].range()), yScale.range()[1] - 40 ]
+        , label: 'P₀'
+        , title: true
+      }, {
+          pos: [ d3.mean(xScales[3].range()), yScale.range()[1] - 40 ]
+        , label: 'P₁'
+        , title: true
+      }
+    ]
+
+    axisLabelsG.selectAll('text.basis-annotation').data(axisAnnotationData)
+      .enter().append('text').attr('class', 'basis-annotation')
+      .attr('transform', function(d) {
+        return 'translate(' + d.pos + ') rotate(' + (d.rot || 0) + ')'
+      })
+      .attr('text-anchor', 'middle')
+      .style('fill', function(d) {
+        return d.title ? null : 'rgba(0, 0, 0, 0.4)'
+      })
+      .text(function(d) { return d.label })
+
+    // Nobs
+
+    function vectorNob(i, name) {
+      return {
+        get: function(o) {
+          var p = o[name]
+          return [ xScales[i](p[0]), yScale(p[1]) ]
+        }
+        , set: function(scope, p) {
+          var v = [ xScales[i].invert(p[0]), yScale.invert(p[1]) ]
+          v[1] = 1 - v[0]
+          scope.opts[name] = v
+        }
+      }
+    }
+
+    var nobData = [vectorNob(0, 'basis1'), vectorNob(1, 'basis2')
+      , vectorNob(2, 'sample')]
+
+    var nobs = buildNobs(nobData, scope, stage)
+
+    var nobDrag = d3.behavior.drag()
+      .on('drag', function(d) {
+        scope.$apply(function() {
+          d.set(scope, d3.mouse(stage.node()))
+        }.bind(this))
+      })
+
+    nobs.call(nobDrag)
+
+    function updateAxisValueLabels(g, o) {
+      g.attr('transform', function(d) {
+        var p, pad = 40
+        if (d.transform) {
+          if (typeof d.transform === 'function') return d.transform(d, o)
+          return d.transform
+        }
+        if (d.name) {
+          if (d.axis === 0) p = [xScales[d.plot](o[d.name][0]), yScale(0) + pad]
+          else p = [xScales[d.plot](0) - pad, yScale(o[d.name][1]) + 5]
+        } else {
+          if (d.axis === 0) p = [ xScales[d.plot](d.get(o)[d.axis]), yScale(0) + pad]
+          else p = [xScales[d.plot](0) - pad, yScale(d.get(o)[d.axis]) + 5]
+        }
+        return 'translate(' + p + ')'
+      })
+      .text(function(d) {
+        if (typeof d.text === 'function') return d.text(d, o)
+        if (d.name) {
+          return d.text || d3.round(o[d.name][d.axis], 2)
+        } else {
+          return d.text || d3.round(d.get(o)[d.axis], 2)
+        }
+      })
+    }
+
+    scope.$watch('opts', redraw, true)
+    function redraw() {
+      var o = scope.opts
+      vectors.call(updateVectors, o)
+      nobData.forEach(function(d) { d._p = d.get(o) })
+      nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
+      axisValueLabels.call(updateAxisValueLabels, o)
+    }
+
+    scope.$on('next', function() {
+      var dur = 1000, p
+      var b1Vector = vectors.filter(function(d) { return d.name === 'basis1' })
+      var b2Vector = vectors.filter(function(d) { return d.name === 'basis2' })
+      var b1 = vector(scope.opts.basis1)
+      if (scope.playhead === undefined) scope.playhead = -1
+      var keyFrames = [
+        function() {
+          b1Vector.datum(ratioVector(3, 'basis1', 'primary'))
+            .transition()
+            .duration(dur)
+            .call(updateVectors, scope.opts)
+        }, function() {
+          axisValueLabels
+            .filter(function(d) { return d.name === 'sample' && d.axis === 0 })
+            .each(function(d) {
+              d.text = function(d, o) {
+                return 'x' + d3.round(o[d.name][d.axis], 2)
+              }
+              d.transform = function(d, o) {
+                var b1 = vector(o.basis1)
+                var mid = b1.scale(0.5)
+                var p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                var u = vector([b1.x, -b1.y]).unit().rot(-pi / 2).scale(20)
+                return 'translate(' + p.add(u) + ')'
+              }
+            })
+            .transition()
+            .duration(dur)
+            .call(updateAxisValueLabels, scope.opts)
+        }, function() {
+          var datum = extend(ratioVector(3, 'basis1', 'primary'), {
+              p1: function() { return [ xScales[3](0), yScale(0) ] }
+            , p2: function(o) {
+              var v = vector(o.basis1).scale(o.sample[0])
+              return [ xScales[3](v.x), yScale(v.y) ]
+            }
+          })
+          b1Vector.datum(datum)
+            .transition()
+            .duration(dur)
+            .call(updateVectors, scope.opts)
+          axisValueLabels
+            .filter(function(d) { return d.name === 'sample' && d.axis === 0 })
+            .each(function(d) {
+              d.transform = function(d, o) {
+                var b1 = vector(o.basis1).scale(o.sample[0] || 0.001)
+                var mid = b1.scale(0.5)
+                var p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                var u = vector([b1.x, -b1.y]).unit().rot(-pi / 2).scale(20)
+                return 'translate(' + p.add(u) + ')'
+              }
+            })
+            .transition()
+            .duration(dur)
+            .call(updateAxisValueLabels, scope.opts)
+        }, function() {
+          var datum = extend(ratioVector(3, 'basis2', 'secondary'), {
+              p1: function(o) {
+                var v = vector(o.basis1).scale(o.sample[0])
+                return [ xScales[3](v.x), yScale(v.y) ]
+              }
+            , p2: function(o) {
+              var v = vector(o.basis1).scale(o.sample[0]).add(vector(o.basis2))
+              return [ xScales[3](v.x), yScale(v.y) ]
+            }
+          })
+          b2Vector.datum(datum)
+            .transition()
+            .duration(dur)
+            .call(updateVectors, scope.opts)
+        }, function() {
+          axisValueLabels
+            .filter(function(d) { return d.name === 'sample' && d.axis === 1 })
+            .each(function(d) {
+              d.transform = function(d, o) {
+                var p1 = vector(o.basis1).scale(o.sample[0])
+                var p2 = vector(o.basis1).scale(o.sample[0]).add(vector(o.basis2))
+                var mid = p1.add(p2.sub(p1).scale(0.5))
+                var u = p2.sub(p1).unit()
+                u = vector([u.x, -u.y])
+                p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                p = p.add(u.rot(pi / 2).scale(30))
+                return 'translate(' + p + ')'
+              }
+              d.text = function(d, o) {
+                return 'x' + d3.round(o[d.name][d.axis], 2)
+              }
+            })
+            .transition()
+            .duration(dur)
+            .call(updateAxisValueLabels, scope.opts)
+        }, function() {
+          var datum = extend(ratioVector(3, 'basis2', 'secondary'), {
+              p1: function(o) {
+                var v = vector(o.basis1).scale(o.sample[0])
+                return [ xScales[3](v.x), yScale(v.y) ]
+              }
+            , p2: function(o) {
+              var v = vector(o.basis1).scale(o.sample[0])
+                .add(vector(o.basis2).scale(o.sample[1]))
+              return [ xScales[3](v.x), yScale(v.y) ]
+            }
+          })
+          b2Vector.datum(datum)
+            .transition()
+            .duration(dur)
+            .call(updateVectors, scope.opts)
+          axisValueLabels
+            .filter(function(d) { return d.name === 'sample' && d.axis === 1 })
+            .each(function(d) {
+              d.transform = function(d, o) {
+                var p1 = vector(o.basis1).scale(o.sample[0])
+                var p2 = vector(o.basis1).scale(o.sample[0])
+                  .add(vector(o.basis2).scale(o.sample[1] || 0.001))
+                var mid = p1.add(p2.sub(p1).scale(0.5))
+                var u = p2.sub(p1).unit()
+                u = vector([u.x, -u.y])
+                p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                p = p.add(u.rot(pi / 2).scale(30))
+                return 'translate(' + p + ')'
+              }
+            })
+            .transition()
+            .duration(dur)
+            .call(updateAxisValueLabels, scope.opts)
+        }
+      ]
+    
+      if (scope.playhead !== keyFrames.length - 1) {
+        scope.playhead = scope.playhead + 1
+        keyFrames[scope.playhead]()
+      } else {
+        scope.playhead = -1
+        // reset
+        b1Vector.datum(ratioVector(0, 'basis1', 'primary'))
+          .transition()
+          .duration(dur)
+          .call(updateVectors, scope.opts)
+        b2Vector.datum(ratioVector(1, 'basis2', 'primary'))
+          .transition()
+          .duration(dur)
+          .call(updateVectors, scope.opts)
+        axisValueLabels
+          .filter(function(d) { return d.name === 'sample' })
+          .each(function(d) { d.transform = d.text = null })
+          .transition()
+          .duration(dur)
+          .call(updateAxisValueLabels, scope.opts)
+      }
+      scope.isLastKeyFrame = scope.playhead === keyFrames.length - 1
+    })
+  }
+  return { link: link, restrict: 'E' }
+})
+
 myApp.directive('matrixAsImageTransform', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])

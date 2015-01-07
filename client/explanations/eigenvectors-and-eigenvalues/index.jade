@@ -17,17 +17,30 @@ html
         +share
       section
         +authors
-        p Eigen vectors and values are mathametical concepts in linear algebra used extensively in machine learning and other fields. This explanation will focus on convaying a sense of what they are and their usefulness. Let's start things off with a simple (and albeit contrived) example.
-        sf-to-ny-migration-map
-        //- h1 Predicting population growth
-        p For our example, let's try to calculate the future population of the each of the states of America. Actually, our real goal is to learn what an eigen vector is useful for so let's stick to using only two states for now; 
+        p
+          :markdown
+            Eigen vectors and values may sound esoteric but their usefulness is almost unending. They made Sergie Brin and Larry Page of Google billions when they used them to calculate [result rankings](http://www.rose-hulman.edu/~bryan/googleFinalVersionFixed.pdf) for their search engine. They're also used extensively in other fields like engineering to prevent strutural resonance of the likes that can cause [bridges to collapse](https://www.youtube.com/watch?v=j-zczJXSxnw). Not to mention all the machine learning and artificial intelligence algorithms that depend on them to do things like detect your [friends faces](https://en.wikipedia.org/wiki/Eigenface) on sites like Facebook.
+        p So what are they? And why are they so useful? To answer these questions, let's start things off with a simple example.
+        p Let's try to come up with a model for guessing (estimating) the future population of every state of America. Wait. Actually... Our real goal is to learn what an eigen vector is useful for so let's stick to using only two states for now; 
           span.primary California
           |  and 
           span.secondary New York
-          | . This ignores people migrating from other states. Our model assumes they don't exist and/or don't matter (sorry Pennsylvania!).  It also ignores the fact that people are born or die.
-        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. These transition preferences can also be visualized as vectors, one for each state, and a vector representing the ratio of people currently in each state. Adjust the ratios to see how they effect the map above.
+          | . This ignores people migrating from other states. Our model assumes they don't exist or don't matter.  It also ignores the fact that people are born or die.
+        sf-to-ny-migration-map
+        //- h1 Predicting population growth
+        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. If you adjust the ratios below, you'll see how they effect the map above. Notice how the ratio of people that decide each month to leave 
+          span.primary California
+          |  for 
+          span.secondary New York
+          |  , 
+          b {{opts.basis1[0] | number:2 }}
+          |  , plus the number of people that decide to stay, 
+          b {{opts.basis1[1] | number:2 }}
+          |  , always totals to 
+          b 1
+          |  (or 100%). If we were dealing with all 50 states, every vector would contain 50 numbers instead of 2 and still add up to 1, but then we wouldn't be able to draw them in 2D.
         sf-to-ny-data-as-vectors
-        p Let's use vector notation to make referring to all the vectors above a bit easier.
+        p Let's use vector notation to make referring to all the vectors above a bit easier. This is also how we would keep track of these vectors if they were length 50 instead of 2.
         migration-vector-notation
         p One (boring) way to calculate the population ratio one month from now (
           span.tertiary P₁
@@ -138,6 +151,7 @@ html
         P
           :markdown
             Using this notation, we are describing P₁ as a [linear combination](https://en.wikipedia.org/wiki/Linear_combination) of P₀ applied to B₁ and B₂. This notation _really_ cuts down on how much typing we have to do, especially for larger, more interesting problems. We can also use this notation to help think about and visualize what's happening in a new way. The below interactive illustrates this by stepping through the process. Click "next" to begin.
+
         div(ng-controller="migrationLinearCombinationCtrl" style="position:relative")
           div(style="text-align:center")
             button.btn(ng-click="next()" ng-style="{ 'background-color': isLastKeyFrame ? 'rgba(0, 0, 0, 0.1)' : null }") {{isLastKeyFrame ? 'Reset' : 'Next'}}
@@ -161,6 +175,7 @@ html
             | &nbsp;
             eq-vector(ev-tooltip="B₂" class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
           migration-linear-combination
+
         div(style="padding-right:70px;padding-left:70px;")
           matrix-equation(style="width:25%;float:left")
             eq-element(class="primary" label="'B₁'")
@@ -181,14 +196,37 @@ html
           div(style="clear:both")
           br
           br
+
         p This may seem all abstract, but try to hold on to what everything means. "B1" is how people act when in CA, "B2" is how people act in NY, "P0" is where people start off, "P1" is where people end up one month from now. In other words, we use what we know, B1 and B2 and P0, to calculate what we don't know, P1.
         p To calculate the populations two months from now (t=2), we can do all the same math, but replace P0 with our newly calculated value of P1.
-        ev-placeholder(title="Linear combinations for calculating P\u2082")
-        p  Describe arbitrary repeated application of A.
-        ev-placeholder(title="Repeated application of the transition matrix along side simulation.")
-        p What happens when P_n -> ∞ and how that relates to eigen vectors.
-        ev-placeholder(title="Eigen vector visualization")
+        div(ng-controller="migrationLinearCombinationCtrl" style="position:relative")
+          migration-repeated-linear-combination
 
+        div(style="padding-right:70px;padding-left:70px;")
+          matrix-equation(style="width:20%;float:left")
+            eq-element(class="primary" label="'B₁'")
+            eq-element(label="'='")
+            eq-vector(class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
+          matrix-equation(style="width:20%;float:left")
+            eq-element(class="secondary" label="'B₂'")
+            eq-element(label="'='")
+            eq-vector(class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
+          matrix-equation(style="width:20%;float:left")
+            eq-element(class="tertiary" label="'P₀'")
+            eq-element(label="'='")
+            eq-vector(class="tertiary" values="opts.sample" labels="['P₀[CA]', 'P₀[NY]']" active="true")
+          matrix-equation(style="width:20%;float:left")
+            eq-element(class="tertiary" label="'P₁'")
+            eq-element(label="'='")
+            eq-vector(class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
+          matrix-equation(style="width:20%;float:left")
+            eq-element(class="tertiary" label="'P₂'")
+            eq-element(label="'='")
+            eq-vector(class="tertiary" values="opts.samples[2]" labels="['P₂[CA]', 'P₂[NY]']" active="true")
+          div(style="clear:both")
+          br
+          br
+        ev-placeholder(title="Eigen vector visualization")
       //- div(ng-controller="GeneralCtrl")
         h1 Linear combinations, more generally
         p Mention that the matrix above was a special case. Show how a linear combination works with a single point for non-stochastic matrices. The linear combation will be animated along the basis.
