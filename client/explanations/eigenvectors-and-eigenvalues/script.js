@@ -5,12 +5,18 @@ var myApp = angular.module('myApp', ['ev'])
 myApp.controller('MainCtrl', function($scope) {
 
 })
+var populations = { ny: 38.33, ca: 19.65 }
+var maxPopulation = d3.max(Object.keys(populations)
+  .map(function(d) { return populations[d] }))
+var totalPopulation = Object.keys(populations)
+  .map(function(d) { return populations[d] })
+  .reduce(function(c, t) { return c + t }, 0)
 
 myApp.controller('MigrationCtrl', function($scope) {
   $scope.opts = {
       basis1: [0.9, 0.1]
     , basis2: [0.3, 0.7]
-    , sample: [0.8, 0.2]
+    , sample: [38.33, 19.65]
     , samples: []
     , numSamples: 6
   }
@@ -324,7 +330,7 @@ myApp.directive('sfToNyMigrationMap', function() {
     var usPath = stage.append('path').attr('class', 'us-bg')
     var proj = d3.geo.albersUsa().scale(580).translate([w / 2, h / 2])
     var path = d3.geo.path().projection(proj)
-    var rScale = d3.scale.sqrt() .domain([0, 1]) .range([0, 100])
+    var rScale = d3.scale.sqrt().domain([0, maxPopulation]) .range([0, 100])
     var wScale = d3.scale.linear().domain([0, 1]).range([0, 30]).clamp(true)
     var loc = { sf: proj([-122.4167, 37.7833]), ny: proj([-74.0059, 40.7127]) }
     var sfDot = stage.append('circle')
@@ -365,16 +371,17 @@ myApp.directive('sfToNyMigrationMap', function() {
       .attr('text-anchor', 'middle')
 
     function drawCrossArrow(g, p1, p2, thickness, style) {
-      var r = scope.opts.sample[style === 'primary' ? 0 : 1]
+      var r1 = scope.opts.sample[style === 'primary' ? 0 : 1]
+      var r2 = scope.opts.sample[style === 'primary' ? 1 : 0]
       p1 = vector(p1), p2 = vector(p2)
       var diff = p2.sub(p1).unit()
       var theta = pi * 0.25, rP = 90
       var unit = diff.rot(-theta)
-      var p11 = unit.scale(rScale(r)).add(p1)
-      var p12 = unit.scale(rScale(r) + rP).add(p1)
+      var p11 = unit.scale(rScale(r1)).add(p1)
+      var p12 = unit.scale(rScale(r1) + rP).add(p1)
       unit = diff.rot(theta - pi)
-      var p21 = unit.scale(rScale(1 - r) + rP).add(p2)
-      var p22 = unit.scale(rScale(1 - r)).add(p2)
+      var p21 = unit.scale(rScale(r2) + rP).add(p2)
+      var p22 = unit.scale(rScale(r2)).add(p2)
       g
         .attr('marker-end', 'url(#sf-to-ny-marker-' + style + ')')
         .attr('class', 'arrow')
@@ -442,8 +449,8 @@ myApp.directive('sfToNyMigrationMap', function() {
         }
         , set: function(scope, p) {
           var r = rScale.invert(p[0])
-          r = ( r < 0 ) ? 0 : ( r > 1) ? 1 : r
-          scope.opts.sample = [r, 1 - r]
+          r = ( r < 0 ) ? 0 : ( r > maxPopulation) ? maxPopulation : r
+          scope.opts.sample = [r, maxPopulation - r]
         }
         , plot: sfDot.node()
       }, {
@@ -452,8 +459,8 @@ myApp.directive('sfToNyMigrationMap', function() {
         }
         , set: function(scope, p) {
           var r = rScale.invert(p[0])
-          r = ( r < 0 ) ? 0 : ( r > 1) ? 1 : r
-          scope.opts.sample = [1 - r, r]
+          r = ( r < 0 ) ? 0 : ( r > maxPopulation) ? maxPopulation : r
+          scope.opts.sample = [maxPopulation - r, r]
         }
         , plot: nyDot.node()
       }, {
@@ -523,42 +530,53 @@ myApp.directive('sfToNyDataAsVectors', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])
     var w = el.node().clientWidth, h = el.node().clientHeight
-    var svg = el.append('svg').attr({width: w, height: h})
     var p = 10
     var m = { l: p, t: p, r: p, b: p}
+    var svg = el.append('svg').attr({width: w, height: h})
     var defs = svg.append('defs').call(addMarkers)
     var stage = svg.append('g')
-    var plotPoints = d3.range(3)
     var plotSpacing = d3.scale.ordinal()
-      .domain(plotPoints)
+      .domain(d3.range(3))
       .rangeBands([m.l, w - m.r], 0.5, 0.5)
     var band = plotSpacing.rangeBand()
-    var xScales = plotPoints.map(function(d) {
-      return d3.scale.linear()
-        .domain([0, 1]).range([plotSpacing(d), plotSpacing(d) + band])
-        .clamp(true)
-    })
-    var format = function(d) { return d3.round(d) }
     var yOffset = 70
-    var yScale = d3.scale.linear().domain([0, 1])
-      .range([h - m.t - yOffset, h - m.t - yOffset - band])
-    var yAxis = d3.svg.axis().scale(yScale).tickValues([0, 1]).orient('left').tickFormat(format)
-    var plots = stage.selectAll('g').data(plotPoints).enter().append('g')
+    var plotData = d3.range(3).map(function(d) {
+      var domain =  d < 2 ? [0, 1] : [0, totalPopulation]
+      return {
+        xScale: d3.scale.linear()
+          .domain(domain)
+          .range([plotSpacing(d), plotSpacing(d) + band])
+          .clamp(true),
+        yScale: d3.scale.linear()
+          .domain(domain)
+          .range([h - m.t - yOffset, h - m.t - yOffset - band]),
+        tickValues: domain
+      }
+    })
+
+    var plots = stage.selectAll('g').data(plotData).enter().append('g')
 
     // X Axis
     plots.append('g')
       .attr('class', 'axis x-axis').each(function(d) {
-        var xAxis = d3.svg.axis().scale(xScales[d]).tickValues([0, 1]).tickFormat(format)
+        var xAxis = d3.svg.axis().scale(d.xScale)
+        .tickValues(d.tickValues)
+        .tickFormat(function(d) { return d3.round(d) })
         d3.select(this).call(xAxis)
       }).attr('transform', function(d) {
-        return 'translate(' + [0, yScale.range()[0] ] + ')'
+        return 'translate(' + [0, d.yScale.range()[0] ] + ')'
       })
     // Y Axis
     plots.append('g')
       .attr('class', 'axis y-axis')
-      .call(yAxis)
-      .attr('transform', function(d) {
-        return 'translate(' + [plotSpacing(d), 0] + ')'
+      .each(function(d) {
+        d3.select(this).call(d3.svg.axis().scale(d.yScale)
+          .tickValues(d.tickValues)
+          .orient('left')
+          .tickFormat(function(d) { return d3.round(d) }))
+      })
+      .attr('transform', function(d, i) {
+        return 'translate(' + [plotSpacing(i), 0] + ')'
       })
 
     // Vectors
@@ -566,8 +584,8 @@ myApp.directive('sfToNyDataAsVectors', function() {
     function XYLine(i) {
       return {
           name: 'xy-plot' + i
-        , p1: function() { return [ xScales[i](1), yScale(0) ] }
-        , p2: function() { return [ xScales[i](0), yScale(1) ] }
+        , p1: function() { return [ plotData[i].xScale(1), plotData[i].yScale(0) ] }
+        , p2: function() { return [ plotData[i].xScale(0), plotData[i].yScale(1) ] }
         , style: 'eigen'
         , 'stroke-width': 2
         , dash: dash
@@ -580,13 +598,13 @@ myApp.directive('sfToNyDataAsVectors', function() {
           name: 'x-line-plot' + i
         , p1: function(o) {
           var p = o[name]
-          if (axis === 'x') return [ xScales[i](p[0]), yScale(0) ]
-          else return [ xScales[i](0), yScale(p[1]) ]
+          if (axis === 'x') return [ plotData[i].xScale(p[0]), plotData[i].yScale(0) ]
+          else return [ plotData[i].xScale(0), plotData[i].yScale(p[1]) ]
         }
         , p2: function(o) {
           var p = o[name]
-          if (axis === 'x') return [ xScales[i](p[0]), yScale(p[1]) ]
-          else return [ xScales[i](p[0]), yScale(p[1]) ]
+          if (axis === 'x') return [ plotData[i].xScale(p[0]), plotData[i].yScale(p[1]) ]
+          else return [ plotData[i].xScale(p[0]), plotData[i].yScale(p[1]) ]
         }
         , style: style
         , 'stroke-width': 2
@@ -599,11 +617,12 @@ myApp.directive('sfToNyDataAsVectors', function() {
       return {
           name: name
         , p1: function() {
-          return [ xScales[i](0), yScale(0) ]
+          return [ plotData[i].xScale(0), plotData[i].yScale(0) ]
         }
         , p2: function(o) {
-          var r = o[name][0]
-          return [ xScales[i](r), yScale(1 - r) ]
+          var r1 = o[name][0]
+          var r2 = o[name][1]
+          return [ plotData[i].xScale(r1), plotData[i].yScale(r2) ]
         }
         , 'stroke-width': 8
         , head: true
@@ -638,7 +657,8 @@ myApp.directive('sfToNyDataAsVectors', function() {
       , { name: 'sample', axis: 1, plot: 2, style: 'tertiary' }
     ]
     var axisLabelsG = stage.append('g').attr('class', 'axis-labels')
-    var axisValueLabels = axisLabelsG.selectAll('text.value').data(axisValueLabelsData)
+    var axisValueLabels = axisLabelsG.selectAll('text.value')
+      .data(axisValueLabelsData)
       .enter().append('text')
       .attr('text-anchor', 'middle')
       .attr('class', 'value')
@@ -658,7 +678,8 @@ myApp.directive('sfToNyDataAsVectors', function() {
       .data(axisLabelsData).enter()
       .append('text').attr('class', 'axis-label')
         .attr('transform', function(d) {
-          var x = xScales[d.plot].range()[d.x], y = yScale.range()[d.y]
+          var x = plotData[d.plot].xScale.range()[d.x]
+          var y = plotData[d.plot].yScale.range()[d.y]
           if (!d.x) y = y - pad
           else x = x + pad, y = y + 7
           return 'translate(' + [x, y] + ')'
@@ -670,38 +691,38 @@ myApp.directive('sfToNyDataAsVectors', function() {
 
     var axisAnnotationData = [
       {
-        pos: [ d3.mean(xScales[0].range()), yScale.range()[1] - 40 ],
+        pos: [ d3.mean(plotData[0].xScale.range()), plotData[0].yScale.range()[1] - 40 ],
         label: 'Of the people in California...',
         title: true
       }, {
-        pos: [ d3.mean(xScales[0].range()), yScale.range()[0] + 60 ],
+        pos: [ d3.mean(plotData[0].xScale.range()), plotData[0].yScale.range()[0] + 60 ],
         label: 'stay in CA'
       }, {
-        pos: [ xScales[0].range()[0] - 65, d3.mean(yScale.range()) ],
+        pos: [ plotData[0].xScale.range()[0] - 65, d3.mean(plotData[0].yScale.range()) ],
         rot: -90,
         label: 'leave for NY'
       }, {
-        pos: [ d3.mean(xScales[1].range()), yScale.range()[1] - 40 ],
+        pos: [ d3.mean(plotData[1].xScale.range()), plotData[1].yScale.range()[1] - 40 ],
         label: 'Of the people in New York...',
         title: true
       }, {
-        pos: [ d3.mean(xScales[1].range()), yScale.range()[0] + 60 ],
+        pos: [ d3.mean(plotData[1].xScale.range()), plotData[1].yScale.range()[0] + 60 ],
         label: 'leave for CA'
       }, {
-        pos: [ xScales[1].range()[0] - 65, d3.mean(yScale.range()) ],
+        pos: [ plotData[1].xScale.range()[0] - 65, d3.mean(plotData[1].yScale.range()) ],
         rot: -90,
         label: 'stay in NY'
       }, {
-        pos: [ d3.mean(xScales[2].range()), yScale.range()[1] - 40 ],
-        label: 'Where everyone starts',
+        pos: [ d3.mean(plotData[2].xScale.range()), plotData[2].yScale.range()[1] - 40 ],
+        label: 'Where everyone starts (in millions)',
         title: true
       }, {
-        pos: [ d3.mean(xScales[2].range()), yScale.range()[0] + 60 ],
-        label: 'start in CA'
+        pos: [ d3.mean(plotData[2].xScale.range()), plotData[2].yScale.range()[0] + 60 ],
+        label: 'begin in CA'
       }, {
-        pos: [ xScales[2].range()[0] - 65, d3.mean(yScale.range()) ],
+        pos: [ plotData[2].xScale.range()[0] - 65, d3.mean(plotData[2].yScale.range()) ],
         rot: -90,
-        label: 'start in NY'
+        label: 'begin in NY'
       }
     ]
 
@@ -718,22 +739,28 @@ myApp.directive('sfToNyDataAsVectors', function() {
 
     // Nobs
 
-    function vectorNob(i, name) {
+    function vNob(i, name) {
       return {
         get: function(o) {
           var p = o[name]
-          return [ xScales[i](p[0]), yScale(p[1]) ]
+          return [ plotData[i].xScale(p[0]), plotData[i].yScale(p[1]) ]
         }
         , set: function(scope, p) {
-          var v = [ xScales[i].invert(p[0]), yScale.invert(p[1]) ]
-          v[1] = 1 - v[0]
+          var v = [ plotData[i].xScale.invert(p[0]), plotData[i].yScale.invert(p[1]) ]
+          if (i < 2) v[1] = 1 - v[0]
+          else {
+            if (v[1] < 0) v[1] = 0
+            if ( (v[0] + v[1]) > totalPopulation) {
+              if (v[0] > totalPopulation) v[0] = totalPopulation
+              v[1] = totalPopulation - v[0]
+            }
+          }
           scope.opts[name] = v
         }
       }
     }
 
-    var nobData = [vectorNob(0, 'basis1'), vectorNob(1, 'basis2')
-      , vectorNob(2, 'sample')]
+    var nobData = [ vNob(0, 'basis1'), vNob(1, 'basis2'), vNob(2, 'sample') ]
 
     var nobs = buildNobs(nobData, scope, stage)
 
@@ -754,9 +781,11 @@ myApp.directive('sfToNyDataAsVectors', function() {
       nobs.attr('transform', function(d) { return 'translate(' + d._p + ')' })
       axisValueLabels
         .attr('transform', function(d) {
+          var xScale = plotData[d.plot].xScale
+          var yScale = plotData[d.plot].yScale
           var p, pad = 40
-          if (d.axis === 0) p = [xScales[d.plot](o[d.name][0]), yScale(0) + pad]
-          else p = [xScales[d.plot](0) - pad, yScale(o[d.name][1]) + 5]
+          if (d.axis === 0) p = [xScale(o[d.name][0]), yScale(0) + pad]
+          else p = [xScale(0) - pad, yScale(o[d.name][1]) + 5]
           return 'translate(' + p + ')'
         })
         .text(function(d) {
@@ -801,7 +830,7 @@ myApp.directive('migrationVectorNotation', function() {
       
       function buildBrackets(g, opts) {
         if (!opts) opts = {}
-        var vW = opts.vW || 5
+        var vW = opts.vW || 10
         var vH = opts.vH || 50
         var vS = opts.vS || 25
         var v = opts.v || [0, 0]
@@ -823,11 +852,11 @@ myApp.directive('migrationVectorNotation', function() {
         .attr('transform', 'translate(' + [220, 0] + ')')
       brackets.append('text').attr('class', 'x')
         .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(' + [18, -12] + ')')
+        .attr('transform', 'translate(' + [22, -12] + ')')
         .style('fill', color.primary)
       brackets.append('text').attr('class', 'y')
         .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(' + [18, 15] + ')')
+        .attr('transform', 'translate(' + [22, 15] + ')')
         .style('fill', color.secondary)
     }
 
@@ -892,42 +921,53 @@ myApp.directive('migrationLinearCombination', function() {
       .domain(plotPoints)
       .rangeBands([m.l, w - m.r], 0.5, 0.5)
     var band = plotSpacing.rangeBand()
-    var xScales = plotPoints.map(function(d) {
-      return d3.scale.linear()
-        .domain([0, 1]).range([plotSpacing(d), plotSpacing(d) + band])
-        .clamp(true)
-    })
-    xScales[xScales.length - 1].clamp(false)
     var format = function(d) { return d3.round(d) }
     var yOffset = 70
-    var yScale = d3.scale.linear().domain([0, 1])
-      .range([h - m.b - yOffset, h - m.b - yOffset - band])
-    var yAxis = d3.svg.axis().scale(yScale).tickValues([0, 1]).orient('left').tickFormat(format)
-    var plots = stage.selectAll('g').data(plotPoints).enter().append('g')
+    var plotData = d3.range(4).map(function(d) {
+      var domain = d < 2 ? [0, 1] : [0, totalPopulation]
+      return {
+        xScale: d3.scale.linear()
+          .domain(domain).range([plotSpacing(d), plotSpacing(d) + band])
+          .clamp(d < 3),
+        yScale: d3.scale.linear()
+          .domain(domain)
+          .range([h - m.b - yOffset, h - m.b - yOffset - band]),
+        tickValues: domain,
+        id: d
+      }
+    })
+
+    var plots = stage.selectAll('g').data(plotData).enter().append('g')
 
     // X Axis
     plots.append('g')
       .attr('class', 'axis x-axis').each(function(d) {
-        var xAxis = d3.svg.axis().scale(xScales[d]).tickValues([0, 1]).tickFormat(format)
+        var xAxis = d3.svg.axis().scale(d.xScale).tickValues(d.tickValues)
+          .tickFormat(format)
         d3.select(this).call(xAxis)
       }).attr('transform', function(d) {
-        return 'translate(' + [0, yScale.range()[0] ] + ')'
+        return 'translate(' + [0, d.yScale.range()[0] ] + ')'
       })
     // Y Axis
     plots.append('g')
       .attr('class', 'axis y-axis')
-      .call(yAxis)
+      .each(function(d) {
+        var yAxis = d3.svg.axis().scale(d.yScale).tickValues(d.tickValues)
+          .orient('left').tickFormat(format)
+        d3.select(this).call(yAxis)
+      })
       .attr('transform', function(d) {
-        return 'translate(' + [plotSpacing(d), 0] + ')'
+        return 'translate(' + [plotSpacing(d.id), 0] + ')'
       })
 
     // Vectors
 
     function XYLine(i) {
+      function pd(i) { return plotData[i] }
       return {
           name: 'xy-plot' + i
-        , p1: function() { return [ xScales[i](1), yScale(0) ] }
-        , p2: function() { return [ xScales[i](0), yScale(1) ] }
+        , p1: function() { return [ pd(i).xScale(1), pd(i).yScale(0) ] }
+        , p2: function() { return [ pd(i).xScale(0), pd(i).yScale(1) ] }
         , style: 'eigen'
         , 'stroke-width': 2
         , dash: dash
@@ -937,19 +977,20 @@ myApp.directive('migrationLinearCombination', function() {
 
     function axisLine(i, name, style, axis) {
       var path = name.split('.'), point
+      function pd(i) { return plotData[i] }
       if (path.length === 1) point = function(o) { return o[name] }
       else point = function(o) { return o[path[0]][path[1]] }
       return {
           name: 'x-line-plot' + i
         , p1: function(o) {
           var p = point(o)
-          if (axis === 'x') return [ xScales[i](p[0]), yScale(0) ]
-          else return [ xScales[i](0), yScale(p[1]) ]
+          if (axis === 'x') return [ pd(i).xScale(p[0]), pd(i).yScale(0) ]
+          else return [ pd(i).xScale(0), pd(i).yScale(p[1]) ]
         }
         , p2: function(o) {
           var p = point(o)
-          if (axis === 'x') return [ xScales[i](p[0]), yScale(p[1]) ]
-          else return [ xScales[i](p[0]), yScale(p[1]) ]
+          if (axis === 'x') return [ pd(i).xScale(p[0]), pd(i).yScale(p[1]) ]
+          else return [ pd(i).xScale(p[0]), pd(i).yScale(p[1]) ]
         }
         , style: style
         , 'stroke-width': 2
@@ -962,14 +1003,15 @@ myApp.directive('migrationLinearCombination', function() {
       var path = name.split('.'), point
       if (path.length === 1) point = function(o) { return o[name] }
       else point = function(o) { return o[path[0]][path[1]] }
+      function pd(i) { return plotData[i] }
       return {
           name: name
         , p1: function() {
-          return [ xScales[i](0), yScale(0) ]
+          return [ pd(i).xScale(0), pd(i).yScale(0) ]
         }
         , p2: function(o) {
-          var r = point(o)[0]
-          return [ xScales[i](r), yScale(1 - r) ]
+          var r = point(o)
+          return [ pd(i).xScale(r[0]), pd(i).yScale(r[1]) ]
         }
         , 'stroke-width': 8
         , head: true
@@ -1031,13 +1073,13 @@ myApp.directive('migrationLinearCombination', function() {
           , { label: 'CA', plot: i, x: 1, y: 0 }
         ]
       }))
-    console.log('axisLabelsData', axisLabelsData)
 
     axisLabelsG.selectAll('text.axis-label')
       .data(axisLabelsData).enter()
       .append('text').attr('class', 'axis-label')
         .attr('transform', function(d) {
-          var x = xScales[d.plot].range()[d.x], y = yScale.range()[d.y]
+          var x = plotData[d.plot].xScale.range()[d.x]
+          var y = plotData[d.plot].yScale.range()[d.y]
           if (!d.x) y = y - pad
           else x = x + pad, y = y + 7
           return 'translate(' + [x, y] + ')'
@@ -1049,19 +1091,31 @@ myApp.directive('migrationLinearCombination', function() {
 
     var axisAnnotationData = [
       {
-          pos: [ d3.mean(xScales[0].range()), yScale.range()[1] - 40 ]
+          pos: [
+            d3.mean(plotData[0].xScale.range()),
+            plotData[0].yScale.range()[1] - 40
+          ]
         , label: 'B₁'
         , title: true
       }, {
-          pos: [ d3.mean(xScales[1].range()), yScale.range()[1] - 40 ]
+          pos: [
+            d3.mean(plotData[1].xScale.range()),
+            plotData[1].yScale.range()[1] - 40
+          ]
         , label: 'B₂'
         , title: true
       }, {
-          pos: [ d3.mean(xScales[2].range()), yScale.range()[1] - 40 ]
+          pos: [
+            d3.mean(plotData[2].xScale.range()),
+            plotData[2].yScale.range()[1] - 40
+          ]
         , label: 'P₀'
         , title: true
       }, {
-          pos: [ d3.mean(xScales[3].range()), yScale.range()[1] - 40 ]
+          pos: [
+            d3.mean(plotData[3].xScale.range()),
+            plotData[3].yScale.range()[1] - 40
+          ]
         , label: 'P₁'
         , title: true
       }
@@ -1080,22 +1134,28 @@ myApp.directive('migrationLinearCombination', function() {
 
     // Nobs
 
-    function vectorNob(i, name) {
+    function vNob(i, name) {
       return {
         get: function(o) {
           var p = o[name]
-          return [ xScales[i](p[0]), yScale(p[1]) ]
+          return [ plotData[i].xScale(p[0]), plotData[i].yScale(p[1]) ]
         }
         , set: function(scope, p) {
-          var v = [ xScales[i].invert(p[0]), yScale.invert(p[1]) ]
-          v[1] = 1 - v[0]
+          var v = [ plotData[i].xScale.invert(p[0]), plotData[i].yScale.invert(p[1]) ]
+          if (i < 2) v[1] = 1 - v[0]
+          else {
+            if ( v[1] < 0) v[1] = 0
+            if ( (v[0] + v[1]) > totalPopulation) {
+              if (v[0] > totalPopulation) v[0] = totalPopulation
+              v[1] = totalPopulation - v[0]
+            }
+          }
           scope.opts[name] = v
         }
       }
     }
 
-    var nobData = [vectorNob(0, 'basis1'), vectorNob(1, 'basis2')
-      , vectorNob(2, 'sample')]
+    var nobData = [ vNob(0, 'basis1'), vNob(1, 'basis2'), vNob(2, 'sample') ]
 
     var nobs = buildNobs(nobData, scope, stage)
 
@@ -1111,26 +1171,24 @@ myApp.directive('migrationLinearCombination', function() {
     function updateAxisValueLabels(g, o) {
       g.attr('transform', function(d) {
         var p, pad = 40
+        var xScale = plotData[d.plot].xScale, yScale = plotData[d.plot].yScale
         if (d.transform) {
           if (typeof d.transform === 'function') return d.transform(d, o)
           return d.transform
         }
         if (d.name) {
-          if (d.axis === 0) p = [xScales[d.plot](o[d.name][0]), yScale(0) + pad]
-          else p = [xScales[d.plot](0) - pad, yScale(o[d.name][1]) + 5]
+          if (d.axis === 0) p = [ xScale(o[d.name][0]), yScale(0) + pad ]
+          else p = [ xScale(0) - pad, yScale(o[d.name][1]) + 5 ]
         } else {
-          if (d.axis === 0) p = [ xScales[d.plot](d.get(o)[d.axis]), yScale(0) + pad]
-          else p = [xScales[d.plot](0) - pad, yScale(d.get(o)[d.axis]) + 5]
+          if (d.axis === 0) p = [ xScale(d.get(o)[d.axis]), yScale(0) + pad ]
+          else p = [ xScale(0) - pad, yScale(d.get(o)[d.axis]) + 5 ]
         }
         return 'translate(' + p + ')'
       })
       .text(function(d) {
         if (typeof d.text === 'function') return d.text(d, o)
-        if (d.name) {
-          return d.text || d3.round(o[d.name][d.axis], 2)
-        } else {
-          return d.text || d3.round(d.get(o)[d.axis], 2)
-        }
+        if (d.name) return d.text || d3.round(o[d.name][d.axis], 2)
+        else return d.text || d3.round(d.get(o)[d.axis], 2)
       })
     }
 
@@ -1165,7 +1223,10 @@ myApp.directive('migrationLinearCombination', function() {
               d.transform = function(d, o) {
                 var b1 = vector(o.basis1)
                 var mid = b1.scale(0.5)
-                var p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                var p = vector([
+                  plotData[3].xScale(mid.x),
+                  plotData[3].yScale(mid.y)
+                ])
                 var u = vector([b1.x, -b1.y]).unit().rot(-pi / 2).scale(20)
                 return 'translate(' + p.add(u) + ')'
               }
@@ -1175,10 +1236,14 @@ myApp.directive('migrationLinearCombination', function() {
             .call(updateAxisValueLabels, scope.opts)
         }, function() {
           var datum = extend(ratioVector(3, 'basis1', 'primary'), {
-              p1: function() { return [ xScales[3](0), yScale(0) ] }
+              p1: function() { return [
+                plotData[3].xScale(0),
+                plotData[3].yScale(0)
+              ]
+            }
             , p2: function(o) {
               var v = vector(o.basis1).scale(o.sample[0])
-              return [ xScales[3](v.x), yScale(v.y) ]
+              return [ plotData[3].xScale(v.x), plotData[3].yScale(v.y) ]
             }
           })
           b1Vector.datum(datum)
@@ -1191,7 +1256,10 @@ myApp.directive('migrationLinearCombination', function() {
               d.transform = function(d, o) {
                 var b1 = vector(o.basis1).scale(o.sample[0] || 0.001)
                 var mid = b1.scale(0.5)
-                var p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                var p = vector([
+                  plotData[3].xScale(mid.x),
+                  plotData[3].yScale(mid.y)
+                ])
                 var u = vector([b1.x, -b1.y]).unit().rot(-pi / 2).scale(20)
                 return 'translate(' + p.add(u) + ')'
               }
@@ -1203,11 +1271,13 @@ myApp.directive('migrationLinearCombination', function() {
           var datum = extend(ratioVector(3, 'basis2', 'secondary'), {
               p1: function(o) {
                 var v = vector(o.basis1).scale(o.sample[0])
-                return [ xScales[3](v.x), yScale(v.y) ]
+                var xScale = plotData[3].xScale, yScale = plotData[3].yScale
+                return [ xScale(v.x), yScale(v.y) ]
               }
             , p2: function(o) {
               var v = vector(o.basis1).scale(o.sample[0]).add(vector(o.basis2))
-              return [ xScales[3](v.x), yScale(v.y) ]
+              var xScale = plotData[3].xScale, yScale = plotData[3].yScale
+              return [ xScale(v.x), yScale(v.y) ]
             }
           })
           b2Vector.datum(datum)
@@ -1219,12 +1289,13 @@ myApp.directive('migrationLinearCombination', function() {
             .filter(function(d) { return d.name === 'sample' && d.axis === 1 })
             .each(function(d) {
               d.transform = function(d, o) {
+                var xScale = plotData[3].xScale, yScale = plotData[3].yScale
                 var p1 = vector(o.basis1).scale(o.sample[0])
                 var p2 = vector(o.basis1).scale(o.sample[0]).add(vector(o.basis2))
                 var mid = p1.add(p2.sub(p1).scale(0.5))
                 var u = p2.sub(p1).unit()
                 u = vector([u.x, -u.y])
-                p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                p = vector([ xScale(mid.x), yScale(mid.y) ])
                 p = p.add(u.rot(pi / 2).scale(30))
                 return 'translate(' + p + ')'
               }
@@ -1238,13 +1309,15 @@ myApp.directive('migrationLinearCombination', function() {
         }, function() {
           var datum = extend(ratioVector(3, 'basis2', 'secondary'), {
               p1: function(o) {
+                var xScale = plotData[3].xScale, yScale = plotData[3].yScale
                 var v = vector(o.basis1).scale(o.sample[0])
-                return [ xScales[3](v.x), yScale(v.y) ]
+                return [ xScale(v.x), yScale(v.y) ]
               }
             , p2: function(o) {
+              var xScale = plotData[3].xScale, yScale = plotData[3].yScale
               var v = vector(o.basis1).scale(o.sample[0])
                 .add(vector(o.basis2).scale(o.sample[1]))
-              return [ xScales[3](v.x), yScale(v.y) ]
+              return [ xScale(v.x), yScale(v.y) ]
             }
           })
           b2Vector.datum(datum)
@@ -1255,13 +1328,14 @@ myApp.directive('migrationLinearCombination', function() {
             .filter(function(d) { return d.name === 'sample' && d.axis === 1 })
             .each(function(d) {
               d.transform = function(d, o) {
+                var xScale = plotData[3].xScale, yScale = plotData[3].yScale
                 var p1 = vector(o.basis1).scale(o.sample[0])
                 var p2 = vector(o.basis1).scale(o.sample[0])
                   .add(vector(o.basis2).scale(o.sample[1] || 0.001))
                 var mid = p1.add(p2.sub(p1).scale(0.5))
                 var u = p2.sub(p1).unit()
                 u = vector([u.x, -u.y])
-                p = vector([ xScales[3](mid.x), yScale(mid.y) ])
+                p = vector([ xScale(mid.x), yScale(mid.y) ])
                 p = p.add(u.rot(pi / 2).scale(30))
                 return 'translate(' + p + ')'
               }
