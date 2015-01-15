@@ -19,6 +19,15 @@ var acc_1 = function(d) { return d[1] }
 var acc_x = function(d) { return d.x }
 var acc_x = function(d) { return d.y }
 
+var intToSub = (function() {
+  function sub(n) {
+    return ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'][n]
+  }
+  return function(n) {
+    return (+n).toString().split('').map(sub).join('')
+  }
+})()
+
 var modulo = function(a, n) { return ( (a % n) + n ) % n }
 
 function extend(obj1, obj2) {
@@ -110,13 +119,26 @@ var matrix = function(m) {
     }
     return matrix(a)
   }
+  // Returns only the real parts of the two eigen values.
   m.eigenValues = function() {
+    var e = m.eigenValuesI()
+    return [e[0].r, e[1].r]
+  }
+  m.eigenValuesI = function() {
     var a = m[0][0], b = m[1][0], c = m[0][1], d = m[1][1]
+    var e1r, e1i, e2r, e2i, ed
     var e = (a + d) / 2
-    var ed = sqrt( e * e + b * c - a * d )
-    var e1 = e + ed
-    var e2 = e - ed
-    return [e1, e2]
+    var f = e * e + b * c - a * d
+    if (f < 0) { // Imaginary eigen values.
+      ed = sqrt(-f)
+      e1r = e, e1i = ed
+      e2r = e, e2i = -ed
+    } else {
+      ed = sqrt(f)
+      e1r = e + ed, e1i = 0
+      e2r = e - ed, e2i = 0
+    }
+    return [ { r: e1r, i: e1i }, { r: e2r, i: e2i } ]
   }
   m.eigenVectors = function() {
     var a = m[0][0], b = m[0][1], c = m[1][0], d = m[1][1]

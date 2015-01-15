@@ -81,9 +81,11 @@ html
       div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
         migration(style="width:70%;float:left")
         stochastic-matrix-multiplication(style="width:30%;float:left")
-
+      div(style="clear:both")
     section(ng-controller="FourQuadCtrl")
-
+      | steps:
+      input(type="range" min="2" max="100" ng-model="opt.n")
+      four-quad-plot
     br
     br
 
