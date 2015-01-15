@@ -14,6 +14,11 @@ var pi = Math.PI
   , min = Math.min
   , random = Math.random
 
+var acc_0 = function(d) { return d[0] }
+var acc_1 = function(d) { return d[1] }
+var acc_x = function(d) { return d.x }
+var acc_x = function(d) { return d.y }
+
 var modulo = function(a, n) { return ( (a % n) + n ) % n }
 
 function extend(obj1, obj2) {
@@ -79,14 +84,11 @@ function vector(x, y) {
   v.scale = function(s) { return vector(v.x * s, v.y * s) }
   v.rotDegrees = function(theta) { return v.rot(theta * pi / 180) }
   v.array = function(array) {
-    if (array) {
-      return vector(array[0], array[1])
-    } else {
-      return [v.x, v.y]
-    }
+    return array ? vector(array[0], array[1]) : [v.x, v.y]
   }
   v.to = function(func) { return func(v) }
   v.toString = function() { return v.array().toString() }
+  v.cross = function(b) { return v.x * b.y - v.y * b.x }
   return v
 }
 

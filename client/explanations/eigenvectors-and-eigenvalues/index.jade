@@ -7,280 +7,86 @@ html
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "style.css" type="text/css")
   body(ng-app="myApp" ng-controller="MainCtrl")
-    div(ng-controller="MigrationCtrl")
-      section.menu
-        a(href=basepath) Back
-      section.title
-        .title-region
-          h1.title !{title}
-          h3.by-line !{subtitle}
-        +share
-      section
-        +authors
-        p
-          :markdown
-            Eigen vectors and values may sound esoteric but their usefulness is almost unending. They made Sergie Brin and Larry Page of Google billions when they used them to calculate [result rankings](http://www.rose-hulman.edu/~bryan/googleFinalVersionFixed.pdf) for their search engine. They're also used extensively in other fields like engineering to prevent strutural resonance of the likes that can cause [bridges to collapse](https://www.youtube.com/watch?v=j-zczJXSxnw). Not to mention all the machine learning and artificial intelligence algorithms that depend on them to do things like detect your [friends faces](https://en.wikipedia.org/wiki/Eigenface) on sites like Facebook.
-        p So what are they? And why are they so useful? To answer these questions, let's start things off with a simple example.
-        p Let's try to come up with a model for guessing (estimating) the future population of every state of America. Wait. Actually... Our real goal is to learn what an eigen vector is useful for so let's stick to using only two states for now; 
-          span.primary California
-          |  and 
-          span.secondary New York
-          | . This ignores people migrating from other states. Our model assumes they don't exist or don't matter.  It also ignores the fact that people are born or die.
-        sf-to-ny-migration-map
-        //- h1 Predicting population growth
-        p In the map above, the arrows represent the ratio of people each month that either stay or leave their state. If you adjust the ratios below, you'll see how they effect the map above. Notice how the ratio of people that decide each month to leave 
-          span.primary California
-          |  for 
-          span.secondary New York
-          |  , 
-          b {{opts.basis1[0] | number:2 }}
-          |  , plus the number of people that decide to stay, 
-          b {{opts.basis1[1] | number:2 }}
-          |  , always totals to 
-          b 1
-          |  (or 100%). If we were dealing with all 50 states, every vector would contain 50 numbers instead of 2 and still add up to 1, but then we wouldn't be able to draw them in 2D.
-        sf-to-ny-data-as-vectors
-        p Let's use vector notation to make referring to all the vectors above a bit easier. This is also how we would keep track of these vectors if they were length 50 instead of 2.
-        migration-vector-notation
-        p One (boring) way to calculate the population ratio one month from now (
-          span.tertiary P₁
-          | ) is to use arithmetic. For the population of CA a month from now (t=1), we get this equation:
-        p(style="text-align: center")
-          span(ev-tooltip="The number of people in CA at t=1")
-            span.tertiary P₁[
-            span.primary CA
-            span.tertiary ]
-          |  = 
-          span(ev-tooltip="The number of people in CA at t=0")
-            span.tertiary P₀[
-            span.primary CA
-            span.tertiary ]
-          |  × 
-          span(ev-tooltip="The fraction of people in CA that will stay in CA.")
-            span.primary B₁[CA] 
-          |  + 
-          span(ev-tooltip="The number of people in NY at t=0")
-            span.tertiary P₀[
-            span.secondary NY
-            span.tertiary ]
-          |  × 
-          span(ev-tooltip="The fraction of people in NY that will leave for CA.")
-            span.secondary B₂[
-            span.primary CA
-            span.secondary ]
-        //- p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
-        p(style="text-align: center")
-          b {{opts.samples[1][0] | number:2 }}
-          | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
-          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis1[0] | number:2 }}
-          | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
-          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[0] | number:2 }}
-
-        p And for the population of NY at t=1 we get...
-        p(style="text-align: center")
-          span(ev-tooltip="The number of people in NY at t=1")
-            span.tertiary P₁[
-            span.secondary NY
-            span.tertiary ]
-          |  = 
-          span(ev-tooltip="The number of people in CA at t=0")
-            span.tertiary P₀[
-            span.primary CA
-            span.tertiary ]
-          |  × 
-          span(ev-tooltip="The fraction of people in CA that will leave for NY.")
-            span.primary B₁[
-            span.secondary NY
-            span.primary ]
-          |  + 
-          span(ev-tooltip="The fraction of people in NY at t=0")
-            span.tertiary P₀[
-            span.secondary NY
-            span.tertiary ]
-          |  × 
-          span(ev-tooltip="The fraction of people in NY that will stay in NY.")
-            span.secondary B₂[NY]
-        
-        //- p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
-        p(style="text-align: center")
-          b {{opts.samples[1][1] | number:2 }}
-          | &nbsp;&nbsp;=&nbsp;&nbsp; {{opts.samples[0][0] | number:2 }} 
-          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis1[1] | number:2 }}
-          | &nbsp;&nbsp;+&nbsp;&nbsp; {{opts.samples[0][1] | number:2 }} 
-          | &nbsp;&nbsp;×&nbsp;&nbsp; {{opts.basis2[1] | number:2 }}
-        p For simple problems like this, we can get by with arithmetic but if we were dealing with all of the US states and every state could have people migrating to any other state, doing so would become difficult. This is where linear algebra can help condence our notation.
-        p(style="text-align: center")
-          span(ev-tooltip="A vector representing the number of people in each state 1 month from now.")
-            span.tertiary P₁
-          |  &nbsp;&nbsp;=&nbsp;&nbsp;
-          span(ev-tooltip="The number of people that start off in CA. Also the first component of the vector P₀.")
-            span.tertiary P₀[
-            span.primary CA
-            span.tertiary ]
-          | &nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;
-          span(ev-tooltip="A vector representing what the people in CA will do (either stay in CA, or move to NY).")
-            span.primary B₁
-          | &nbsp;&nbsp;&nbsp;+&nbsp;&nbsp;&nbsp;
-          span(ev-tooltip="The number of people that start off in NY. Also the second component of the vector P₀.")
-            span.tertiary P₀[
-            span.secondary NY
-            span.tertiary ]
-          | &nbsp;&nbsp;×&nbsp;&nbsp; 
-          span(ev-tooltip="A vector representing what the people in NY will do (either leave for CA, or stay in NY).")
-            span.secondary B₂
-        //- p(style="text-align: center; color: rgba(0, 0, 0, 0.4)") in our case...
-
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section(ng-controller="IntroCtrl")
+      +authors
+      p
+        :markdown
+          To begin, let's look at what it means to multiply a vector by a square matrix. Let v be the vector
+      div
         matrix-equation
-          eq-vector(ev-tooltip="P₁" class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
-          | &nbsp;
+          eq-element(label="'v'")
           eq-element(label="'='")
-          eq-element(ev-tooltip="P₀[CA]" class="tertiary" label="opts.sample[0] | number:2")
-          | &nbsp;
-          eq-element(label="'×'")
-          | &nbsp;
-          eq-vector(ev-tooltip="B₁" class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
-          | &nbsp;
-          eq-element(label="'+'")
-          | &nbsp;
-          eq-element(ev-tooltip="P₀[NY]" class="tertiary" label="opts.sample[1] | number:2")
-          | &nbsp;
-          eq-element(label="'×'")
-          | &nbsp;
-          eq-vector(ev-tooltip="B₂" class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
+          eq-vector(class="tertiary" values="opt.pos0" labels="['P₀[0]', 'P₀[1]']" active="true")
+      simple-plot
+      p
+        :markdown
+          We can plot this vector as a point or as an arrow in a 2D x-y plane. 
+          
+          A square matrix is a block of vectors like v. Let the matrix A be
 
-        P
-          :markdown
-            Using this notation, we are describing P₁ as a [linear combination](https://en.wikipedia.org/wiki/Linear_combination) of P₀ applied to B₁ and B₂. This notation makes it easier to abstract what's going on to higher dimensions, especially for larger, more interesting problems. The below animation illustrates one way of thinking about what's happening by stepping through the process. Click "next" to begin.
+      matrix-equation
+        eq-element(label="'A'")
+        eq-element(label="'='")
+        eq-matrix(class="primary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" labels="[['b1,x', 'b2,y'], ['b1,x', 'b2,y']]" active="false")
+        eq-element(label="'='")
+        eq-matrix(class="primary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
 
-        div(ng-controller="migrationLinearCombinationCtrl" style="position:relative")
-          div(style="text-align:center")
-            button.btn(ng-click="next()" ng-style="{ 'background-color': isLastKeyFrame ? 'rgba(0, 0, 0, 0.1)' : null }") {{isLastKeyFrame ? 'Reset' : 'Next'}}
-          div.matrix-equation-highlight
-            div.element-spotlight(ng-style="higlightedElementStyle")
-          matrix-equation(style="padding: 10px;height: inherit;")
-            eq-element(ev-tooltip="P₀[CA]" class="tertiary" label="opts.sample[0] | number:2")
-            | &nbsp;
-            eq-element(label="'×'")
-            | &nbsp;
-            eq-vector(ev-tooltip="B₁" class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
-            | &nbsp;
-            eq-element(label="'+'")
-            | &nbsp;
-            eq-element(ev-tooltip="P₀[NY]" class="tertiary" label="opts.sample[1] | number:2")
-            | &nbsp;
-            eq-element(label="'×'")
-            | &nbsp;
-            eq-vector(ev-tooltip="B₂" class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
-            eq-element(label="'='")
-            eq-vector(ev-tooltip="P₁" class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
-            | &nbsp;
-          migration-linear-combination
-
-        div(style="padding-right:70px;padding-left:70px;")
-          matrix-equation(style="width:25%;float:left")
-            eq-element(class="primary" label="'B₁'")
-            eq-element(label="'='")
-            eq-vector(class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
-          matrix-equation(style="width:25%;float:left")
-            eq-element(class="secondary" label="'B₂'")
-            eq-element(label="'='")
-            eq-vector(class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
-          matrix-equation(style="width:25%;float:left")
-            eq-element(class="tertiary" label="'P₀'")
-            eq-element(label="'='")
-            eq-vector(class="tertiary" values="opts.sample" labels="['P₀[CA]', 'P₀[NY]']" active="true")
-          matrix-equation(style="width:25%;float:left")
-            eq-element(class="tertiary" label="'P₁'")
-            eq-element(label="'='")
-            eq-vector(class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
-          div(style="clear:both")
-          br
-          br
+      div(ng-controller="BasisCtrl")
+        simple-plot
 
         p
           :markdown
-            An even _shorter_ way to write the above is using matrix notation. We could also use this notation to describe the populations of all 50 states one month from now.
+            If we multiply v by A, then we send v somewhere else, to a new vector v'=Av.
 
+            If v is an eigenvector of A, then v' will just be a *rescaled* version of v; that is, it will be in the same direction as v but farther from or closer to (0,0). That's all an eigenvector is.
+
+            What's an eigenvalue? It's the amount, lambda, that v gets rescaled. In this case, it's [insert quantity]. So we have Av = v' = lambda v.
+
+        div(ng-controller="TransCtrl")
+          simple-plot
+          p
+            :markdown
+              Below, drag a_1 and a_2 to define A. Then drag v to see the v' where A sends it. When v is an eigenvector of A, v' will be on the same line from the origin as v. [lights up when an eigenvector] Those lines are called *eigenspaces*. 
+          div(ng-controller="RepeatCtrl")
+            simple-plot
+
+            div(ng-controller="PopulationCtrl")
+              simple-plot
+    section(ng-controller="BacteriaCtrl")
+      p
+        //- input(type="range" ng-model="charge" min="-10" max="0" step="0.1")
+        //- | Charge: {{charge}}
         div
-          matrix-equation
-            eq-element(label="'A'" style="font-weight: bold")
-            eq-element(label="'×'")
-            eq-element(class="tertiary" label="'P₀'")
-            eq-element(label="'='")
-            eq-element(class="tertiary" label="'P₁'")
-        p For our specific example, we have the following 2x2 matrix, one column for each transition matrix, B₁ and B₂.
-        div
-          matrix-equation
-            eq-matrix(class="primary" values="[ [opts.basis1[0], opts.basis2[0]], [opts.basis1[1], opts.basis2[1]]]" labels="[['B₁[CA]', 'B₁[NY]'], ['B₁[CA]', 'B₁[NY]']]" active="true")
-            eq-vector(class="tertiary" values="opts.sample" labels="['P₀[CA]', 'P₀[NY]']" active="true")
-            eq-element(label="'='")
-            eq-vector(ev-tooltip="P₁" class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
-        p 
-        p To calculate the populations two months from now (t=2), we can do all the same math, but replace P₀ with our newly calculated value of P₁.
-        div
-          matrix-equation
-            eq-element(label="'A'" style="font-weight: bold")
-            eq-element(label="'×'")
-            eq-element(class="tertiary" label="'P₁'")
-            eq-element(label="'='")
-            eq-element(class="tertiary" label="'P₂'")
-        //- div(ng-controller="migrationLinearCombinationCtrl" style="position:relative")
-          migration-repeated-linear-combination
+          bacteria-simulation(style="float: left; display: block")
+          div(ng-controller="BacteriaPlotCtrl" style="display:inline-block")
+            bacteria-plot
+        div(style="text-align:center")
+          button.btn.primary(ng-click="reset()") reset
+          button.btn.primary(ng-click="forward()") forward
+        br
+        br
+        div(style="text-align: center")
+          {{opt.pos[opt.curGen][0]}} {{opt.pos[opt.curGen][0] === 1 ? 'child' : 'children' }} + {{opt.pos[opt.curGen][1]}} {{opt.pos[opt.curGen][1] === 1 ? 'adult' : 'adults' }} = {{opt.pos[opt.curGen][0] + opt.pos[opt.curGen][1]}}
+          fibonacci-sequence
 
-        //- div(style="padding-right:70px;padding-left:70px;")
-          matrix-equation(style="width:20%;float:left")
-            eq-element(class="primary" label="'B₁'")
-            eq-element(label="'='")
-            eq-vector(class="primary" values="opts.basis1" labels="['B₁[CA]', 'B₁[NY]']" active="true")
-          matrix-equation(style="width:20%;float:left")
-            eq-element(class="secondary" label="'B₂'")
-            eq-element(label="'='")
-            eq-vector(class="secondary" values="opts.basis2" labels="['B₂[CA]', 'B₂[NY]']" active="true")
-          matrix-equation(style="width:20%;float:left")
-            eq-element(class="tertiary" label="'P₀'")
-            eq-element(label="'='")
-            eq-vector(class="tertiary" values="opts.sample" labels="['P₀[CA]', 'P₀[NY]']" active="true")
-          matrix-equation(style="width:20%;float:left")
-            eq-element(class="tertiary" label="'P₁'")
-            eq-element(label="'='")
-            eq-vector(class="tertiary" values="opts.samples[1]" labels="['P₁[CA]', 'P₁[NY]']" active="true")
-          matrix-equation(style="width:20%;float:left")
-            eq-element(class="tertiary" label="'P₂'")
-            eq-element(label="'='")
-            eq-vector(class="tertiary" values="opts.samples[2]" labels="['P₂[CA]', 'P₂[NY]']" active="true")
-          div(style="clear:both")
-          br
-          br
-        p Let's see how this plays out over time in the following simulation. We'll use a ratio of 300 little dots instead of the entire populations of California and New York which we'll call P₀. Drag P₀ to adjust the starting ratio then hover over the simulation to watch it run.
+    section(ng-controller="MigrationCtrl")
+      sf-to-ny-migration-map
+      div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
+        migration(style="width:70%;float:left")
+        stochastic-matrix-multiplication(style="width:30%;float:left")
 
-        div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
-          migration(style="width:70%;float:left")
-          stochastic-matrix-multiplication(style="width:30%;float:left")
-          div(style="clear:both")
+    section(ng-controller="FourQuadCtrl")
 
-        p
-          :markdown
-            Notice how over time, the population tends to converge to a point? This point is called the steady state. Not all matrices will approach a steady state but all [Markov chain](/ev/markov-chains/) matrices do. The steady states will always lie along one of the eigen vectors of the matrix. This is the intuition of an eigen vector. It describes the characteristic behavior a matrix. Infact, "eigen" means "characteristic" in German. Using the eigenvectors of our matrix A, we can calculate directly what the population will be anytime in the future without having to repeatedly calculate each P value individually. For really large problems, this can save massive amounts of time, and billions of dollars. This how Google calculates its page rank score. Instead of dealing with US states, they have a separate dimension for every website on the internet. We can't visualize such large dimensional vectors, but all the math works out the same.
-        //- ev-placeholder(title="Eigen vector visualization")
-      //- div(ng-controller="GeneralCtrl")
-        h1 Linear combinations, more generally
-        p Mention that the matrix above was a special case. Show how a linear combination works with a single point for non-stochastic matrices. The linear combation will be animated along one of the basis.
-        ev-placeholder(title="Linear combination of a single point")
-        p Show how a linear combination works with multiple points by allowing the user to draw a path/shape. Each point will animate to its new location.
-        ev-placeholder(title="Linear combination of multiple drawn points")
-        p Show how a image transformation is the same thing as a matrix transformation by repeatedly transforming the drawn shape. Allow the user to step forward/backward.
-        ev-placeholder(title="Repeated matrix transformation")
-        p Show a single point being multiplied to the matrix multiple times. Alow the user to step forward/backward.
-        ev-placeholder(title="Tracking the path of only a single point")
-        p See the entire trajectory of the repeated matrix multiplication of a single point.
-        ev-placeholder(title="Trajectories")
-        p  
-        h1 Transforms
-        matrix-as-image-transform
-        h1 Eigen Vectors
-        eigen-vectors
-        eigen-space
-        repeated-matrix-multiplication
+    br
+    br
+
     div.layer.tooltips
     if !dev
       +footer
