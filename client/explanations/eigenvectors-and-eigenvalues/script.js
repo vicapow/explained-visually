@@ -10,7 +10,9 @@ var color = {
     primary: '#3498db'
   , secondary: '#2ecc71'
   , tertiary: '#e74c3c'
-  , quaternary: '#9b59b6'
+  , quaternary: '#f1c40f'
+  , quinary: '#2c3e50'
+  , senary: '#9b59b6'
   , eigen: '#cbcbcb'
   , difference: '#cbcbcb'
   , shy: 'rgba(0, 0, 0, 0.2)'
@@ -122,12 +124,12 @@ myApp.controller('IntroCtrl', function($scope) {
     {
       pos: [ d3.mean(opt.xScale.range()), opt.yScale.range()[0] + 30 ],
       label: 'x',
-      style: function(g) { g.style('fill', color.primary) }
+      style: function(g) { g.style('fill', color.quinary) }
     },
     { 
       pos: [ opt.xScale.range()[0] - 30, d3.mean(opt.yScale.range()) + 3 ],
       label: 'y',
-      style: function(g) { g.style('fill', color.secondary) }
+      style: function(g) { g.style('fill', color.quaternary) }
     },
     {
       pos: function(o) {
@@ -154,11 +156,11 @@ myApp.controller('IntroCtrl', function($scope) {
     {
       p1: function(o) { return o.opt.pixel([o.opt.pos0[0], 0]) },
       p2: function(o) { return o.opt.pixel(o.opt.pos0) },
-      style: function(g) { g.style('stroke', color.secondary) }
+      style: function(g) { g.style('stroke', color.quaternary) }
     }, {
       p1: function(o) { return o.opt.pixel([0, o.opt.pos0[1]]) },
       p2: function(o) { return o.opt.pixel(o.opt.pos0) },
-      style: function(g) { g.style('stroke', color.primary) }
+      style: function(g) { g.style('stroke', color.quinary) }
     }
   ]
 
@@ -214,7 +216,8 @@ myApp.controller('BasisCtrl', function($scope) {
 
 myApp.controller('TransCtrl', function($scope) {
   var opt = $scope.opt = extend({}, $scope.opt)
-  opt.cScale = d3.scale.linear().domain([0.2, 0]).range(['#666', '#f1c40f']).clamp(true)
+  opt.cScale = d3.scale.linear().domain([0.2, 0])
+    .range([color.shy, color.senary]).clamp(true)
   opt.opScale = d3.scale.linear().domain([0.2, 0]).range([0.4, 1]).clamp(true)
   var pointData = opt.pointData = opt.pointData
     .concat([ { pos: function(o) { return o.opt.pixel(o.opt.pos1) } } ])
@@ -305,7 +308,7 @@ myApp.controller('PopulationCtrl', function($scope) {
       p2: function(o) { return o.opt.pixelB(o.opt.basis1) },
       style: function(g) {
         g.style('stroke', color.primary).call(vectorStyle)
-          .style('opacity', 0.3)
+         .style('opacity', 0.3)
       },
       head: 'primary'
     }, {
@@ -368,11 +371,11 @@ myApp.controller('PopulationCtrl', function($scope) {
     {
       pos: [ d3.mean(opt.xScale.range()), opt.yScale.range()[0] + 30 ],
       label: 'x',
-      style: function(g) { g.style('fill', color.primary) }
+      style: function(g) { g.style('fill', color.quinary) }
     }, { 
       pos: [ opt.xScale.range()[0] - 45, d3.mean(opt.yScale.range()) + 3 ],
       label: 'y',
-      style: function(g) { g.style('fill', color.secondary) }
+      style: function(g) { g.style('fill', color.quaternary) }
     }, {
       pos: function(o) {
         return vector(o.opt.pixel(o.opt.pos0)).add(vector(20, -15)).array()
@@ -445,11 +448,6 @@ myApp.directive('simplePlot', function() {
       .attr('transform', function(d) { return 'translate(' + d.pos + ')' })
       .call(styleAxis)
 
-    // Points
-    var points = svg.append('g').attr('class', 'points')
-      .selectAll('g').data(opt.pointData || []).enter().append('g')
-    points.append('circle').attr('r', 4).style('fill', color.tertiary)
-
     // Vectors
     var vectors = svg.append('g').attr('class', 'vectors')
       .selectAll('line')
@@ -458,6 +456,14 @@ myApp.directive('simplePlot', function() {
         .attr('marker-end', function(d) {
           return d.head && 'url(#vector-head-' + d.head + ')'
         })
+
+    // Points
+    var points = svg.append('g').attr('class', 'points')
+      .selectAll('g').data(opt.pointData || []).enter().append('g')
+    points.append('circle').attr('r', 4).style('fill', function(d, i) {
+      return d3.rgb(color.tertiary).brighter(i * 0.3)
+      // return d3.rgb(color.tertiary).darker(i * 0.3)
+    })
 
     // Labels
     var labels = svg.append('g').attr('class', 'labels')
@@ -620,13 +626,13 @@ myApp.controller('BacteriaPlotCtrl', function($scope) {
     {
       pos: [ d3.mean(opt.xScale.range()), opt.yScale.range()[0] + 30 ],
       label: 'children',
-      style: function(g) { g.style('fill', color.primary) }
+      style: function(g) { g.style('fill', color.quinary) }
     }, {
       pos: [ opt.xScale.range()[0] - 30, d3.mean(opt.yScale.range()) + 3 ],
       rot: - pi / 2,
       label: 'adults',
       style: function(g) {
-        g.style('fill', color.tertiary)
+        g.style('fill', color.quaternary)
       }
     }
   ]
@@ -665,14 +671,17 @@ myApp.directive('bacteriaSimulation', function() {
       .style('position', 'relative')
       .style({width: w + 'px', height: h + 'px'})
       .style('display', 'block')
+    
     var canvas = el.append('canvas')
     canvas.style('position', 'absolute')
       .style({left: '0px', top: '0px'})
       .attr({width: w, height: h})
+
+    var ca = color.quinary, cc = color.quaternary
     
     var ctx = canvas.node().getContext('2d')
 
-    var nodes = [{ c: color.primary, r: cr, gen: 0 }]
+    var nodes = [{ c: cc, r: cr, gen: 0 }]
 
     var links = []
 
@@ -684,13 +693,12 @@ myApp.directive('bacteriaSimulation', function() {
       .links(links)
 
     var cScale = d3.scale.linear().domain([0, 1])
-      .range([color.primary, color.tertiary])
+      .range([ca, cc])
 
     function redrawCanvas() {
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)'
       ctx.clearRect(0, 0, w, h)
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'
-      // ctx.fillRect(0, 0, w, h)
       var iw = 60, jh = 60, sw = w / iw, sh = h / jh
       for(var i = 0; i < iw; i++) {
         for(var j = 0; j < jh; j++) {
@@ -809,10 +817,10 @@ myApp.directive('bacteriaSimulation', function() {
       animated = true
       var childs = nodes.filter(function(d) { return d.gen === opt.curGen - 1 })
       var adults = nodes.filter(function(d) { return d.gen !== opt.curGen - 1 })
-      childs.forEach(function(d) { d.c = color.tertiary })
+      childs.forEach(function(d) { d.c = cc })
       pairs = adults.map(function(d) {
         var child = extend({}, d)
-        child.c = color.primary, child.gen = opt.curGen
+        child.c = ca, child.gen = opt.curGen
         child.r = cr
         var unit = vector([1, 0]).rot(random() * tau)
         return { adult: d, child: child, unit: unit }
@@ -821,7 +829,7 @@ myApp.directive('bacteriaSimulation', function() {
     scope.reset = function() {
       if(animated) return
       opt.curGen = 0
-      force.nodes(nodes = [{ c: color.primary, r: cr, gen: 0 }])
+      force.nodes(nodes = [{ c: cc, r: cr, gen: 0 }])
     }
   }
   return { restrict: 'E', link: link }
@@ -996,7 +1004,7 @@ myApp.directive('fibonacciSequence', function() {
     var highlight = svg.append('circle')
       .attr('transform', 'translate(' + [scale(0) + 0, h / 2 + 1] + ')')
       .attr('r', 20)
-      .style('fill', 'rgba(241, 196, 15, 1)')
+      .style('fill', color.tertiary)
     var series = svg.append('g').attr('class', 'series')
       .selectAll('text').data(data).enter().append('text')
     series.text(function(d) { return d})
@@ -1063,11 +1071,11 @@ myApp.directive('sfToNyMigrationMap', function() {
     var loc = { sf: proj([-122.4167, 37.7833]), ny: proj([-74.0059, 40.7127]) }
     var sfDot = stage.append('circle')
       .attr('transform', 'translate(' + loc.sf + ')')
-      .attr({fill: color.tertiary})
+      .attr({fill: color.quaternary})
       .style('opacity', 0.6)
     var nyDot = stage.append('circle')
       .attr('transform', 'translate(' + loc.ny + ')')
-      .attr({fill: color.tertiary})
+      .attr({fill: color.quinary})
       .style('opacity', 0.6)
 
     // Load the background map.
@@ -1332,8 +1340,8 @@ myApp.directive('migration', function() {
     }
 
     var fillStyles = {
-      primary: alphaify(color.primary, 1),
-      secondary: alphaify(color.secondary, 1),
+      primary: alphaify(color.quaternary, 1),
+      secondary: alphaify(color.quinary, 1),
       tertiary: alphaify(color.tertiary, 1)
     }
     function redrawCanvas() {
@@ -1647,14 +1655,14 @@ myApp.directive('stochasticMatrixMultiplication', function() {
       .append('text').text('California')
       .style('text-anchor', 'end')
       .style('font-weight', 100)
-      .style('stroke', color.primary)
+      .style('stroke', color.quaternary)
       .attr('transform', 'translate(' + [x.range()[1], -4] + ')')
 
     coord
       .append('text').text('New York')
       .style('text-anchor', 'end')
       .style('font-weight', 100)
-      .style('stroke', color.secondary)
+      .style('stroke', color.quinary)
       .attr('transform', 'translate(' + [15, y.range()[1]] + ') rotate(-90)')
       
 
@@ -1834,6 +1842,7 @@ myApp.controller('FourQuadCtrl', function($scope) {
     xScale: d3.scale.linear(),
     yScale: d3.scale.linear(),
     pointData: [],
+    maxPoints: 50,
     n: 10
   }
   opt.pos = d3.range(opt.n)
@@ -1914,8 +1923,8 @@ myApp.directive('fourQuadPlot', function() {
       .range([h / 2 + pH / 2, h / 2 - pH / 2])
 
     var evW = 100, evH = 100
-    var evPos1 = [w * 0.9, h * 0.2]
-    var evPos2 = [w * 0.9, h * 0.6]
+    var evPos1 = [w * 0.9, h * 0.3]
+    var evPos2 = [w * 0.9, h * 0.7]
 
     var evxScale1 = opt.evxScale1 = d3.scale.linear()
       .domain([-3, 3])
@@ -2028,7 +2037,10 @@ myApp.directive('fourQuadPlot', function() {
       })
       points = points.data(opt.pointData)
       points.enter().append('g')
-        .append('circle').attr('r', 4).style('fill', color.tertiary)
+        .append('circle').attr('r', 4).style('fill', function(d) {
+          return d3.rgb(color.tertiary).brighter(3 * d.id / (opt.maxPoints - 1))
+          // return alphaify(color.tertiary, 1 - d.id / (opt.maxPoints - 1) * 0.6 )
+        })
       points.exit().remove()
       points.attr('transform', function(d) {
         return 'translate(' + d.pos(scope) + ')'

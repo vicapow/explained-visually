@@ -35,9 +35,9 @@ function extend(obj1, obj2) {
   return obj1
 }
 
-function alphaify(color, alpha) {
+function alphaify(color, a) {
   var  c = d3.rgb(color)
-  return 'rgba(' + [c.r, c.g, c.b].join(',') + ', ' + alpha + ')'
+  return 'rgba(' + [c.r, c.g, c.b] + ', ' + a + ')'
 }
 
 function hyphen(obj) {
