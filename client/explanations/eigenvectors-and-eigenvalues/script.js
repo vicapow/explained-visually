@@ -681,7 +681,7 @@ myApp.directive('bacteriaSimulation', function() {
     
     var ctx = canvas.node().getContext('2d')
 
-    var nodes = [{ c: cc, r: cr, gen: 0 }]
+    var nodes = [{ c: ca, r: cr, gen: 0 }]
 
     var links = []
 
@@ -798,7 +798,7 @@ myApp.directive('bacteriaSimulation', function() {
             d.adult.dx = d.adult.x, d.adult.dy = d.adult.y
             return d.child
           })
-          force.nodes(window.nodes = nodes = nodes.concat(newNodes))
+          force.nodes(nodes = nodes.concat(newNodes))
           animated = false
         } else {
           pairs.forEach(function(d) { d.t = rt })
@@ -829,7 +829,7 @@ myApp.directive('bacteriaSimulation', function() {
     scope.reset = function() {
       if(animated) return
       opt.curGen = 0
-      force.nodes(nodes = [{ c: cc, r: cr, gen: 0 }])
+      force.nodes(nodes = [{ c: ca, r: cr, gen: 0 }])
     }
   }
   return { restrict: 'E', link: link }

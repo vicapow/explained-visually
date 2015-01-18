@@ -1,0 +1,17 @@
+
+
+A kernel is a small matrix used to apply image effects like the ones you might find in Photoshop or Instgram. From them we can create the effects of blurring, sharpening, outlining or embossing. They're also used in machine learning for 'feature extraction', a technique for determining the most important portions of an image. In this context the process is referred to more generally as "convolution" (see: [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network).)
+
+Let's start out with just black and white images. These images are matrices or grids of numbers that go from 0 to 255. Here's a simple, 32x32 grid of numbers to the left and their visual representation as pixels beside it. The image is enlarged to make it easier to see. The last image is the "real" size of the image using actual computer screen pixels.
+
+[image vis]
+
+To calculate the value of a pixel after the kernel is about the same for every pixel. A single pixel in the new image is computed from the pixel values from the old image that used to be directly adjacent or diagonal to it multiplied by their corresponding kernel values. Click any pixel on the original image to the left to how it's new image value is computed in the image on the right.
+
+[kernel vis]
+
+This kernel above is a blur filter because it takes a part of all the surrounding pixels to compute the new pixel value.
+
+On subtly of this process is what to do along the edges of the image. For example, the top left corner of the image only has three neighbors. One way to fix this is to extend the edge values out by one in the original image but keep while keeping our new image the same size.
+
+Here's a playground were you can select different kernel matrices and see how they effect the original image or build your own kernel. You can also upload your own image.

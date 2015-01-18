@@ -89,5 +89,15 @@
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
     }
+    , {
+        "title": "Image Kernels"
+      , "hideFromHomepage": true
+      , "subtitle": "Explained Visually"
+      , "slug": "image-kernels"
+      , "quip": ""
+      , "date": "2014/12/19"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+    }
   ]
 }
