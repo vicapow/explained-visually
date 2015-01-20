@@ -174,8 +174,8 @@ html
           \end{pmatrix}  
           &=&
           \begin{pmatrix}
-            1-p & p \\
-            q & 1-q
+            1-p & q \\
+            p & 1-q
           \end{pmatrix}
           \cdot 
           \begin{pmatrix}
@@ -186,7 +186,7 @@ html
 
       p
         :markdown
-          It turns out that a matrix like $A$, whose rows add up to zero (try it!), is called a [Markov matrix](http://www.math.harvard.edu/~knill/teaching/math19b_2011/handouts/lecture33.pdf), and it always has $\lambda = 1$ as an eigenvalue. That means there's a value of $v_t$ for which $Av_t =\lambda v_t = 1 v_t = v_t$. At this "steady state," the same number of people move in each direction, and the populations stay the same forever. Hover over the animation to see the system go to the steady state.
+          It turns out that a matrix like $A$, whose rows add up to zero (try it!), is called a [Markov matrix](http://www.math.harvard.edu/~knill/teaching/math19b_2011/handouts/lecture33.pdf), and it always has $\lambda = 1$ as an eigenvalue.  That means there's a value of $v_t$ for which $Av_t =\lambda v_t = 1 v_t = v_t$. At this "steady state," the same number of people move in each direction, and the populations stay the same forever. Hover over the animation to see the system go to the steady state.
 
       div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
         migration(style="width:70%;float:left")
@@ -194,6 +194,8 @@ html
       div(style="clear:both")
 
       :markdown
+        For more on Markov matrices, check out our explanation of [Markov Chains](http://setosa.io/ev/markov-chains/).
+
         #Complex eigenvalues
 
         So far we've only looked at systems with real eigenvalues. But looking at the equation  $ Av = \lambda v$, who's to say $\lambda$ and $v$ can't have some imaginary part? That it can't be a [complex](http://en.wikipedia.org/wiki/Complex_number) number? For example, 
