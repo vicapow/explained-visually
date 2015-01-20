@@ -2,12 +2,18 @@ reduce the
 
 change v_0 to v and v_1 to Av in all the intro ones
 
-on bacteria plot, legend saying "adult" with yellow circle and children with dark circle
-label "fibonnaci sequence"
-link to fibonacci sequence article
+light up the additional dots in the double eigenspace plot
 
-fix the total state populations
-have the number
+hide the second eigenspace in the second plot
+
+do the button thing in the first plot
+
+on bacteria plot, legend saying "adult" with yellow circle and children with dark circle
 
 collapse both eigen plots into one
 
+write out what the transition percentages are
+
+put on the plots what the eigenvalues are
+
+move the matrix A up at the top to the left. show what v is above the matrix.
