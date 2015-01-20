@@ -44,8 +44,10 @@ html
         eq-element(label="'='")
         eq-matrix(class="primary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
 
-      div(ng-controller="BasisCtrl")
+      div(ng-controller="BasisCtrl" style="position:relative")
         simple-plot
+        //- div(style="position:absolute;right: 150px; top: 123px")
+          button.btn.primary multiply
 
         p
           :markdown

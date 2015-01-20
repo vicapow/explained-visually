@@ -18,6 +18,11 @@ var color = {
   , shy: 'rgba(0, 0, 0, 0.2)'
 }
 
+function greekLabelStyle(g) {
+  g.style('font-family', 'STIXGeneral-Italic')
+  g.style('font-size', 20)
+}
+
 function tickFormat(d) { return d3.round(d) }
 
 function copyTo(a, b) { for(var i = 0; i < a.length; i++) b[i] = a[i] }
@@ -98,8 +103,8 @@ myApp.controller('IntroCtrl', function($scope) {
   opt.w = w, opt.h = h, opt.pW = pW
   opt.n = 10
   var m = opt.m = { t: 30, r: w / 2 - pW / 2, b: 30, l: w / 2 - pW / 2 }
-  opt.pos0 = [3, 4]
-  opt.pos1 = [3, 4]
+  opt.pos0 = [2, 3]
+  opt.pos1 = [2, 3]
   opt.basis1 = [1, 0.5]
   opt.basis2 = [0.5, 1]
   opt.domain = [0, 5]
@@ -124,19 +129,27 @@ myApp.controller('IntroCtrl', function($scope) {
     {
       pos: [ d3.mean(opt.xScale.range()), opt.yScale.range()[0] + 30 ],
       label: 'x',
-      style: function(g) { g.style('fill', color.quinary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.quinary)
+      }
     },
     { 
       pos: [ opt.xScale.range()[0] - 30, d3.mean(opt.yScale.range()) + 3 ],
       label: 'y',
-      style: function(g) { g.style('fill', color.quaternary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.quaternary)
+      }
     },
     {
       pos: function(o) {
         return vector(o.opt.pixel(o.opt.pos0)).add(vector(20, -15)).array()
       },
-      label: 'v₀',
-      style: function(g) { g.style('fill', color.tertiary) }
+      label: 'v',
+      style: function(g) {
+        g.call(greekLabelStyle).style('fill', color.tertiary)
+      }
     }
   ]
   var nobData = opt.nobData = [
@@ -203,13 +216,19 @@ myApp.controller('BasisCtrl', function($scope) {
         return vector(opt.pixel(o.opt.basis1)).add(vector(10, -10)).array()
       },
       label: 'a₁',
-      style: function(g) { g.style('fill', color.primary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.primary)
+      }
     }, {
       pos: function(o) {
         return vector(opt.pixel(o.opt.basis2)).add(vector(10, -10)).array()
       },
       label: 'a₂',
-      style: function(g) { g.style('fill', color.secondary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.secondary)
+      }
     }
   ])
 })
@@ -226,8 +245,11 @@ myApp.controller('TransCtrl', function($scope) {
       pos: function(o) {
         return vector(o.opt.pixel(o.opt.pos1)).add(vector(20, -15)).array()
       },
-      label: 'v₁',
-      style: function(g) { g.style('fill', color.tertiary) }
+      label: 'Αv',
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.tertiary)
+      }
     }
   ])
   opt.vectorData = opt.vectorData.concat([
@@ -242,23 +264,12 @@ myApp.controller('TransCtrl', function($scope) {
 
 myApp.controller('RepeatCtrl', function($scope) {
   var opt = $scope.opt = extend({}, $scope.opt)
-  var pointData = opt.pointData = opt.pos.map(function(d, i) {
-    return { pos: function(o) { return o.opt.pixel(o.opt.pos[i]) } }
-  })
-  opt.vectorData = opt.vectorData.concat(opt.pos.slice(0, -2).map(function(d, i) {
-    return {
-      p1: function(o) { return o.opt.pixel(o.opt.pos[i + 1]) },
-      p2: function(o) { return o.opt.pixel(o.opt.pos[i + 2]) },
-      style: vectorTransStyle,
-      head: 'shy'
-    }
-  }))
 })
 
 myApp.controller('PopulationCtrl', function($scope) {
   var opt = $scope.opt = extend({}, $scope.opt)
-  opt.pos0 = [300, 400]
-  opt.pos1 = [300, 400]
+  opt.pos0 = [700, 500]
+  opt.pos1 = [700, 500]
   opt.domain = [0, 1000]
   opt.domainB = [0, 5]
   opt.basis1 = [0.38, -0.36]
@@ -289,18 +300,22 @@ myApp.controller('PopulationCtrl', function($scope) {
   }
   derived($scope)
 
-  opt.nobData = [
-    {
-      get: function(o) { return o.opt.pixel(o.opt.pos0) },
-      set: function(o, p) { copyTo(o.opt.invert(p), o.opt.pos0) }
-    } /*,{
-      get: function(o) { return o.opt.pixelB(o.opt.basis1) },
-      set: function(o, p) { copyTo(o.opt.invertB(p), o.opt.basis1) }
-    }, {
-      get: function(o) { return o.opt.pixelB(o.opt.basis2) },
-      set: function(o, p) { copyTo(o.opt.invertB(p), o.opt.basis2) }
-    } */
-  ]
+  var pointData = opt.pointData = opt.pos.map(function(d, i) {
+    return { pos: function(o) { return o.opt.pixel(o.opt.pos[i]) } }
+  })
+  opt.vectorData = opt.vectorData.concat(opt.pos.slice(0, -2).map(function(d, i) {
+    return {
+      p1: function(o) { return o.opt.pixel(o.opt.pos[i + 1]) },
+      p2: function(o) { return o.opt.pixel(o.opt.pos[i + 2]) },
+      style: vectorTransStyle,
+      head: 'shy'
+    }
+  }))
+
+  opt.nobData = [{
+    get: function(o) { return o.opt.pixel(o.opt.pos0) },
+    set: function(o, p) { copyTo(o.opt.invert(p), o.opt.pos0) }
+  }]
 
   opt.vectorData = [
     {
@@ -371,35 +386,62 @@ myApp.controller('PopulationCtrl', function($scope) {
     {
       pos: [ d3.mean(opt.xScale.range()), opt.yScale.range()[0] + 30 ],
       label: 'x',
-      style: function(g) { g.style('fill', color.quinary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.quinary)
+      }
     }, { 
       pos: [ opt.xScale.range()[0] - 45, d3.mean(opt.yScale.range()) + 3 ],
       label: 'y',
-      style: function(g) { g.style('fill', color.quaternary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.quaternary)
+      }
     }, {
       pos: function(o) {
-        return vector(o.opt.pixel(o.opt.pos0)).add(vector(20, -15)).array()
+        return vector(o.opt.pixel(o.opt.pos0)).add(vector(10, -15)).array()
       },
-      label: 'v₀',
-      style: function(g) { g.style('fill', color.tertiary) }
+      label: 'v',
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.tertiary)
+      }
     }, {
       pos: function(o) {
-        return vector(o.opt.pixel(o.opt.pos1)).add(vector(20, -15)).array()
+        return vector(o.opt.pixel(o.opt.pos1)).add(vector(10, -15)).array()
       },
-      label: 'v₁',
-      style: function(g) { g.style('fill', color.tertiary) }
+      label: 'Αv',
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.tertiary)
+      }
+    }, {
+      pos: function(o) {
+        return vector(o.opt.pixel(o.opt.pos[2])).add(vector(10, -15)).array()
+      },
+      label: 'Α²v',
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.tertiary)
+      }
     }, {
       pos: function(o) {
         return vector(opt.pixelB(o.opt.basis1)).add(vector(10, -10)).array()
       },
       label: 'a₁' /* + ' x ' + (opt.domain[1] / opt.domainB[1]) */,
-      style: function(g) { g.style('fill', color.primary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.primary)
+      }
     }, {
       pos: function(o) {
         return vector(opt.pixelB(o.opt.basis2)).add(vector(10, -10)).array()
       },
       label: 'a₂' /* + ' x ' + (opt.domain[1] / opt.domainB[1]) */,
-      style: function(g) { g.style('fill', color.secondary) }
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.secondary) 
+      }
     }
   ]
 
@@ -676,8 +718,34 @@ myApp.directive('bacteriaSimulation', function() {
     canvas.style('position', 'absolute')
       .style({left: '0px', top: '0px'})
       .attr({width: w, height: h})
-
     var ca = color.quinary, cc = color.quaternary
+
+    var svg = el.append('svg')
+      .attr({width: w, height: h})
+      .style('position', 'absolute')
+      .style({top: '0px', left: '0px'})
+
+    // Legend
+    var lW = 100, lH = 50
+    var legend = svg.append('g')
+      .attr('transform', 'translate(' + [w - lW, 0] + ')')
+    legend.append('rect')
+      .attr({width: 130, height: lH})
+      .style('fill', 'rgba(255, 255, 255, 0.8)')
+    legend.append('text')
+      .attr('transform', 'translate(' + [30, 20] + ')')
+      .text('children')
+    legend.append('text')
+      .attr('transform', 'translate(' + [30, 40] + ')')
+      .text('adults')
+    legend.append('circle')
+      .attr('transform', 'translate(' + [15, 16] + ')')
+      .attr('r', cr)
+      .style('fill', ca)
+    legend.append('circle')
+      .attr('transform', 'translate(' + [15, 36] + ')')
+      .attr('r', ar)
+      .style('fill', cc)
     
     var ctx = canvas.node().getContext('2d')
 
@@ -702,7 +770,7 @@ myApp.directive('bacteriaSimulation', function() {
       var iw = 60, jh = 60, sw = w / iw, sh = h / jh
       for(var i = 0; i < iw; i++) {
         for(var j = 0; j < jh; j++) {
-          ctx.fillRect(i * sw, j * sh, 1, 1)
+          ctx.fillRect(i * sw + 3, j * sh + 3, 1, 1)
         }
       }
       ctx.save()
@@ -943,6 +1011,7 @@ myApp.directive('bacteriaPlot', function() {
       point.append('text')
         .attr('transform', 'translate(' + [10, 0] + ')')
         .text(function(d) { return 'v' + intToSub(opt.curGen) })
+        .call(greekLabelStyle)
         // .style('fill', color.tertiary)
       points.transition()
         .attr('transform', function(d) {
@@ -1071,11 +1140,11 @@ myApp.directive('sfToNyMigrationMap', function() {
     var loc = { sf: proj([-122.4167, 37.7833]), ny: proj([-74.0059, 40.7127]) }
     var sfDot = stage.append('circle')
       .attr('transform', 'translate(' + loc.sf + ')')
-      .attr({fill: color.quaternary})
+      .attr({fill: color.quinary})
       .style('opacity', 0.6)
     var nyDot = stage.append('circle')
       .attr('transform', 'translate(' + loc.ny + ')')
-      .attr({fill: color.quinary})
+      .attr({fill: color.quaternary})
       .style('opacity', 0.6)
 
     // Load the background map.
@@ -1118,8 +1187,7 @@ myApp.directive('sfToNyMigrationMap', function() {
       unit = diff.rot(theta - pi)
       var p21 = unit.scale(rScale(r2) + rP).add(p2)
       var p22 = unit.scale(rScale(r2)).add(p2)
-      g
-        .attr('marker-end', 'url(#sf-to-ny-marker-' + style + ')')
+      g.attr('marker-end', 'url(#sf-to-ny-marker-' + style + ')')
         .attr('class', 'arrow')
         .attr('d', 'M' + p11 + 'C' + p12 + ' ' + p21 + ' ' + p22)
         .style('stroke', color[style])
@@ -1340,8 +1408,8 @@ myApp.directive('migration', function() {
     }
 
     var fillStyles = {
-      primary: alphaify(color.quaternary, 1),
-      secondary: alphaify(color.quinary, 1),
+      primary: alphaify(color.quinary, 1),
+      secondary: alphaify(color.quaternary, 1),
       tertiary: alphaify(color.tertiary, 1)
     }
     function redrawCanvas() {
@@ -1655,14 +1723,14 @@ myApp.directive('stochasticMatrixMultiplication', function() {
       .append('text').text('California')
       .style('text-anchor', 'end')
       .style('font-weight', 100)
-      .style('stroke', color.quaternary)
+      .style('stroke', color.quinary)
       .attr('transform', 'translate(' + [x.range()[1], -4] + ')')
 
     coord
       .append('text').text('New York')
       .style('text-anchor', 'end')
       .style('font-weight', 100)
-      .style('stroke', color.quinary)
+      .style('stroke', color.quaternary)
       .attr('transform', 'translate(' + [15, y.range()[1]] + ') rotate(-90)')
       
 
@@ -1807,12 +1875,9 @@ myApp.directive('stochasticMatrixMultiplication', function() {
         .attr({fill: color.tertiary, opacity: 0.7, r: 4 })
       sampleEnter.append('text')
         .attr('transform', 'translate(' + [5, -5] + ')')
-        .text('v')
-      sampleEnter.append('text')
-        .attr('class', 'idx')
-        .attr('transform', 'translate(' + [15, 0] + ')')
-        .style('font-size', 10)
-        .text(function(d, i) { return d.name })
+        .text(function(d) {
+          return 'v' + intToSub(d.name)
+        }).call(greekLabelStyle)
       sampleJoin.exit()
         .style('opacity', 1)
         .transition().ease('cubic-out')
@@ -2019,6 +2084,7 @@ myApp.directive('fourQuadPlot', function() {
     evPoints.append('circle').attr('r', 4).style('fill', color.tertiary)
     evPoints.append('text').text(function(d, i) { return (i === 0) ? 'λ₀' : 'λ₁' })
       .attr('transform', 'translate(' + [10, 10] + ')')
+      .call(greekLabelStyle)
 
     // Nobs
     var nobs = buildNobs(opt.nobData, scope, svg)

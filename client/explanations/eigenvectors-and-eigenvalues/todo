@@ -1,19 +1,24 @@
-reduce the 
+write out what the transition percentages are
 
-change v_0 to v and v_1 to Av in all the intro ones
+put on the plots what the _eigenvalues_ are
 
-light up the additional dots in the double eigenspace plot
+add another plot of the eigen vectors for state transition.
 
-hide the second eigenspace in the second plot
+move the matrix A up at the top to the left. show what v is above the matrix.
+
+color matrix columns along basis.
+
+HARD
 
 do the button thing in the first plot
 
+DONE
+
+change v_0 to v and v_1 to Av in all the intro ones
+light up the additional dots in the double eigenspace plot
 on bacteria plot, legend saying "adult" with yellow circle and children with dark circle
 
+PASS
+
+hide the second eigenspace in the second plot
 collapse both eigen plots into one
-
-write out what the transition percentages are
-
-put on the plots what the eigenvalues are
-
-move the matrix A up at the top to the left. show what v is above the matrix.
