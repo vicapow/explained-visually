@@ -43,7 +43,7 @@ html
             eq-element(label="'='")
             eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" labels="[['a₁,x', 'a₂,x'], ['a₁,y', 'a₂,y']]" active="false")
             eq-element(label="'='")
-            eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
+            eq-matrix(clasifs="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
 
         div(style="position:absolute; right: 224px; top: 125px;")
           matrix-equation
@@ -61,7 +61,7 @@ html
 
         p
           :markdown
-            If you can draw a line through $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by a number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
+            If you can draw a line through the three points $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by a number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
 
         script(type="math/tex; mode=display").
             A v = 
