@@ -1,7 +1,12 @@
+NEW
+on the markov matrix thing, use d3.format to make sure that nubmers like 0.9 are 0.90
+label the eigenspaces
+on the third plot, make the eigenvalues matched correctly
+
+
 
 
 HARD
-
 add another plot of the eigen vectors for state transition.
 do the button thing in the first plot
 

@@ -28,6 +28,11 @@ html
     section(ng-controller="IntroCtrl")
       +authors
 
+      :markdown
+        Eigenvalues/vectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's PageRank algorithm. Let's see if visualization can make them more intuitive.
+
+        To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$.
+
       div(ng-controller="BasisCtrl" style="position:relative")
         simple-plot
         //- div(style="position:absolute;right: 150px; top: 123px")
@@ -47,17 +52,11 @@ html
             eq-vector(values="opt.pos0" labels="['v, x', 'v, y']" active="true" class="tertiary")
 
         :markdown
-          Eigenvalues and eigenvectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's PageRank algorithm. Unfortunately, it's really hard to put into words exactly what they are. Consider how Wikipedia introduces eigenvectors:
 
-          > An eigenvector or characteristic vector of a square matrix $A$ is a non-zero vector $v$ that, when multiplied with $A$, yields a scalar multiple of itself...
-
-          Here we are going to use interactive visualization to unpack them in a way that seems natural.
-
-          To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$. Click "Multiply" to make that happen.
 
         p
           :markdown
-            Sometimes, you can draw a line through $(0,0)$ that goes through $v$ and $Av$. In this case, $Av$ is just a rescaled version of $v$, and there's a scaling factor $\lambda$ such that $Av = \lambda v$. If this is true, we say $\lambda$ is an __eigenvalue__ and $v$ is an __eigenvector__. For example, here's a matrix $A$ with $v=(1,2)$ as an eigvector and $\lambda = 5$ as an eigenvalue.
+            If you can draw a line through $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
 
         script(type="math/tex; mode=display").
             A v = 
@@ -77,23 +76,20 @@ html
             = \lambda v.
 
         :markdown
-          Below, fix $A$ and drag $v$ to see where $Av$ winds up. You'll notice two things: 
-
-          1. Every point on the same line as an eigenvector is another eigenvector. That line is calld an __eigenspace__.
-          1. If the eigenvalue $\lambda$ is less than $1$, $Av$ is closer to $(0,0)$ than $v$; and when it's greater than $1$, it's farther away.
+          Below, drag $v$ to be an eigenvector. Note two facts: First, every point on the same line as an eigenvector is another eigenvector. That line is an __eigenspace__.  Second, when $\lambda<1$, $Av$ is closer to $(0,0)$ than $v$; and when  $\lambda>1$, it's farther away.
 
         div(ng-controller="TransCtrl")
           simple-plot
           p
             :markdown
-              If you keep multiplying $v$ by $A$, you get a sequence $Av$, $A^2v$, $A^3v$,... This sequence gets attracted by the eigenspaces like they have some gravity. If the eigenvalue of an eigenspace is less than $1$, it pulls the sequence to $0$. Otherwise, it draws it infinitely far out $(0,0)$. Below, drag around the point to see where the eigenspaces draw it in.
+              Eigenvalues/vectors are good for understanding systems that evolve step-by-step, where each step is multiplication by a matrix $A$.  If you keep multiplying $v$ by $A$, you get a sequence $\{ v, Av, A^2v,\}$ etc. As you can see below, eigenspaces attract this sequence and draw it toward $(0,0)$ or farther away, depending on their eigenvalues.
 
           div(ng-controller="PopulationCtrl")
             simple-plot
 
           p
             :markdown
-              What are eigenstuff good for? Generally, the answer is "understanding the behavior of systems that evolve step-by-step." These systems can be machines, forests,  populations, finances, or social networks, whatever...as long as you can write the system's evolution in terms of multiplication by a matrix $A$, then the eigenvalues and eigenspace are going to illuminate things. Below, we'll explore some applications and facts about eigenvalues.
+               As long as you can write the system's evolution in terms of multiplication by a matrix $A$, then the eigenvalues and eigenspace are going to illuminate things. Below, we'll explore some applications and facts about eigenvalues.
 
     section(ng-controller="BacteriaCtrl")
       p
