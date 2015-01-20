@@ -53,7 +53,6 @@ html
 
         :markdown
 
-
         p
           :markdown
             If you can draw a line through $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
@@ -82,20 +81,21 @@ html
           simple-plot
           p
             :markdown
-              Eigenvalues/vectors are good for understanding systems that evolve step-by-step, where each step is multiplication by a matrix $A$.  If you keep multiplying $v$ by $A$, you get a sequence $\{ v, Av, A^2v,\}$ etc. As you can see below, eigenspaces attract this sequence and draw it toward $(0,0)$ or farther away, depending on their eigenvalues.
+              ###What are eigenvalues/vectors good for?
+              Eigenvalues/vectors explain the behavior of systems that evolve step-by-step, where each step occurs as multiplication by a matrix $A$. If you keep multiplying $v$ by $A$, you get a sequence $\{ v, Av, A^2v,\}$ etc. As you can see below, eigenspaces attract this sequence and draw it toward $(0,0)$ or farther away, depending on their eigenvalues.
 
           div(ng-controller="PopulationCtrl")
             simple-plot
 
           p
             :markdown
-               As long as you can write the system's evolution in terms of multiplication by a matrix $A$, then the eigenvalues and eigenspace are going to illuminate things. Below, we'll explore some applications and facts about eigenvalues.
+              Let's explore some applications and properties of these sequences.
 
     section(ng-controller="BacteriaCtrl")
       p
         :markdown
           ###Fibonacci Sequence
-          Suppose you have some amoebas in a petri dish. Every minute, all adult amoebas produce one child amoeba, and all child amoebas grow into adults. So if $t$ is a minute, the equation of this system is
+          Suppose you have some amoebas in a petri dish. Every minute, all adult amoebas produce one child amoeba, and all child amoebas grow into adults (Note: this is not really how amoebas reproduce.). So if $t$ is a minute, the equation of this system is
 
         script(type="math/tex; mode=display").
             \begin{eqnarray} 
@@ -107,22 +107,28 @@ html
           which we can rewrite in matrix form like
 
         script(type="math/tex; mode=display").
+          \begin{eqnarray}
+          v_{t+1} &=& A & ⋅& v_t
+          \\
             \begin{pmatrix}
               \text{adults}_{t+1} \\ \text{children}_{t+1}
             \end{pmatrix}  
-            =
+            &=&
             \begin{pmatrix}
               1 & 1 \\
               1 & 0
             \end{pmatrix}
-            \cdot 
+            & \cdot & 
             \begin{pmatrix}
               \text{adults}_{t} \\
               \text{children}_{t}
             \end{pmatrix}
 
+          \end{eqnarray}
+
+
         :markdown
-          Below, press "Forward" to step ahead a minute. The total population is the Fibonacci Sequence.
+          Below, press "Forward" to step ahead a minute. The total population is the [Fibonacci Sequence](http://en.wikipedia.org/wiki/Fibonacci_number).
 
       p
         //- input(type="range" ng-model="charge" min="-10" max="0" step="0.1")
@@ -141,9 +147,9 @@ html
           fibonacci-sequence
 
         :markdown
-          As you can see, the system goes toward the grey line, which is an eigenspace of the matrix.
+          As you can see, the system goes toward the grey line, which is an eigenspace with  $\lambda = (1+\sqrt 5)/2 > 1$.
 
-          ###Markov Chains
+          ###Steady States
 
           Suppose that, every year, a fraction $p$ of New Yorkers move to California and a fraction $q$ of Californians move to New York. Drag the circles to decide these fractions and the number starting in each state.
 
@@ -174,7 +180,7 @@ html
 
       p
         :markdown
-          It turns out that a matrix like $A$, whose rows add up to zero (try it!), is called a [Markov matrix](http://www.math.harvard.edu/~knill/teaching/math19b_2011/handouts/lecture33.pdf), and it always has $\lambda = 1$ as an eigenvalue. That means there's a value of $v_t$ for which $Av_t =\lambda v_t = 1 v_t = v_t$. At this "steady state," the number of New Yorkers moving to California exactly equals the number moving from California to New York, and the two populations stay the same forever. Hover over the animation to see the system go to the steady state.
+          It turns out that a matrix like $A$, whose rows add up to zero (try it!), is called a [Markov matrix](http://www.math.harvard.edu/~knill/teaching/math19b_2011/handouts/lecture33.pdf), and it always has $\lambda = 1$ as an eigenvalue. That means there's a value of $v_t$ for which $Av_t =\lambda v_t = 1 v_t = v_t$. At this "steady state," the same number of people move in each direction, and the populations stay the same forever. Hover over the animation to see the system go to the steady state.
 
       div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
         migration(style="width:70%;float:left")
@@ -184,7 +190,7 @@ html
       :markdown
         #Complex eigenvalues
 
-        So far we've only looked at systems with __real__ eigenvalues. But looking at the equation  $ Av = \lambda v$, who's to say $\lambda$ and $v$ can't have some imaginary part? For example, you can verify that
+        So far we've only looked at systems with real eigenvalues. But looking at the equation  $ Av = \lambda v$, who's to say $\lambda$ and $v$ can't have some imaginary part? That it can't be a [complex](http://en.wikipedia.org/wiki/Complex_number) number? For example, 
 
       script(type="math/tex; mode=display").
           \begin{pmatrix}
@@ -205,7 +211,7 @@ html
       :markdown
         Here, $1+i$ is an eigenvalue and $(1, i)$ is an eigenvector. 
 
-        Whenever a matrix has complex eigenvalues, the system it describes will spiral around $(0,0)$. To see this, drag $A$'s columns (the arrows) around until you get a spiral. The eigenvalues are plotted in the real/imaginary plane to the right. You'll see that whenever the eigenvalues have an imaginary part, the system spirals, no matter where you start things off.
+        If a matrix has complex eigenvalues, its sequence spirals around $(0,0)$. To see this, drag $A$'s columns (the arrows) around until you get a spiral. The eigenvalues are plotted in the real/imaginary plane to the right. You'll see that whenever the eigenvalues have an imaginary part, the system spirals, no matter where you start things off.
 
     section(ng-controller="FourQuadCtrl")
       | steps:
@@ -213,6 +219,11 @@ html
       four-quad-plot
     br
     br
+
+    p
+      :markdown
+        ###Learning more
+        We've really only scratched the surface of what linear algebra is all about. To learn more, check out the legendary Gilbert Strang's [Linear Algebra](http://ocw.mit.edu/courses/mathematics/18-06sc-linear-algebra-fall-2011/least-squares-determinants-and-eigenvalues/eigenvalues-and-eigenvectors/) course at MIT's Open Courseware site. To get more practice with applications of eigenvalues/vectors, also ceck out the excellent [Differential Equations](http://ocw.mit.edu/courses/mathematics/18-03sc-differential-equations-fall-2011/) site.
 
     div.layer.tooltips
     if !dev
