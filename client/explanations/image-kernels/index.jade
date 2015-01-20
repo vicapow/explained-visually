@@ -34,8 +34,9 @@ html
         :markdown
           To calculate the value of a pixel after the kernel is about the same for every pixel. A single pixel in the new image is computed from the pixel values from the old image that used to be directly adjacent or diagonal to it multiplied by their corresponding kernel values. Click any pixel on the original image to the left to how it's new image value is computed in the image on the right.
 
-          [kernel vis]
+        kernel-inspect
 
+        :markdown
           This kernel above is a blur filter because it takes a part of all the surrounding pixels to compute the new pixel value.
 
           On subtly of this process is what to do along the edges of the image. For example, the top left corner of the image only has three neighbors. One way to fix this is to extend the edge values out by one in the original image but keep while keeping our new image the same size.
@@ -44,5 +45,4 @@ html
     if !dev
       +footer
       +disqus
-  script(type="text/javascript")
-    include script.js
+  script(src=path + "script.js")
