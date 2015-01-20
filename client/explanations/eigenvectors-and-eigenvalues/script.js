@@ -210,8 +210,19 @@ myApp.controller('BasisCtrl', function($scope) {
       set: function(o, p) { copyTo(o.opt.invert(p), o.opt.basis2) }
     }
   ])
+  
+  var pointData = opt.pointData = opt.pointData
+    .concat([ { pos: function(o) { return o.opt.pixel(o.opt.pos1) } } ])
+
   // opt.vectorData = (opt.vectorData || []).concat(basisVectorData())
-  opt.vectorData = basisVectorData()
+  opt.vectorData = basisVectorData().concat([
+    {
+      p1: function(o) { return o.opt.pixel(o.opt.pos0) },
+      p2: function(o) { return o.opt.pixel(o.opt.pos1) },
+      style: vectorTransStyle,
+      head: 'shy'
+    }
+  ])
 
   opt.labelData = opt.labelData.concat([
     {
@@ -232,6 +243,15 @@ myApp.controller('BasisCtrl', function($scope) {
         g.call(greekLabelStyle)
         g.style('fill', color.secondary)
       }
+    }, {
+      pos: function(o) {
+        return vector(o.opt.pixel(o.opt.pos1)).add(vector(20, -15)).array()
+      },
+      label: 'Αv',
+      style: function(g) {
+        g.call(greekLabelStyle)
+        g.style('fill', color.tertiary)
+      }
     }
   ])
 })
@@ -241,19 +261,9 @@ myApp.controller('TransCtrl', function($scope) {
   opt.cScale = d3.scale.linear().domain([0.2, 0])
     .range([color.shy, color.senary]).clamp(true)
   opt.opScale = d3.scale.linear().domain([0.2, 0]).range([0.4, 1]).clamp(true)
-  var pointData = opt.pointData = opt.pointData
-    .concat([ { pos: function(o) { return o.opt.pixel(o.opt.pos1) } } ])
+  var pointData = opt.pointData
   opt.labelData = opt.labelData.concat([
     {
-      pos: function(o) {
-        return vector(o.opt.pixel(o.opt.pos1)).add(vector(20, -15)).array()
-      },
-      label: 'Αv',
-      style: function(g) {
-        g.call(greekLabelStyle)
-        g.style('fill', color.tertiary)
-      }
-    }, {
       pos: [ 960 - 150, 145],
       label: function(o) { return 'λ₁ = ' + d3.round(o.opt.eigenValues[0], 2) },
       style: function(g) { g.call(greekLabelStyle) }
@@ -261,16 +271,21 @@ myApp.controller('TransCtrl', function($scope) {
       pos: [ 960 - 150, 165],
       label: function(o) { return 'λ₂ = ' + d3.round(o.opt.eigenValues[1], 2) },
       style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: function(o) {
+        return o.opt.pixel(vector(o.opt.eigenVectors[0]).unit().scale(2).array())
+      },
+      label: 's₁',
+      style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: function(o) {
+        return o.opt.pixel(vector(o.opt.eigenVectors[1]).unit().scale(2).array())
+      },
+      label: 's₂',
+      style: function(g) { g.call(greekLabelStyle) }
     }
   ])
-  opt.vectorData = opt.vectorData.concat([
-    {
-      p1: function(o) { return o.opt.pixel(o.opt.pos0) },
-      p2: function(o) { return o.opt.pixel(o.opt.pos1) },
-      style: vectorTransStyle,
-      head: 'shy'
-    }
-  ]).concat(eigenVectorData())
+  opt.vectorData = opt.vectorData.concat(eigenVectorData())
 })
 
 myApp.controller('RepeatCtrl', function($scope) {
@@ -287,6 +302,7 @@ myApp.controller('PopulationCtrl', function($scope) {
   opt.basis2 = [0.24, 1.22]
   opt.pos = d3.range(opt.n)
   opt.eigenVectors = [ [1, 0], [0, 1] ]
+  opt.eigenValues = [0, 0]
   var xScale = opt.xScale = d3.scale.linear()
     .domain(opt.domain)
     .range([ opt.m.l, opt.w - opt.m.r])
@@ -461,6 +477,18 @@ myApp.controller('PopulationCtrl', function($scope) {
       pos: [ 960 - 150, 165],
       label: function(o) { return 'λ₂ = ' + d3.round(o.opt.eigenValues[1], 2) },
       style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: function(o) {
+        return o.opt.pixel(vector(o.opt.eigenVectors[0]).unit().scale(-700).array())
+      },
+      label: 's₁',
+      style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: function(o) {
+        return o.opt.pixel(vector(o.opt.eigenVectors[1]).unit().scale(-500).array())
+      },
+      label: 's₂',
+      style: function(g) { g.call(greekLabelStyle) }
     }
   ]
 
@@ -481,6 +509,7 @@ myApp.controller('PopulationCtrl', function($scope) {
       [ a[1], b[1] ]
     ])
     copyTo(m.eigenVectors(), opt.eigenVectors)
+    copyTo(m.eigenValues(), opt.eigenValues)
   }
 
   $scope.$watch('opt', function() { derived($scope) }, true)
@@ -575,7 +604,7 @@ myApp.directive('simplePlot', function() {
 
   function styleAxisLabels(g) {
     g.style('text-anchor', 'middle')
-     .each(function(d) { d.style(d3.select(this)) })
+     .each(function(d) { d.style && d.style(d3.select(this)) })
   }
 
   return { link: link, restrict: 'E' }

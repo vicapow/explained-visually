@@ -29,7 +29,7 @@ html
       +authors
 
       :markdown
-        Eigenvalues/vectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's PageRank algorithm. Let's see if visualization can make them more intuitive.
+        Eigenvalues/vectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's [PageRank](http://www.rose-hulman.edu/~bryan/googleFinalVersionFixed.pdf) algorithm. Let's see if visualization can make them more intuitive.
 
         To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$.
 
@@ -37,7 +37,7 @@ html
         simple-plot
         //- div(style="position:absolute;right: 150px; top: 123px")
           button.btn.primary multiply
-        div(style="position:absolute; right: 95px; top: 75px;")
+        div(style="position:absolute; right: 95px; top: 50px;")
           matrix-equation
             eq-element(label="'Α'")
             eq-element(label="'='")
@@ -45,17 +45,23 @@ html
             eq-element(label="'='")
             eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
 
-        div(style="position:absolute; right: 224px; top: 175px;")
+        div(style="position:absolute; right: 224px; top: 125px;")
           matrix-equation
             eq-element(class="tertiary" label="'v'")
             eq-element(label="'='")
             eq-vector(values="opt.pos0" labels="['v, x', 'v, y']" active="true" class="tertiary")
 
+        div(style="position:absolute; right: 224px; top: 200px;")
+          matrix-equation
+            eq-element(class="tertiary" label="'Αv'")
+            eq-element(label="'='")
+            eq-vector(values="opt.pos1" labels="['v, x', 'v, y']" active="true" class="tertiary")
+
         :markdown
 
         p
           :markdown
-            If you can draw a line through $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
+            If you can draw a line through $(0,0)$, $v$ and $Av$, then $Av$ is just $v$ multiplied by a number $\lambda$; that is, $Av = \lambda v$. In this case, we call $\lambda$ an __eigenvalue__ and $v$ an __eigenvector__. For example, here $(1,2)$ is an eigvector and $5$ an eigenvalue.
 
         script(type="math/tex; mode=display").
             A v = 
@@ -75,7 +81,7 @@ html
             = \lambda v.
 
         :markdown
-          Below, drag $v$ to be an eigenvector. Note two facts: First, every point on the same line as an eigenvector is another eigenvector. That line is an __eigenspace__.  Second, when $\lambda<1$, $Av$ is closer to $(0,0)$ than $v$; and when  $\lambda>1$, it's farther away.
+          Below, change the bases of $A$ and drag $v$ to be its eigenvector. Note two facts: First, every point on the same line as an eigenvector is another eigenvector. That line is an __eigenspace__.  Second, when $\lambda<1$, $Av$ is closer to $(0,0)$ than $v$; and when  $\lambda>1$, it's farther away.
 
         div(ng-controller="TransCtrl")
           simple-plot
@@ -223,7 +229,7 @@ html
     p
       :markdown
         ###Learning more
-        We've really only scratched the surface of what linear algebra is all about. To learn more, check out the legendary Gilbert Strang's [Linear Algebra](http://ocw.mit.edu/courses/mathematics/18-06sc-linear-algebra-fall-2011/least-squares-determinants-and-eigenvalues/eigenvalues-and-eigenvectors/) course at MIT's Open Courseware site. To get more practice with applications of eigenvalues/vectors, also ceck out the excellent [Differential Equations](http://ocw.mit.edu/courses/mathematics/18-03sc-differential-equations-fall-2011/) site.
+        We've really only scratched the surface of what linear algebra is all about. To learn more, check out the legendary Gilbert Strang's [Linear Algebra](http://ocw.mit.edu/courses/mathematics/18-06sc-linear-algebra-fall-2011/least-squares-determinants-and-eigenvalues/eigenvalues-and-eigenvectors/) course at MIT's Open Courseware site. To get more practice with applications of eigenvalues/vectors, also ceck out the excellent [Differential Equations](http://ocw.mit.edu/courses/mathematics/18-03sc-differential-equations-fall-2011/) course.
 
     div.layer.tooltips
     if !dev
