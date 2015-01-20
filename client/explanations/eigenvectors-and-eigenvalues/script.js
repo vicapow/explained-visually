@@ -109,6 +109,7 @@ myApp.controller('IntroCtrl', function($scope) {
   opt.basis2 = [0.5, 1]
   opt.domain = [0, 5]
   opt.eigenVectors = [ [1, 0], [0, 1] ]
+  opt.eigenValues = [0, 0]
   opt.labelsOfA = [ ['B1,x', 'B2,x'], [ 'B1,y', 'B2,y'] ]
   opt.pos = d3.range(opt.n)
   derived($scope)
@@ -192,6 +193,7 @@ myApp.controller('IntroCtrl', function($scope) {
       [ a[1], b[1] ]
     ])
     copyTo(m.eigenVectors(), opt.eigenVectors)
+    copyTo(m.eigenValues(), opt.eigenValues)
   }
 
 })
@@ -208,6 +210,7 @@ myApp.controller('BasisCtrl', function($scope) {
       set: function(o, p) { copyTo(o.opt.invert(p), o.opt.basis2) }
     }
   ])
+  // opt.vectorData = (opt.vectorData || []).concat(basisVectorData())
   opt.vectorData = basisVectorData()
 
   opt.labelData = opt.labelData.concat([
@@ -250,6 +253,14 @@ myApp.controller('TransCtrl', function($scope) {
         g.call(greekLabelStyle)
         g.style('fill', color.tertiary)
       }
+    }, {
+      pos: [ 960 - 150, 145],
+      label: function(o) { return 'λ₁ = ' + d3.round(o.opt.eigenValues[0], 2) },
+      style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: [ 960 - 150, 165],
+      label: function(o) { return 'λ₂ = ' + d3.round(o.opt.eigenValues[1], 2) },
+      style: function(g) { g.call(greekLabelStyle) }
     }
   ])
   opt.vectorData = opt.vectorData.concat([
@@ -442,6 +453,14 @@ myApp.controller('PopulationCtrl', function($scope) {
         g.call(greekLabelStyle)
         g.style('fill', color.secondary) 
       }
+    }, {
+      pos: [ 960 - 150, 145],
+      label: function(o) { return 'λ₁ = ' + d3.round(o.opt.eigenValues[0], 2) },
+      style: function(g) { g.call(greekLabelStyle) }
+    }, {
+      pos: [ 960 - 150, 165],
+      label: function(o) { return 'λ₂ = ' + d3.round(o.opt.eigenValues[1], 2) },
+      style: function(g) { g.call(greekLabelStyle) }
     }
   ]
 
@@ -516,7 +535,9 @@ myApp.directive('simplePlot', function() {
             ((typeof d.pos === 'function') ? d.pos(scope) : d.pos )
           + ')'
         })
-        .text(function(d) { return d.label })
+        .text(function(d) {
+          return (typeof d.label !== 'function') && d.label || ''
+        })
         .call(styleAxisLabels)
 
     // Nobs
@@ -547,6 +568,8 @@ myApp.directive('simplePlot', function() {
         .attr('transform', function(d) {
           return 'translate(' + d.pos(scope) + ')'
         })
+      labels.filter(function(d) { return (typeof d.label) === 'function' })
+        .text(function(d) { return d.label(scope) })
     }
   }
 
@@ -1103,15 +1126,18 @@ myApp.controller('MigrationCtrl', function($scope) {
     , sample: [38.33, 19.65]
     , samples: []
     , numSamples: 6
+    , rScale: d3.scale.sqrt().domain([0, maxPopulation]) .range([0, 100])
   }
-  // $scope.$watch('opts', function(opts) {
-  //   var b1 = opts.basis1, b2 = opts.basis2, cur = vector(opts.sample)
-  //   var B = matrix([b1, b2]).transpose()
-  //   // var samples = d3.range(9)
-  //   //   .map(function() { return cur = cur.matrixMulti(B), cur.array() })
-  //   // samples.unshift(opts.sample)
-  //   // opts.samples = samples
-  // }, true)
+  $scope.$watch('opts', function(opts) {
+    var b1 = opts.basis1, b2 = opts.basis2, cur = vector(opts.sample)
+    var B = matrix([b1, b2]).transpose()
+    opts.rSF = opts.rScale(opts.sample[0])
+    opts.rNY = opts.rScale(opts.sample[1])
+    // var samples = d3.range(9)
+    //   .map(function() { return cur = cur.matrixMulti(B), cur.array() })
+    // samples.unshift(opts.sample)
+    // opts.samples = samples
+  }, true)
 })
 
 
@@ -1135,7 +1161,7 @@ myApp.directive('sfToNyMigrationMap', function() {
     var usPath = stage.append('path').attr('class', 'us-bg')
     var proj = d3.geo.albersUsa().scale(580).translate([w / 2, h / 2])
     var path = d3.geo.path().projection(proj)
-    var rScale = d3.scale.sqrt().domain([0, maxPopulation]) .range([0, 100])
+    var rScale = scope.opts.rScale
     var wScale = d3.scale.linear().domain([0, 1]).range([0, 30]).clamp(true)
     var loc = { sf: proj([-122.4167, 37.7833]), ny: proj([-74.0059, 40.7127]) }
     var sfDot = stage.append('circle')
@@ -1170,14 +1196,107 @@ myApp.directive('sfToNyMigrationMap', function() {
     var sfToNyArrow = arrow(), nyToSfArrow = arrow()
     var nyToNyArrow = arrow(), sfToSfArrow = arrow()
 
-    var nyLabel = stage.append('text').text('New York')
-      .attr('text-anchor', 'middle')
-    var sfLabel = stage.append('text').text('California')
-      .attr('text-anchor', 'middle')
+    var labelData = [
+      {
+        text: function(o) { return 'New York' },
+        pos: function(o) {
+          return vector(loc.ny).add(vector([0, o.opts.rNY + 20]))
+        },
+        style: function(g) {
+          g.style('text-anchor', 'middle')
+        }
+      }, {
+        text: function(o) { return 'California' },
+        pos: function(o) {
+          return vector(loc.sf).add(vector([0, o.opts.rSF + 20]))
+        },
+        style: function(g) {
+          g.style('text-anchor', 'middle')
+        }
+      }, {
+        text: function(o) {
+          return '1 − p = ' + d3.round(o.opts.basis2[1], 2)
+        },
+        pos: function(o) {
+          // nob position.
+          var pos = pathNobPosWithOffset(nyToNyArrow, 'basis2', 1)(o.opts)
+          return vector(pos).add(vector(0, 0)).array()
+        },
+        style: function(g) {
+          g.call(greekLabelStyle)
+          g.style('font-size', 16)
+        }
+      }, {
+        text: function(o) {
+          return 'p = ' + d3.round(o.opts.basis2[0], 2)
+        },
+        pos: function(o) {
+          // nob position.
+          var pos = pathNobPosWithOffset(nyToSfArrow, 'basis2', 0)(o.opts)
+          return vector(pos).add(vector(0, -20)).array()
+        },
+        style: function(g) {
+          g.call(greekLabelStyle)
+          g.style('text-anchor', 'middle')
+          g.style('font-size', 16)
+        }
+      }, {
+        text: function(o) {
+          return 'q = ' + d3.round(o.opts.basis1[1], 2)
+        },
+        pos: function(o) {
+          // nob position.
+          var pos = pathNobPosWithOffset(sfToNyArrow, 'basis1', 1)(o.opts)
+          return vector(pos).add(vector(0, 20)).array()
+        },
+        style: function(g) {
+          g.call(greekLabelStyle)
+          g.style('text-anchor', 'middle')
+          g.style('font-size', 16)
+        }
+      }, {
+        text: function(o) {
+          return '1 − q = ' + d3.round(o.opts.basis1[0], 2)
+        },
+        pos: function(o) {
+          // nob position.
+          var pos = pathNobPosWithOffset(sfToSfArrow, 'basis1', 0)(o.opts)
+          return vector(pos).add(vector(0, 0)).array()
+        },
+        style: function(g) {
+          g.call(greekLabelStyle)
+          g.style('text-anchor', 'end')
+          g.style('font-size', 16)
+        }
+      }, {
+        text: function(o) {
+          return d3.round(o.opts.sample[0], 2) + 'm'
+        }, pos: function(o) {
+          return vector(loc.sf).add(vector(0, 6))
+        }, style: function(g) {
+          g.style('text-anchor', 'middle')
+        }
+      }, {
+        text: function(o) {
+          return d3.round(o.opts.sample[1], 2) + 'm'
+        }, pos: function(o) {
+          return vector(loc.ny).add(vector(0, 6))
+        }, style: function(g) {
+          g.style('text-anchor', 'middle')
+        }
+      }
+    ]
+
+    // Labels
+    var labels = stage.append('g').attr('class', 'labels')
+      .selectAll('text')
+      .data(labelData).enter().append('text')
+      .each(function(d) { d.style && d3.select(this).call(d.style) })
 
     function drawCrossArrow(g, p1, p2, thickness, style) {
       var r1 = scope.opts.sample[style === 'primary' ? 0 : 1]
       var r2 = scope.opts.sample[style === 'primary' ? 1 : 0]
+      var rScale = scope.opts.rScale
       p1 = vector(p1), p2 = vector(p2)
       var diff = p2.sub(p1).unit()
       var theta = pi * 0.25, rP = 90
@@ -1197,6 +1316,7 @@ myApp.directive('sfToNyMigrationMap', function() {
     function drawLoopbackArrow(g, p1, p2, thickness, style) {
       var r = scope.opts.sample[style === 'primary' ? 0 : 1]
       p1 = vector(p1), p2 = vector(p2)
+      var rScale = scope.opts.rScale
       var diff = p2.sub(p1).unit()
       var theta = pi * 0.82, rP = 160
       var unit = diff.rot(-theta)
@@ -1302,10 +1422,8 @@ myApp.directive('sfToNyMigrationMap', function() {
     nobs.call(nobDrag)
 
     function draw() {
-      var rSF = rScale(scope.opts.sample[0])
-      var rNY = rScale(scope.opts.sample[1])
-      sfDot.attr('r', rSF)
-      nyDot.attr('r', rNY)
+      sfDot.attr('r', scope.opts.rSF)
+      nyDot.attr('r', scope.opts.rNY)
       var o = scope.opts
       sfToNyArrow.call(drawCrossArrow, loc.sf, loc.ny
         , wScale(scope.opts.basis1[1]), 'primary')
@@ -1315,10 +1433,11 @@ myApp.directive('sfToNyMigrationMap', function() {
         , wScale(scope.opts.basis2[0]), 'secondary')
       nyToNyArrow.call(drawLoopbackArrow, loc.ny, loc.sf
         , wScale(scope.opts.basis2[1]), 'secondary')
-      nyLabel.attr('transform', 'translate('
-        + vector(loc.ny).add(vector([0, rNY + 20])) + ')')
-      sfLabel.attr('transform', 'translate('
-        + vector(loc.sf).add(vector([0, rSF + 20])) + ')')
+      labels
+        .attr('transform', function(d) {
+          return 'translate(' + d.pos(scope) + ')'
+        })
+        .text(function(d) { return d.text(scope) })
       // The nobs need to be draw after the arrows because their position
       // depends on the path locations.
       nobData.forEach(function(d) { d._p = d.get(o) })
@@ -1765,7 +1884,7 @@ myApp.directive('stochasticMatrixMultiplication', function() {
         , 'stroke-width': 2
         , dash: '1, 1'
         , opacity: 0.3
-      }, {
+      }/*, {
           name: 'basis-1'
         , p1: function() { return [0, 0] }
         , p2: function(o) { return vector([o.basis1[0], o.basis1[1]]).to(epixels) }
@@ -1779,7 +1898,7 @@ myApp.directive('stochasticMatrixMultiplication', function() {
         , style: 'secondary'
         , 'stroke-width': 4
         , opacity: 0.4
-      }
+      }*/
     ]
 
     function derivedState(opts) {
@@ -1801,7 +1920,7 @@ myApp.directive('stochasticMatrixMultiplication', function() {
     var samples = coord.append('g').attr('class', 'samples')
 
     var nobData = [
-      {
+      /*{
         get: function(o) {
           // Get pixel value of nob.
           return [xe(o.basis1[0]), ye(o.basis1[1])]
@@ -1827,7 +1946,7 @@ myApp.directive('stochasticMatrixMultiplication', function() {
           scope.opts.basis2[1] = 1 - _x
           scope.opts.samples = [{ name: '0', pos: scope.opts.sample }]
         }
-      }, {
+      }, */{
         get: function(o) {
           // Get pixel value of nob.
           return [x(o.sample[0]), y(o.sample[1])]
@@ -1899,8 +2018,8 @@ myApp.directive('stochasticMatrixMultiplication', function() {
 
 myApp.controller('FourQuadCtrl', function($scope) {
   var opt = $scope.opt = {
-    basis1: [0.9, 0.1],
-    basis2: [0.3, 0.7],
+    basis1: [0.9, -0.5],
+    basis2: [0.5, 0.7],
     pos0: [2, 2],
     eigenVectors: [ [1, 0], [0, 1] ],
     eigenValuesI: [ {}, {} ],
@@ -1908,7 +2027,7 @@ myApp.controller('FourQuadCtrl', function($scope) {
     yScale: d3.scale.linear(),
     pointData: [],
     maxPoints: 50,
-    n: 10
+    n: 25
   }
   opt.pos = d3.range(opt.n)
   opt.pixel = function(p) { return [ opt.xScale(p[0]), opt.yScale(p[1]) ] }

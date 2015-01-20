@@ -27,7 +27,25 @@ html
       +share
     section(ng-controller="IntroCtrl")
       +authors
-      p
+
+      div(ng-controller="BasisCtrl" style="position:relative")
+        simple-plot
+        //- div(style="position:absolute;right: 150px; top: 123px")
+          button.btn.primary multiply
+        div(style="position:absolute; right: 95px; top: 75px;")
+          matrix-equation
+            eq-element(label="'Α'")
+            eq-element(label="'='")
+            eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" labels="[['a₁,x', 'a₂,x'], ['a₁,y', 'a₂,y']]" active="false")
+            eq-element(label="'='")
+            eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
+
+        div(style="position:absolute; right: 224px; top: 175px;")
+          matrix-equation
+            eq-element(class="tertiary" label="'v'")
+            eq-element(label="'='")
+            eq-vector(values="opt.pos0" labels="['v, x', 'v, y']" active="true" class="tertiary")
+
         :markdown
           Eigenvalues and eigenvectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's PageRank algorithm. Unfortunately, it's really hard to put into words exactly what they are. Consider how Wikipedia introduces eigenvectors:
 
@@ -36,18 +54,6 @@ html
           Here we are going to use interactive visualization to unpack them in a way that seems natural.
 
           To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$. Click "Multiply" to make that happen.
-
-      matrix-equation
-        eq-element(label="'A'")
-        eq-element(label="'='")
-        eq-matrix(class="primary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" labels="[['b1,x', 'b2,y'], ['b1,x', 'b2,y']]" active="false")
-        eq-element(label="'='")
-        eq-matrix(class="primary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
-
-      div(ng-controller="BasisCtrl" style="position:relative")
-        simple-plot
-        //- div(style="position:absolute;right: 150px; top: 123px")
-          button.btn.primary multiply
 
         p
           :markdown
@@ -143,7 +149,7 @@ html
 
           ###Markov Chains
 
-          Suppose that, every year, X% of New Yorkers move to California and Y% of Californians move to New York. Drag the circles to decide these percentages and the number starting in each state.
+          Suppose that, every year, a fraction $p$ of New Yorkers move to California and a fraction $q$ of Californians move to New York. Drag the circles to decide these fractions and the number starting in each state.
 
     section(ng-controller="MigrationCtrl")
       sf-to-ny-migration-map
@@ -207,7 +213,7 @@ html
 
     section(ng-controller="FourQuadCtrl")
       | steps:
-      input(type="range" min="2" max="100" ng-model="opt.n")
+      input(type="range" min="2" max="opt.maxPoints" ng-model="opt.n")
       four-quad-plot
     br
     br

@@ -329,6 +329,7 @@ matrix-equation {
   // background-color: rgba(0, 0, 0, 0.1);
   text-align: center;
   font-family: 'helvetica Neue';
+  font-family:"STIXGeneral-Italic";
   // font-family: sans-serif;
   .element, .vector, .matrix {
     height: @h;
@@ -434,6 +435,14 @@ matrix-equation {
       .border-l, .border-r {
         border-color: @tertiary;
       }
+    }
+  }
+  .matrix.primary-and-secondary {
+    .left {
+      color: @primary;
+    }
+    .right {
+      color: @secondary;
     }
   }
 }

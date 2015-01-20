@@ -23,6 +23,11 @@ mixin authors
       a(href="http://twitter.com/" + twitterCreator) !{author}
     else
      !{author}
+    if twitterCreator2
+      |  and 
+      a(href="http://twitter.com/" + twitterCreator2) !{author2}
+    else
+     !{author2}
   p
     if authorText
       | with text by 
