@@ -31,7 +31,7 @@ html
       :markdown
         Eigenvalues/vectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's [PageRank](http://www.rose-hulman.edu/~bryan/googleFinalVersionFixed.pdf) algorithm. Let's see if visualization can make these ideas more intuitive.
 
-        To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$.
+        To begin, let $v$ be a vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$.
 
       div(ng-controller="BasisCtrl" style="position:relative")
         simple-plot
@@ -81,14 +81,14 @@ html
             = \lambda v.
 
         :markdown
-          Below, change the bases of $A$ and drag $v$ to be its eigenvector. Note two facts: First, every point on the same line as an eigenvector is another eigenvector. That line is an __eigenspace__.  Second, when $\lambda<1$, $Av$ is closer to $(0,0)$ than $v$; and when  $\lambda>1$, it's farther away.
+          Below, change the columns of $A$ and drag $v$ to be an eigenvector. Note three facts: First, every point on the same line as an eigenvector is an eigenvector. Those lines are  __eigenspaces__, and each has an associated eigenvalue.  Second, if you place $v$ on an eigenspace (either $s_1$ or $s_2$) with associated eigenvalue $\lambda<1$, then $Av$ is closer to $(0,0)$ than $v$; but when $\lambda>1$, it's farther. Third, both eigenspaces depend on both columns of $A$: it is not as though $a_1$ only affects $s_1$.
 
         div(ng-controller="TransCtrl")
           simple-plot
           p
             :markdown
               ###What are eigenvalues/vectors good for?
-              Eigenvalues/vectors explain the behavior of systems that evolve step-by-step, where each step occurs as multiplication by a matrix $A$. If you keep multiplying $v$ by $A$, you get a sequence $\{ v, Av, A^2v,\}$ etc. As you can see below, eigenspaces attract this sequence and draw it toward $(0,0)$ or farther away, depending on their eigenvalues.
+              If you keep multiplying $v$ by $A$, you get a sequence $\{ v, Av, A^2v,\}$ etc. Eigenspaces attract that sequence and eigenvalues tell you whether it ends up at $(0,0)$ or far away. Therefore, eigenvectors/values tell us about systems that evolve step-by-step.
 
           div(ng-controller="PopulationCtrl")
             simple-plot
