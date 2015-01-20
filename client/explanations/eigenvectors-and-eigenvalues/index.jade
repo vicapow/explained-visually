@@ -37,7 +37,7 @@ html
         simple-plot
         //- div(style="position:absolute;right: 150px; top: 123px")
           button.btn.primary multiply
-        div(style="position:absolute; right: 95px; top: 75px;")
+        div(style="position:absolute; right: 95px; top: 50px;")
           matrix-equation
             eq-element(label="'Α'")
             eq-element(label="'='")
@@ -45,11 +45,17 @@ html
             eq-element(label="'='")
             eq-matrix(class="primary-and-secondary" values="[ [opt.basis1[0], opt.basis2[0]], [opt.basis1[1], opt.basis2[1]]]" active="true")
 
-        div(style="position:absolute; right: 224px; top: 175px;")
+        div(style="position:absolute; right: 224px; top: 125px;")
           matrix-equation
             eq-element(class="tertiary" label="'v'")
             eq-element(label="'='")
             eq-vector(values="opt.pos0" labels="['v, x', 'v, y']" active="true" class="tertiary")
+
+        div(style="position:absolute; right: 224px; top: 200px;")
+          matrix-equation
+            eq-element(class="tertiary" label="'Αv'")
+            eq-element(label="'='")
+            eq-vector(values="opt.pos1" labels="['v, x', 'v, y']" active="true" class="tertiary")
 
         :markdown
 
