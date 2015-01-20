@@ -6,6 +6,17 @@ html
     include ../../templates/head
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "style.css" type="text/css")
+
+    script(type="text/x-mathjax-config").
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [['$','$'], ['\\(','\\)']],
+          skipTags: ["script","noscript","style","textarea","code"]
+        }
+      });
+
+    script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
+
   body(ng-app="myApp" ng-controller="MainCtrl")
     section.menu
       a(href=basepath) Back
@@ -18,18 +29,13 @@ html
       +authors
       p
         :markdown
-          To begin, let's look at what it means to multiply a vector by a square matrix. Let v be the vector
-      div
-        matrix-equation
-          eq-element(label="'v'")
-          eq-element(label="'='")
-          eq-vector(class="tertiary" values="opt.pos0" labels="['P₀[0]', 'P₀[1]']" active="true")
-      simple-plot
-      p
-        :markdown
-          We can plot this vector as a point or as an arrow in a 2D x-y plane. 
-          
-          A square matrix is a block of vectors like v. Let the matrix A be
+          Eigenvalues and eigenvectors are instrumental to understanding electrical circuits, mechanical systems, ecology and even Google's PageRank algorithm. Unfortunately, it's really hard to put into words exactly what they are. Consider how Wikipedia introduces eigenvectors:
+
+          > An eigenvector or characteristic vector of a square matrix $A$ is a non-zero vector $v$ that, when multiplied with $A$, yields a scalar multiple of itself...
+
+          Here we are going to use interactive visualization to unpack them in a way that seems natural.
+
+          To begin, let $v$ be a 2-dimensional vector (shown as a point) and $A$ be a matrix with columns $a_1$ and $a_2$ (shown as arrows). If we multiply $v$ by $A$, then $A$ sends $v$ to a new vector $Av$. Click "Multiply" to make that happen.
 
       matrix-equation
         eq-element(label="'A'")
@@ -43,23 +49,77 @@ html
 
         p
           :markdown
-            If we multiply v by A, then we send v somewhere else, to a new vector v'=Av.
+            Sometimes, you can draw a line through $(0,0)$ that goes through $v$ and $Av$. In this case, $Av$ is just a rescaled version of $v$, and there's a scaling factor $\lambda$ such that $Av = \lambda v$. If this is true, we say $\lambda$ is an __eigenvalue__ and $v$ is an __eigenvector__. For example, here's a matrix $A$ with $v=(1,2)$ as an eigvector and $\lambda = 5$ as an eigenvalue.
 
-            If v is an eigenvector of A, then v' will just be a *rescaled* version of v; that is, it will be in the same direction as v but farther from or closer to (0,0). That's all an eigenvector is.
+        script(type="math/tex; mode=display").
+            A v = 
+            \begin{pmatrix}
+              1 & 2 \\
+              8 & 1
+            \end{pmatrix}
+            \cdot
+            \begin{pmatrix}
+              1 \\ 2
+            \end{pmatrix}
+            =
+            5
+            \begin{pmatrix}
+              1 \\ 2
+            \end{pmatrix}
+            = \lambda v.
 
-            What's an eigenvalue? It's the amount, lambda, that v gets rescaled. In this case, it's [insert quantity]. So we have Av = v' = lambda v.
+        :markdown
+          Below, fix $A$ and drag $v$ to see where $Av$ winds up. You'll notice two things: 
+
+          1. Every point on the same line as an eigenvector is another eigenvector. That line is calld an __eigenspace__.
+          1. If the eigenvalue $\lambda$ is less than $1$, $Av$ is closer to $(0,0)$ than $v$; and when it's greater than $1$, it's farther away.
 
         div(ng-controller="TransCtrl")
           simple-plot
           p
             :markdown
-              Below, drag a_1 and a_2 to define A. Then drag v to see the v' where A sends it. When v is an eigenvector of A, v' will be on the same line from the origin as v. [lights up when an eigenvector] Those lines are called *eigenspaces*. 
-          div(ng-controller="RepeatCtrl")
+              If you keep multiplying $v$ by $A$, you get a sequence $Av$, $A^2v$, $A^3v$, $A^4v$ that gets attracted by the eigenspaces. If the eigenvalue of an eigenspace is less than $1$, it pulls the sequence to $0$. Otherwise, it draws it infinitely far out $(0,0)$. Below, drag around the point to see where the eigenspaces draw it in.
+
+          div(ng-controller="PopulationCtrl")
             simple-plot
 
-            div(ng-controller="PopulationCtrl")
-              simple-plot
+          p
+            :markdown
+              What are eigenstuff good for? Generally, the answer is "understanding the behavior of systems that evolve step-by-step." These systems can be machines, forests,  populations, finances, or social networks, whatever...as long as you can write the system's evolution in terms of multiplication by a matrix $A$, then the eigenvalues and eigenspace are going to illuminate things. Below, we'll explore some applications and facts about eigenvalues.
+
     section(ng-controller="BacteriaCtrl")
+      p
+        :markdown
+          ###Fibonacci Sequence
+          Suppose you have some amoebas in a petri dish. Every minute, all adult amoebas produce one child amoeba, and all child amoebas grow into adults. So if $t$ is a minute, the equation of this system is
+
+        script(type="math/tex; mode=display").
+            \begin{eqnarray} 
+              \text{adults}_{t+1} & = & \text{adults}_{t} + \text{children}_{t} \\
+              \text{children}_{t+1} & = & \text{adults}_{t}
+            \end{eqnarray}  
+
+        :markdown
+          which we can rewrite in matrix form like
+
+        script(type="math/tex; mode=display").
+            \begin{pmatrix}
+              \text{adults}_{t+1} \\ \text{children}_{t+1}
+            \end{pmatrix}  
+            =
+            \begin{pmatrix}
+              1 & 1 \\
+              1 & 0
+            \end{pmatrix}
+            \cdot 
+            \begin{pmatrix}
+              \text{adults}_{t} \\
+              \text{children}_{t}
+            \end{pmatrix}
+
+        :markdown
+          Below, press "Forward" to step ahead a minute. The total population is the Fibonacci Sequence.
+
       p
         //- input(type="range" ng-model="charge" min="-10" max="0" step="0.1")
         //- | Charge: {{charge}}
@@ -76,15 +136,76 @@ html
           {{opt.pos[opt.curGen][0]}} {{opt.pos[opt.curGen][0] === 1 ? 'child' : 'children' }} + {{opt.pos[opt.curGen][1]}} {{opt.pos[opt.curGen][1] === 1 ? 'adult' : 'adults' }} = {{opt.pos[opt.curGen][0] + opt.pos[opt.curGen][1]}}
           fibonacci-sequence
 
+        :markdown
+          As you can see, the system goes toward the grey line, which is an eigenspace of the matrix.
+
+          ###Markov Chains
+
+          Suppose that, every year, X% of New Yorkers move to California and Y% of Californians move to New York. Drag the circles to decide these percentages and the number starting in each state.
+
     section(ng-controller="MigrationCtrl")
       sf-to-ny-migration-map
+      p
+        :markdown
+          To understand the system better, we can start by writing it in matrix terms like:
+
+      script(type="math/tex; mode=display").
+          \begin{eqnarray}
+           v_{t+1} &          = &  Av_t
+          \\
+          \begin{pmatrix}
+            \text{New York}_{t+1} \\ \text{California}_{t+1}
+          \end{pmatrix}  
+          &=&
+          \begin{pmatrix}
+            1-p & p \\
+            q & 1-q
+          \end{pmatrix}
+          \cdot 
+          \begin{pmatrix}
+            \text{New York}_{t} \\
+            \text{California}_{t}
+          \end{pmatrix}
+                \end{eqnarray}
+
+      p
+        :markdown
+          It turns out that a matrix like $A$, whose rows add up to zero (try it!), is called a [Markov matrix](http://www.math.harvard.edu/~knill/teaching/math19b_2011/handouts/lecture33.pdf), and it always has $\lambda = 1$ as an eigenvalue. That means there's a value of $v_t$ for which $Av_t =\lambda v_t = 1 v_t = v_t$. At this "steady state," the number of New Yorkers moving to California exactly equals the number moving from California to New York, and the two populations stay the same forever. Hover over the animation to see the system go to the steady state.
+
       div(ng-controller="StochasticMatrixMultiplicationCtrl" style="position:relative")
         migration(style="width:70%;float:left")
         stochastic-matrix-multiplication(style="width:30%;float:left")
       div(style="clear:both")
+
+      :markdown
+        #Complex eigenvalues
+
+        So far we've only looked at systems with __real__ eigenvalues. But looking at the equation  $ Av = \lambda v$, who's to say $\lambda$ and $v$ can't have some imaginary part? For example, you can verify that
+
+      script(type="math/tex; mode=display").
+          \begin{pmatrix}
+            1 & 1 \\
+            -1 & 1
+          \end{pmatrix}
+          \cdot
+          \begin{pmatrix}
+            1 \\ i
+          \end{pmatrix}
+          =
+          (1+i)
+          \cdot
+          \begin{pmatrix}
+            1 \\ i
+          \end{pmatrix}.
+
+      :markdown
+        Here, $1+i$ is an eigenvalue and $(1, i)$ is an eigenvector. 
+
+        Whenever a matrix has complex eigenvalues, the system it describes will spiral around $(0,0)$. To see this, drag $A$'s columns (the arrows) around until you get a spiral. The eigenvalues are plotted in the real/imaginary plane to the right. You'll see that whenever the eigenvalues have an imaginary part, the system spirals, no matter where you start things off.
+
     section(ng-controller="FourQuadCtrl")
       | steps:
-      input(type="range" min="2" max="50" ng-model="opt.n")
+      input(type="range" min="2" max="100" ng-model="opt.n")
       four-quad-plot
     br
     br
