@@ -389,3 +389,52 @@ myApp.directive('ev5Thumb', function() {
   }
   return { link: link, restrict: 'E' }
 })
+
+myApp.directive('ev6Thumb', function() {
+  function link(scope, el, attr) {
+    var sel = d3.select(el[0])
+    var w = sel.node().clientWidth, h = sel.node().clientHeight
+    var svg = sel.append('svg').attr({width: w, height: h})
+    var m = { l: 220, t: 10, r: 10, b: 10 }
+    var mat = [ [0.8, 0], [0, 0.5] ]
+    var g = svg.append('g').attr('transform', 'translate(' + [ w * 0.4, h * 0.2] + ')')
+    // g.append('circle').attr('r', 4)
+    var n = 15, p0 = vector([560, 80]), prev = p0
+    var samples = updateSamples(p0, mat, n)
+
+    var path = g.append('path')
+      .attr('d', 'M' + samples.join('L'))
+      .style('fill', 'none')
+      .style('stroke-width', '4')
+      .style('stroke', 'rgba(0, 0, 0, 0.2)')
+      .style('stroke-dasharray', '2, 2')
+
+    var points = g.append('g').attr('class', 'points').selectAll('circle')
+      .data(samples).enter().append('circle')
+        .attr('r', 4)
+        .attr('transform', function(d) { return 'translate(' + d + ')' })
+        .style('fill', '#e74c3c')
+    svg.on('mouseenter', function() {
+      samples = updateSamples(p0, [ [0.8, 0], [0, -0.7] ], n)
+      transition()
+    })
+    svg.on('mouseleave', function() {
+      samples = updateSamples(p0, mat, n)
+      transition()
+    })
+
+    function transition() {
+      points.data(samples)
+        .transition()
+        .attr('transform', function(d) { return 'translate(' + d + ')' })
+      path.transition()
+        .attr('d', 'M' + samples.join('L'))
+    }
+  }
+  function updateSamples(p, mat, n) {
+    var prev = p
+    return [p].concat(d3.range(n - 1)
+      .map(function(i) { return prev = prev.matrixMulti(mat) }))
+  }
+  return { link: link, restrict: 'E' }
+})
