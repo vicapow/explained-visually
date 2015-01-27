@@ -473,7 +473,7 @@ myApp.directive('kernelPlayground', function() {
     el = d3.select(el[0])
     var w = 1000, h = 400, mode = 'image', didLoadImage = false, img
     var vw, vh, vs, sw, sh, data1 = [], data2 = [], didLoadVideo = false
-    var vidBtn, localMediaStream
+    var vidBtn, localMediaStream, imgBinary, src
 
 
     var iFile = el.append('input').attr({
@@ -487,7 +487,13 @@ myApp.directive('kernelPlayground', function() {
       if (!file) return
       var reader = new FileReader()
       reader.onload = function(e) {
-        loadImage(e.target.result /*data url*/)
+        src = e.target.result /* data url */
+        reader = new FileReader()
+        reader.onload = function(e) {
+          imgBinary = e.target.result
+          loadImage(src)
+        }
+        reader.readAsArrayBuffer(file)
       }
       reader.readAsDataURL(file)
     }, false)
@@ -584,6 +590,13 @@ myApp.directive('kernelPlayground', function() {
       ctx.save()
       ctx.translate(x_off, h / 2 - vh * vs / 2)
       ctx.scale(vs, vs)
+      if (imgBinary) {
+        var exif = EXIF.readFromBinaryFile(imgBinary)
+        var orient = exif.Orientation
+        if (orient === 8) ctx.rotate( 90 * Math.PI / 180)
+        if (orient === 3) ctx.rotate( 180 * Math.PI / 180)
+        if (orient === 6) ctx.rotate( -90 * Math.PI / 180)
+      }
       ctx.drawImage(img, 0, 0)
       var dw = Math.round(vw * vs), dh = Math.round(vh * vs)
       var idata = ctx.getImageData(x_off, 0, dw, dh)
