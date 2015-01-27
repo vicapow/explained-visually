@@ -6,6 +6,7 @@ html
     include ../../templates/head
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
+    link(href='http://fonts.googleapis.com/css?family=Libre+Baskerville' rel='stylesheet' type='text/css')
   body(ng-app="myApp" ng-controller="MainCtrl")
     section.menu
       a(href=basepath) Back
@@ -24,24 +25,43 @@ html
 
       p
         :markdown
-          A kernel is a small matrix used to apply image effects like the ones you might find in Photoshop or Instgram. From them we can create the effects of blurring, sharpening, outlining or embossing. They're also used in machine learning for 'feature extraction', a technique for determining the most important portions of an image. In this context the process is referred to more generally as "convolution" (see: [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network).)
+          An image kernel is a small matrix used to apply effects like the ones you might find in Photoshop or Instgram, such as blurring, sharpening, outlining or embossing. They're also used in machine learning for 'feature extraction', a technique for determining the most important portions of an image. In this context the process is referred to more generally as "convolution" (see: [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network).)
           
-          Let's start out with just black and white images. These images are matrices or grids of numbers that go from 0 to 255. Here's a simple, 32x32 grid of numbers to the left and their visual representation as pixels beside it. The image is enlarged to make it easier to see. The last image is the "real" size of the image using actual computer screen pixels.
+          To see how they work, let's start by inspecting a black and white image. The matrix on the left contains numbers, between 0 and 255, which each encode the darkness of one pixel in a picture of my face.  The large, granulated picture has been blown up to make it easier to see; the last image is the "real" size.
 
       p
         image-as-matrix
 
         :markdown
-          To calculate the value of a pixel after the kernel is about the same for every pixel. A single pixel in the new image is computed from the pixel values from the old image that used to be directly adjacent or diagonal to it multiplied by their corresponding kernel values. Click any pixel on the original image to the left to how it's new image value is computed in the image on the right.
+          Now let's apply an image kernel, which is the 3x3 matrix below. For each 3x3 block of pixels in the image on the left, we multiply each pixel by the corresponding entry of the kernel and then take the sum. That sum becomes a new pixel in the image on the right. Hover over any pixel on the original image to see how its value is computed. As you can see, the kernel is a "sharpen" filter.
 
-        kernel-inspect
+        div(style="position:relative")
+          kernel-inspect
+          div(style="display:block; position: absolute;top:360px; left: 450px")
+            select(ng-options="key as key for (key, value) in kernels" ng-model="selectedKernel")
 
         :markdown
-          This kernel above is a blur filter because it takes a part of all the surrounding pixels to compute the new pixel value.
-
           On subtly of this process is what to do along the edges of the image. For example, the top left corner of the image only has three neighbors. One way to fix this is to extend the edge values out by one in the original image but keep while keeping our new image the same size.
 
           Here's a playground were you can select different kernel matrices and see how they effect the original image or build your own kernel. You can also upload your own image.
+
+        div(style="position:relative")
+          div(style="display: block; position:absolute; width: 260px;height:260px; top: 85px; left: 65px;")
+            div(style="display: block; width: 33.33%; height: 33.33%; float: left;" ng-repeat="(idx, val) in kernel track by $id(idx)")
+              input(
+                style="width:100%;height: 100%;font-size: 20px;text-align:center"
+                type="number"
+                ng-model="kernel[idx]"
+                min="-10"
+                max="10"
+                step="0.1"
+                ng-change="modifiedKernel()")
+          div(style="display:block; position: absolute;top:360px; left: 145px")
+            select(ng-options="key as key for (key, value) in kernels"
+              ng-model="selectedKernel")
+
+          kernel-playground
+
     if !dev
       +footer
       +disqus
