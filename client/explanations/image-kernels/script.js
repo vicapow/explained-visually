@@ -514,7 +514,7 @@ myApp.directive('kernelPlayground', function() {
       img.src = src
     }
 
-    loadImage('/ev/image-kernels/resources/library.png')
+    loadImage('/ev/image-kernels/resources/library.jpg')
 
 
     navigator.getUserMedia = (navigator.getUserMedia
