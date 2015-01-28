@@ -47,7 +47,7 @@ myApp.controller('MainCtrl', function($scope) {
      0, -1,  0
   ]
 
-  $scope.kernels.emboss = [
+  $scope.kernels['bottom left emboss'] = [
     -2, -1, 0,
     -1,  1, 1,
      0,  1, 2
@@ -533,7 +533,8 @@ myApp.directive('kernelPlayground', function() {
     function loadVideo() {
       if (mode === 'video') return
 
-      var video = el.append('video').attr('autoplay', 'autoplay')
+      var video = el.append('video')
+        .attr('autoplay', 'autoplay')
         .style('display', 'none')
 
       navigator.getUserMedia({video: true}, function(stream) {
@@ -582,60 +583,64 @@ myApp.directive('kernelPlayground', function() {
           }
           ctx.putImageData(idata, x_off, 0)
           ctx.restore()
-          // return false
+          return false
         })
       }
     }
 
     function drawImage() {
+      console.log('draw image')
       var x_off = w - cw
       var iw = vw * vs, ih = vh * vs
       ctx.clearRect(0, 0, w, h)
+      // ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
+      // ctx.fillRect(0, 0, w, h)
+      // ctx.fillRect(x_off, 0, cw, ch)
       ctx.save()
       var tl = [0, 0], br = [0, 0], bb = [0, 0]
 
       var orient = imgBinary && EXIF.readFromBinaryFile(imgBinary).Orientation
-      if (orient === 8) {
+      console.log('orient', orient)
+      if (orient === 6) {
         // Rotate 90 degrees.
-        sw = ch / vw, sh = cw / vh, vs = sw < sh ? sw : sh
-        tl = [x_off + cw / 2 + vh * vs / 2, ch / 2 - vw * vs / 2]
-        bb = [vh * vs, vw * vs]
-        ctx.translate(tl[0], tl[1])
-        ctx.scale(vs, vs)
+        sw = cw / vh, sh = ch / vw, vs = sw < sh ? sw : sh
+        iw = vh * vs, ih = vw * vs
+        tl = [x_off + cw / 2 - iw / 2, ch / 2 - ih / 2]
+        bb = [iw, ih]
+        ctx.translate(tl[0] + iw, tl[1])
         ctx.rotate(90 * Math.PI / 180)
+        ctx.scale(vs, vs)
       } else if (orient === 3) {
         // Rotate 180 degrees.
-        sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
-        tl = [x_off + vw * vs + cw / 2 - vw * vs / 2, vh * vs]
-        bb = [vw * vs, vh * vs]
-        ctx.translate(tl[0], tl[1])
+        tl = [x_off + cw / 2 - iw / 2, ch / 2 - ih / 2]
+        bb = [iw, ih]
+        ctx.translate(tl[0] + iw, tl[1] + ih)
         ctx.scale(vs, vs)
         ctx.rotate(180 * Math.PI / 180)
-      } else if (orient === 6) {
-        // Rotate -90
-        sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
-        tl = [x_off + cw / 2 - vh * vs / 2, vw * vs + ch / 2 - vw * vs / 2]
-        bb = [vh * vs, vw * vs]
-        ctx.translate(tl[0], tl[1])
-        ctx.scale(vs, vs)
+      } else if (orient === 8) {
+        // Rotate -90 degrees.
+        sw = cw / vh, sh = ch / vw, vs = sw < sh ? sw : sh
+        iw = vh * vs, ih = vw * vs
+        tl = [x_off + cw / 2 - iw / 2, ch / 2 - ih / 2]
+        bb = [iw, ih]
+        ctx.translate(tl[0], tl[1] + ih)
         ctx.rotate(-90 * Math.PI / 180)
+        ctx.scale(vs, vs)
       } else {
         // No rotation.
-        tl = [x_off + cw / 2 - vw * vs / 2, ch / 2 - vh * vs / 2]
-        bb = [vw * vs, vh * vs]
+        tl = [x_off + cw / 2 - iw / 2, ch / 2 - ih / 2]
+        bb = [iw, ih]
         ctx.translate(tl[0], tl[1])
         ctx.scale(vs, vs)
       }
 
       ctx.drawImage(img, 0, 0)
 
-      ctx.restore()
-
       var dw = Math.round(vw * vs), dh = Math.round(vh * vs)
-      var idata = ctx.getImageData(tl[0], tl[1], bb[0], bb[1])
+      var idata = ctx.getImageData(tl[0], tl[1], iw, ih)
       dw = idata.width, dh = idata.height
       var d1 = idata.data
-      ctx.clearRect(-1, 0, vw + 2, vh)
+      ctx.clearRect(0, 0, iw, ih)
       for(var i =  0; i < d1.length / 4; i++) data1[i] = d1[i * 4]
       var k = scope.kernel.map(function(d) { return +d })
       scope.kernelFunc(data1, dw, dh, k, data2)
@@ -647,6 +652,9 @@ myApp.directive('kernelPlayground', function() {
         idata.data[i + 3] = 255
       }
       ctx.putImageData(idata, tl[0], tl[1])
+
+      ctx.restore()
+
     }
 
     scope.$watch('kernel', function() {
@@ -656,3 +664,4 @@ myApp.directive('kernelPlayground', function() {
   }
   return { link: link, restrict: 'E' }
 })
+console.log('hello world!')
