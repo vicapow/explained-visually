@@ -591,10 +591,6 @@ myApp.directive('kernelPlayground', function() {
       var x_off = w - cw
       var iw = vw * vs, ih = vh * vs
       ctx.clearRect(0, 0, w, h)
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
-      ctx.fillRect(0, 0, w, h)
-      ctx.fillStyle = 'black'
-      ctx.fillRect(x_off, 0, cw, ch)
       ctx.save()
       var tl = [0, 0], br = [0, 0], bb = [0, 0]
 
