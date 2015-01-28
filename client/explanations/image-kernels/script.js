@@ -472,9 +472,10 @@ myApp.directive('kernelPlayground', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])
     var w = 1000, h = 400, mode = 'image', didLoadImage = false, img
-    var vw, vh, vs, sw, sh, data1 = [], data2 = [], didLoadVideo = false
+    var vw, vh, vs, sw, sh, vx, vy
+    var data1 = [], data2 = [], didLoadVideo = false
     var vidBtn, localMediaStream, imgBinary, src
-
+    var cw = 500, ch = 400
 
     var iFile = el.append('input').attr({
       type: 'file',
@@ -505,14 +506,15 @@ myApp.directive('kernelPlayground', function() {
       didLoadImage = false
       img.onload = function() {
         vw = img.width, vh = img.height
-        sw = w / vw, sh = h / vh, vs = sw < sh ? sw : sh
+        sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
+        vx = (ch - vs * vw) / 2, vy = (cw - vs * vh) / 2
         didLoadImage = true
         if (scope.kernel) drawImage()
       }
       img.src = src
     }
 
-    loadImage('/ev/image-kernels/resources/library.jpg')
+    loadImage('/ev/image-kernels/resources/paper.jpg')
 
 
     navigator.getUserMedia = (navigator.getUserMedia
@@ -543,7 +545,8 @@ myApp.directive('kernelPlayground', function() {
             didLoadVideo = true
             mode = 'video'
             vw = video.node().videoWidth, vh = video.node().videoHeight
-            sw = w / vw, sh = h / vh, vs = sw < sh ? sw : sh
+            sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
+            ctx.clearRect(0, 0, w, h)
             startTimer()
           }, 100)
         }
@@ -557,9 +560,9 @@ myApp.directive('kernelPlayground', function() {
         d3.timer(function() {
           if (mode === 'image') return true
           if (!localMediaStream || !didLoadVideo) return false
-          var x_off = w / 2 - vw * vs / 2 + 200
+          var x_off = w - cw
           ctx.save()
-          ctx.translate(x_off, h / 2 - vh * vs / 2)
+          ctx.translate(x_off, 0)
           ctx.scale(vs, vs)
           ctx.drawImage(video.node(), 0, 0)
           var dw = Math.round(vw * vs), dh = Math.round(vh * vs)
@@ -579,27 +582,61 @@ myApp.directive('kernelPlayground', function() {
           }
           ctx.putImageData(idata, x_off, 0)
           ctx.restore()
-          return false
+          // return false
         })
       }
     }
 
     function drawImage() {
-      var x_off = w / 2 - vw * vs / 2 + 200
+      var x_off = w - cw
+      var iw = vw * vs, ih = vh * vs
       ctx.clearRect(0, 0, w, h)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+      ctx.fillRect(0, 0, w, h)
+      ctx.fillStyle = 'black'
+      ctx.fillRect(x_off, 0, cw, ch)
       ctx.save()
-      ctx.translate(x_off, h / 2 - vh * vs / 2)
-      ctx.scale(vs, vs)
-      if (imgBinary) {
-        var exif = EXIF.readFromBinaryFile(imgBinary)
-        var orient = exif.Orientation
-        if (orient === 8) ctx.rotate( 90 * Math.PI / 180)
-        if (orient === 3) ctx.rotate( 180 * Math.PI / 180)
-        if (orient === 6) ctx.rotate( -90 * Math.PI / 180)
+      var tl = [0, 0], br = [0, 0], bb = [0, 0]
+
+      var orient = imgBinary && EXIF.readFromBinaryFile(imgBinary).Orientation
+      if (orient === 8) {
+        // Rotate 90 degrees.
+        sw = ch / vw, sh = cw / vh, vs = sw < sh ? sw : sh
+        tl = [x_off + cw / 2 + vh * vs / 2, ch / 2 - vw * vs / 2]
+        bb = [vh * vs, vw * vs]
+        ctx.translate(tl[0], tl[1])
+        ctx.scale(vs, vs)
+        ctx.rotate(90 * Math.PI / 180)
+      } else if (orient === 3) {
+        // Rotate 180 degrees.
+        sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
+        tl = [x_off + vw * vs + cw / 2 - vw * vs / 2, vh * vs]
+        bb = [vw * vs, vh * vs]
+        ctx.translate(tl[0], tl[1])
+        ctx.scale(vs, vs)
+        ctx.rotate(180 * Math.PI / 180)
+      } else if (orient === 6) {
+        // Rotate -90
+        sw = cw / vw, sh = ch / vh, vs = sw < sh ? sw : sh
+        tl = [x_off + cw / 2 - vh * vs / 2, vw * vs + ch / 2 - vw * vs / 2]
+        bb = [vh * vs, vw * vs]
+        ctx.translate(tl[0], tl[1])
+        ctx.scale(vs, vs)
+        ctx.rotate(-90 * Math.PI / 180)
+      } else {
+        // No rotation.
+        tl = [x_off + cw / 2 - vw * vs / 2, ch / 2 - vh * vs / 2]
+        bb = [vw * vs, vh * vs]
+        ctx.translate(tl[0], tl[1])
+        ctx.scale(vs, vs)
       }
+
       ctx.drawImage(img, 0, 0)
+
+      ctx.restore()
+
       var dw = Math.round(vw * vs), dh = Math.round(vh * vs)
-      var idata = ctx.getImageData(x_off, 0, dw, dh)
+      var idata = ctx.getImageData(tl[0], tl[1], bb[0], bb[1])
       dw = idata.width, dh = idata.height
       var d1 = idata.data
       ctx.clearRect(-1, 0, vw + 2, vh)
@@ -613,8 +650,7 @@ myApp.directive('kernelPlayground', function() {
         idata.data[i + 2] = data2[i / 4]
         idata.data[i + 3] = 255
       }
-      ctx.putImageData(idata, x_off, 0)
-      ctx.restore()
+      ctx.putImageData(idata, tl[0], tl[1])
     }
 
     scope.$watch('kernel', function() {
