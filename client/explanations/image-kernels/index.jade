@@ -31,19 +31,27 @@ html
 
       p
         image-as-matrix
-
+      p
+        | Let's walk through applying the following 3x3
+        b  {{selectedKernel}} 
+        | kernel to the image.
+      p
+        kernel-matrix
+      p
         :markdown
-          Now let's apply an image kernel, which is the 3x3 matrix below. For each 3x3 block of pixels in the image on the left, we multiply each pixel by the corresponding entry of the kernel and then take the sum. That sum becomes a new pixel in the image on the right. Hover over any pixel on the original image to see how its value is computed. As you can see, the kernel is a "sharpen" filter.
+          Below, for each 3x3 block of pixels in the image on the left, we multiply each pixel by the corresponding entry of the kernel and then take the sum. That sum becomes a new pixel in the image on the right. Hover over a pixel on either image to see how its value is computed.
 
         div(style="position:relative")
           kernel-inspect
+
           div(style="display:block; position: absolute;top:360px; left: 450px")
-            select(ng-options="key as key for (key, value) in kernels" ng-model="selectedKernel")
+            select(ng-options="key as key for (key, value) in selectableKernels"
+              ng-model="selectedKernel")
 
         :markdown
-          On subtly of this process is what to do along the edges of the image. For example, the top left corner of the image only has three neighbors. One way to fix this is to extend the edge values out by one in the original image but keep while keeping our new image the same size.
+          One subtly of this process is what to do along the edges of the image. For example, the top left corner of the input image only has three neighbors. One way to fix this is to extend the edge values out by one in the original image while keeping our new image the same size. In this demo, we've instead ignored those values by making them black.
 
-          Here's a playground were you can select different kernel matrices and see how they effect the original image or build your own kernel. You can also upload your own image.
+          Here's a playground were you can select different kernel matrices and see how they effect the original image or build your own kernel. You can also upload your own image or use live video if your browser supports it.
 
         div(style="position:relative")
           div(style="display: block; position:absolute; width: 260px;height:260px; top: 85px; left: 65px;")
@@ -61,6 +69,35 @@ html
               ng-model="selectedKernel")
 
           kernel-playground
+
+      p
+        div(ng-show="selectedKernel === 'sharpen'")
+          :markdown
+            The __sharpen__ kernel emphasizes differences in adjacent pixel values.
+
+        div(ng-show="selectedKernel === 'blur'")
+          :markdown
+            The __blur__ kernel de-emphasizes differences in adjacent pixel values.
+
+        div(ng-show="selectedKernel.indexOf('emboss') !== -1")
+          :markdown
+            The __emboss__ kernel (similar to the __sobel__ kernel and sometimes referred to mean the same) givens the illusion of depth by emphasizing the differences of pixels in a given direction. In this case, in a direction along a line from the top left to the bottom right.
+
+        div(ng-show="selectedKernel === 'identity'")
+          :markdown
+            The __indentity__ kernel leaves the image unchanged. How boring!
+
+        div(ng-show="selectedKernel === 'custom'")
+          :markdown
+            The __custom__ kernel is whatever you make it.
+
+        div(ng-show="selectedKernel.indexOf('sobel') !== -1")
+          :markdown
+            __sobel__ kernels are used to show _only_ the differences in adjacent pixel values in a particular direction.
+
+        div(ng-show="selectedKernel === 'outline'")
+          :markdown
+            An __outline__ kernel (also called an "edge" kernel) is used to highlight large differences in pixel values. A pixel next to neighbor pixels with close to the same intensity will appear black in the new image while one next to neighbor pixels that differ strongly will appear white.
 
     if !dev
       +footer

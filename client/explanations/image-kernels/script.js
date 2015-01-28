@@ -47,8 +47,8 @@ myApp.controller('MainCtrl', function($scope) {
      0, -1,  0
   ]
 
-  $scope.kernels['bottom left emboss'] = [
-    -2, -1, 0,
+  $scope.kernels['emboss'] = [
+    -2,  -1, 0,
     -1,  1, 1,
      0,  1, 2
   ]
@@ -92,7 +92,11 @@ myApp.controller('MainCtrl', function($scope) {
   // $scope.kernel = kBlur
   $scope.kernel = $scope.kernels.sharpen
   $scope.kernelTypes = Object.keys($scope.kernels)
-  $scope.selectedKernel = $scope.kernelTypes[0]
+  $scope.selectableKernels = {}
+  $scope.kernelTypes
+    .filter(function(d) { return d !== 'custom' })
+    .forEach(function(d) { $scope.selectableKernels[d] = $scope.kernels[d] })
+  $scope.selectedKernel = 'sharpen'
 
   $scope.modifiedKernel = function() {
     $scope.kernels.custom = $scope.kernel.slice(0)
@@ -166,6 +170,49 @@ myApp.directive('imageAsMatrix', function() {
       display: 'block'
     })
 
+    var lClickG = svg.append('g')
+      .attr('transform', 'translate(' + [440, 8] + ')')
+    lClickG.append('rect')
+      .attr({width: 32 * 12, height: 32 * 12})
+      .style('fill', 'rgba(0, 0, 0, 0.0)')
+      .style('cursor', 'none')
+
+    var lRec = lClickG.append('rect').attr({width: 12, height: 12})
+      .style('stroke', 'red')
+      .style('fill', 'none')
+      .style('pointer-events', 'none')
+
+    var rClickG = svg.append('g')
+      .attr('transform', 'translate(' + [10, 8] + ')')
+    rClickG.append('rect')
+      .attr({width: 32 * 12, height: 32 * 12 })
+      .style('fill', 'rgba(0, 0, 0, 0.0)')
+      .style('cursor', 'none')
+
+    var rRec = rClickG.append('rect').attr({width: 12, height: 12})
+      .style('stroke', 'red')
+      .style('fill', 'none')
+      .style('pointer-events', 'none')
+
+    var drag = d3.behavior.drag()
+      .on('drag', mouseover)
+
+    lClickG.on('mousemove', mouseover).call(drag)
+    rClickG.on('mousemove', mouseover).call(drag)
+
+    function mouseover(d) {
+      var p = d3.mouse(this)
+      var px = scope.d1SelPixel
+      if (!px) return
+      var j = Math.floor(p[0] / 12)
+      var i = Math.floor(p[1] / 12)
+      if (i < 0 || j < 0) return
+      if (i > 32 || j > 32) return
+      // no change!
+      if (px[0] === i && px[1] === j) return
+      scope.$apply(function() { scope.d1SelPixel = [i, j] })
+    }
+
     var ctx = canvas.node().getContext('2d')
 
     scope.$watch('data1', function(data) {
@@ -175,6 +222,12 @@ myApp.directive('imageAsMatrix', function() {
       drawEnlarged(data)
       drawEnlargedText(data)
       drawRegular(data)
+    })
+
+    scope.$watch('d1SelPixel', function(p) {
+      if (!p) return
+      lRec.attr('transform', 'translate(' + [p[1] * 12, p[0] * 12] + ')')
+      rRec.attr('transform', 'translate(' + [p[1] * 12, p[0] * 12] + ')')
     })
 
     function drawEnlarged(data) {
@@ -206,7 +259,6 @@ myApp.directive('imageAsMatrix', function() {
         ctx.fillText('' + data[i], (i % iw) * rw + lf + tx, Math.floor(i / ih) * rh + tf + ty)
       }
     }
-
   }
   return { link: link, restrict: 'E' }
 })
@@ -589,7 +641,6 @@ myApp.directive('kernelPlayground', function() {
     }
 
     function drawImage() {
-      console.log('draw image')
       var x_off = w - cw
       var iw = vw * vs, ih = vh * vs
       ctx.clearRect(0, 0, w, h)
@@ -600,7 +651,6 @@ myApp.directive('kernelPlayground', function() {
       var tl = [0, 0], br = [0, 0], bb = [0, 0]
 
       var orient = imgBinary && EXIF.readFromBinaryFile(imgBinary).Orientation
-      console.log('orient', orient)
       if (orient === 6) {
         // Rotate 90 degrees.
         sw = cw / vh, sh = ch / vw, vs = sw < sh ? sw : sh
@@ -664,4 +714,54 @@ myApp.directive('kernelPlayground', function() {
   }
   return { link: link, restrict: 'E' }
 })
-console.log('hello world!')
+
+
+myApp.directive('kernelMatrix', function() {
+  function link(scope, el, attr) {
+    var el = d3.select(el[0]).style('display', 'block')
+    var w = 1000, h = 200
+    var svg = el.append('svg')
+    svg.attr({width: w, height: h})
+      // .style('background-color', 'rgba(0, 0, 0, 0.5)')
+    var ox = d3.scale.ordinal()
+      .domain(d3.range(3))
+      .rangePoints([-100, 100], 1)
+    var oy = d3.scale.ordinal()
+      .domain(d3.range(3))
+      .rangePoints([-100, 100], 1)
+    var stage = svg.append('g')
+      .attr('transform', 'translate(' + [w / 2, h / 2] + ')')
+
+    var data = d3.range(3).map(function(i) {
+      return d3.range(3).map(function(j) { return [i, j] })
+    }).reduce(function(p, c) { return p.concat(c) }, [])
+
+    var dots = stage.selectAll('g').data(data)
+    var ent = dots.enter().append('g')
+    ent.attr('transform', function(d) {
+      return 'translate(' + [ox(d[0]), oy(d[1])] + ')'
+    })
+    var text = ent.append('text').attr('transform', 'translate(0, 6)')
+      .style('font-family', 'STIX-Regular')
+      .style('text-anchor', 'middle')
+      .style('font-size', 30)
+
+    stage.append('text').text(')')
+      .style('font-size', 180)
+      .style('font-family', 'STIX-Regular')
+      .style('text-anchor', 'start')
+      .attr('transform', 'translate(90, 40)')
+
+    stage.append('text').text('(')
+      .style('font-size', 180)
+      .style('font-family', 'STIX-Regular')
+      .style('text-anchor', 'end')
+      .attr('transform', 'translate(-90, 40)')
+
+    scope.$watch('kernel', function(kernel) {
+      kernel.forEach(function(k, i) { data[i][2] = k })
+      text.text(function(d) { return d[2] })
+    })
+  }
+  return { link: link, restrict: 'E' }
+})
