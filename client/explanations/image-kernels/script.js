@@ -24,7 +24,7 @@ myApp.controller('MainCtrl', function($scope) {
       canvas.remove()
     })
   }
-  img.src = '/ev/image-kernels/resources/me.png'
+  img.src = '/ev/image-kernels/resources/lxe.jpg'
 
   $scope.kernels = {}
 
