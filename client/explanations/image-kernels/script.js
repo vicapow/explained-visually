@@ -107,6 +107,9 @@ myApp.controller('MainCtrl', function($scope) {
 
   $scope.$watch('selectedKernel', function() {
     $scope.kernel = $scope.kernels[$scope.selectedKernel].slice(0)
+  }, true)
+
+  $scope.$watch('kernel', function() {
     updateData2()
   }, true)
 
@@ -267,7 +270,7 @@ myApp.directive('kernelInspect', function() {
   function link(scope, el, attr) {
     var m = { t: 10, l: 10, r: 10, b: 10 }, w = 1000
     var pw = 12, ph = 12
-    var h = (32) * ph + 30
+    var h = 32 * ph + 30
     var iw = 32, ih = iw // image width and height
     el = d3.select(el[0])
     var canvas = el.append('canvas')
@@ -287,6 +290,7 @@ myApp.directive('kernelInspect', function() {
 
     ;[svg, canvas].map(function(d) { d.attr({width: w, height: h}) })
     ;[svg, canvas].map(function(d) { d.style('position', 'absolute')})
+
     el.style({
       position: 'relative',
       width: w + 'px', height: h + 'px',
@@ -387,13 +391,13 @@ myApp.directive('kernelInspect', function() {
       .style('stroke-dasharray', '2, 2')
 
     svgMat.append('text')
-      .attr('transform', 'translate(' + [-105, -60] + ')')
+      .attr('transform', 'translate(' + [-115, -60] + ')')
       .style('font-family', 'STIX-Regular')
       .style('font-size', '80px')
       .text('(')
 
     svgMat.append('text')
-      .attr('transform', 'translate(' + [80, 100] + ')')
+      .attr('transform', 'translate(' + [90, 100] + ')')
       .style('font-family', 'STIX-Regular')
       .style('font-size', '80px')
       .text(')')
@@ -470,7 +474,7 @@ myApp.directive('kernelInspect', function() {
     })
 
     scope.$watch('kernel', function() {
-      if (!scope.data1 || !scope.d1SelPixel) return
+      if (!scope.data1) return
       drawMat(scope.data1, scope.d1SelPixel)
     }, true)
 
@@ -573,10 +577,10 @@ myApp.directive('kernelPlayground', function() {
       || navigator.webkitGetUserMedia
       || navigator.mozGetUserMedia
       || navigator.msGetUserMedia)
-    if (navigator.getUserMedia) vidBtn = el.append('button').text('Live video')
-      .on('click', function() {
-        loadVideo()
-      })
+    if (navigator.getUserMedia) {
+      vidBtn = el.append('button').text('Live video')
+        .on('click', loadVideo)
+    }
 
     var canvas = el.append('canvas').attr({width: w, height: h})
     var ctx = canvas.node().getContext('2d')
@@ -725,7 +729,7 @@ myApp.directive('kernelMatrix', function() {
       // .style('background-color', 'rgba(0, 0, 0, 0.5)')
     var ox = d3.scale.ordinal()
       .domain(d3.range(3))
-      .rangePoints([-100, 100], 1)
+      .rangePoints([-135, 135], 1)
     var oy = d3.scale.ordinal()
       .domain(d3.range(3))
       .rangePoints([-100, 100], 1)
@@ -733,7 +737,7 @@ myApp.directive('kernelMatrix', function() {
       .attr('transform', 'translate(' + [w / 2, h / 2] + ')')
 
     var data = d3.range(3).map(function(i) {
-      return d3.range(3).map(function(j) { return [i, j] })
+      return d3.range(3).map(function(j) { return [j, i] })
     }).reduce(function(p, c) { return p.concat(c) }, [])
 
     var dots = stage.selectAll('g').data(data)
@@ -746,22 +750,24 @@ myApp.directive('kernelMatrix', function() {
       .style('text-anchor', 'middle')
       .style('font-size', 30)
 
-    stage.append('text').text(')')
+    stage.append('text')
       .style('font-size', 180)
       .style('font-family', 'STIX-Regular')
       .style('text-anchor', 'start')
-      .attr('transform', 'translate(90, 40)')
+      .attr('transform', 'translate(130, 40)')
+      .text(')')
 
-    stage.append('text').text('(')
+    stage.append('text')
       .style('font-size', 180)
       .style('font-family', 'STIX-Regular')
       .style('text-anchor', 'end')
-      .attr('transform', 'translate(-90, 40)')
+      .attr('transform', 'translate(-130, 40)')
+      .text('(')
 
     scope.$watch('kernel', function(kernel) {
       kernel.forEach(function(k, i) { data[i][2] = k })
       text.text(function(d) { return d[2] })
-    })
+    }, true)
   }
   return { link: link, restrict: 'E' }
 })

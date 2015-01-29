@@ -25,17 +25,20 @@ html
 
       p
         :markdown
-          An image kernel is a small matrix used to apply effects like the ones you might find in Photoshop or Instagram, such as blurring, sharpening, outlining or embossing. They're also used in machine learning for 'feature extraction', a technique for determining the most important portions of an image. In this context the process is referred to more generally as "convolution" (see: [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network).)
+          An image kernel is a small matrix used to apply effects like the ones you might find in Photoshop or Gimp, such as blurring, sharpening, outlining or embossing. They're also used in machine learning for 'feature extraction', a technique for determining the most important portions of an image. In this context the process is referred to more generally as "convolution" (see: [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network).)
           
-          To see how they work, let's start by inspecting a black and white image. The matrix on the left contains numbers, between 0 and 255, which each encode the darkness of one pixel in a picture of my face.  The large, granulated picture has been blown up to make it easier to see; the last image is the "real" size.
+          To see how they work, let's start by inspecting a black and white image. The matrix on the left contains numbers, between 0 and 255, which each correspond to the brightness of one pixel in a picture of a face.  The large, granulated picture has been blown up to make it easier to see; the last image is the "real" size.
 
       p
         image-as-matrix
       p
         | Let's walk through applying the following 3x3
         b  {{selectedKernel}} 
-        | kernel to the image.
+        | kernel to the image of a face from above.
       p
+        div(style="width: 100%; text-align: center")
+          select(ng-options="key as key for (key, value) in selectableKernels"
+            ng-model="selectedKernel")
         kernel-matrix
       p
         :markdown
@@ -43,7 +46,6 @@ html
 
         div(style="position:relative")
           kernel-inspect
-
           div(style="display:block; position: absolute;top:360px; left: 450px")
             select(ng-options="key as key for (key, value) in selectableKernels"
               ng-model="selectedKernel")
@@ -73,7 +75,7 @@ html
       p
         div(ng-show="selectedKernel === 'sharpen'")
           :markdown
-            The __sharpen__ kernel emphasizes differences in adjacent pixel values.
+            The __sharpen__ kernel emphasizes differences in adjacent pixel values. This makes the image look more vivid.
 
         div(ng-show="selectedKernel === 'blur'")
           :markdown
@@ -98,7 +100,9 @@ html
         div(ng-show="selectedKernel === 'outline'")
           :markdown
             An __outline__ kernel (also called an "edge" kernel) is used to highlight large differences in pixel values. A pixel next to neighbor pixels with close to the same intensity will appear black in the new image while one next to neighbor pixels that differ strongly will appear white.
-
+      p
+        :markdown
+          For more, have a look at Gimp's excellent documentation on using [Image kernel's](http://docs.gimp.org/en/plug-in-convmatrix.html). You can also apply your own custom filters in Photoshop by going to Filter -> Other -> Custom...
     if !dev
       +footer
       +disqus
