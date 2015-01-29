@@ -75,7 +75,7 @@
       , "subtitle": "Explained Visually"
       , "slug": "eigenvectors-and-eigenvalues"
       , "quip": "No, no. Do it eigen!"
-      , "date": "2014/12/05"
+      , "date": "2015/01/20"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
       , "author2": "Lewis Lehe"
@@ -92,12 +92,11 @@
       , "twitterCreator": "vicapow"
     }
     , {
-        "title": "Image Kernels"
-      , "hideFromHomepage": true
+        "title": "Image kernels"
       , "subtitle": "Explained Visually"
       , "slug": "image-kernels"
-      , "quip": ""
-      , "date": "2014/12/19"
+      , "quip": "The kernel's secret recipe."
+      , "date": "2015/01/29"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
     }
