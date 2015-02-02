@@ -1,0 +1,64 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
+      p
+        :markdown
+          [Put text here.]
+
+    section
+      div(style="text-align: center; width: 100%;")
+        pca-three-plot
+        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.x")
+        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.y")
+        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.z")
+
+    section
+      pca-plot(acc-x="d.pos[0]" acc-y="d.pos[1]")
+      pca-plot(acc-x="d.pos[0]" acc-y="d.pos[2]")
+      pca-plot(acc-x="d.pos[1]" acc-y="d.pos[2]")
+
+
+    if !dev
+      +footer
+      +disqus
+
+  script(type="x-shader/x-vertex" id="vertexshader").
+    attribute float alpha;
+    varying float vAlpha;
+
+    void main() {
+      vAlpha = alpha;
+      vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+      gl_PointSize = 16.0;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+
+  script(type="x-shader/x-fragment" id="fragmentshader").
+    uniform vec3 color;
+    varying float vAlpha;
+    void main() {
+        gl_FragColor = vec4( color, vAlpha );
+    }
+
+  script(src=basepath + "scripts/three.min.js" charset="utf-8")
+  script(src=basepath + "scripts/three.trackball.controls.js" charset="utf-8")
+  script(src=path + "script.js")
