@@ -28,6 +28,11 @@ function pointStyle(g) {
     .style('fill', color.tertiary)
 }
 
+function axisStyle(g) {
+  g.style('shape-rendering', 'crispEdges')
+   .style('font-size', '12px')
+}
+
 function buildNobs(data, scope, coord) {
   var nobs = coord.append('g').attr('class', 'nobs')
     .selectAll('.nob').data(data || []).enter()
@@ -276,21 +281,82 @@ myApp.directive('pcaD1', function() {
     var m = {l: 60, t: 10, r: 60, b: 10}
     var w = 960, h = 200
     svg.attr({width: w, height: h})
-      .style('background-color', 'rgba(0, 0, 0, 0.1)')
+      // .style('background-color', 'rgba(0, 0, 0, 0.1)')
     var pW = 300
     var x = d3.scale.linear().domain([0, 10]).range([-pW / 2,  pW / 2])
+    var xPC = d3.scale.linear().domain([-6, 6]).range([-pW / 2,  pW / 2])
     var xTicks = x.ticks(4)
+    var xTicksPC = xPC.ticks(5)
     var xAxis = d3.svg.axis().scale(x).tickValues(xTicks)
-    var samplesPlot = svg.append('g')
+    var pcAxis = d3.svg.axis().scale(xPC).tickValues(xTicksPC)
+    var oh = d3.scale.ordinal().domain([0, 1]).rangePoints([0, h], 2)
+
+    var samplesPlotX = svg.append('g')
+      .style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
       .attr('transform', function(d) {
-        return 'translate(' + [pW / 2 + m.l, h / 2] + ')'
+        return 'translate(' + [pW / 2 + m.l, oh(0)] + ')'
       })
-    samplesPlot.append('g').call(xAxis)
-      .style('shape-rendering', 'crispEdges')
+    samplesPlotX.append('g').call(xAxis)
+      .call(axisStyle)
+
+    var samplesPlotY= svg.append('g')
+      .style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
       .attr('transform', function(d) {
-        return 'translate(' + [0, 0] + ')'
+        return 'translate(' + [pW / 2 + m.l, oh(1)] + ')'
       })
-    samplesPlot.style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
+
+    samplesPlotY.append('g').call(xAxis)
+      .call(axisStyle)
+
+    var pcPlot1 = svg.append('g')
+      .style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
+      .attr('transform', function(d) {
+        return 'translate(' + [w - pW / 2 - m.l, oh(0)] + ')'
+      })
+
+    pcPlot1.append('g').call(pcAxis).call(axisStyle)
+
+    var pcPlot2 = svg.append('g')
+      .style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
+      .attr('transform', function(d) {
+        return 'translate(' + [w - pW / 2 - m.l, oh(1)] + ')'
+      })
+
+    pcPlot2.append('g').call(pcAxis).call(axisStyle)
+
+    scope.$on('sampleDidUpdate', redrawSamples)
+
+    var pointsX = samplesPlotX.append('g')
+      .selectAll('circle').data(scope.samples).enter().append('circle')
+      .call(pointStyle)
+
+    var pointsY = samplesPlotY.append('g')
+      .selectAll('circle').data(scope.samples).enter().append('circle')
+      .call(pointStyle)
+
+    var pointsPC1 = pcPlot1.append('g')
+      .selectAll('circle').data(scope.pcaSamples).enter().append('circle')
+      .call(pointStyle)
+
+    var pointsPC2 = pcPlot2.append('g')
+      .selectAll('circle').data(scope.pcaSamples).enter().append('circle')
+      .call(pointStyle)
+
+    function redrawSamples() {
+      pointsX.attr('transform', function(d) {
+        return 'translate(' + [x(d.c[0]), 0] + ')'
+      })
+      pointsY.attr('transform', function(d) {
+        return 'translate(' + [x(d.c[1]), 0] + ')'
+      })
+      pointsPC1.data(scope.pcaSamples).attr('transform', function(d) {
+        return 'translate(' + [xPC(d[0]), 0] + ')'
+      })
+      pointsPC2.data(scope.pcaSamples).attr('transform', function(d) {
+        return 'translate(' + [xPC(d[1]), 0] + ')'
+      })
+    }
+    redrawSamples()
   }
   return { link: link, restrict: 'E' }
 })
