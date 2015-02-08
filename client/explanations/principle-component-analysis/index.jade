@@ -26,39 +26,43 @@ html
 
     section
       div(style="text-align: center; width: 100%;")
-        pca-three-plot
-        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.x")
-        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.y")
-        input(type="range" min="-{{pi}}" max="{{pi}}" step="{{pi / 100}}" value="0" ng-model="rot.z")
+        pca-d2
 
     section
-      pca-plot(acc-x="d.pos[0]" acc-y="d.pos[1]")
-      pca-plot(acc-x="d.pos[0]" acc-y="d.pos[2]")
-      pca-plot(acc-x="d.pos[1]" acc-y="d.pos[2]")
-
+      div(style="text-align: center; width: 100%;")
+        pca-d1
 
     if !dev
       +footer
       +disqus
 
-  script(type="x-shader/x-vertex" id="vertexshader").
-    attribute float alpha;
-    varying float vAlpha;
+  // script(type="x-shader/x-vertex" id="vertexshader").
+  //   attribute vec3 color;
+  //   uniform float pointSize;
+  //   varying vec3 vColor;
+  //   void main() {
+  //     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  //     gl_PointSize = pointSize;
+  //     gl_Position = projectionMatrix * mvPosition;
+  //     vColor = color;
+  //   }
 
-    void main() {
-      vAlpha = alpha;
-      vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-      gl_PointSize = 16.0;
-      gl_Position = projectionMatrix * mvPosition;
-    }
+  // script(type="x-shader/x-fragment" id="fragmentshader").
+  //   // uniform vec3 color;
+  //   uniform float alpha;
+  //   varying vec3 vColor;
+  //   void main() {
+  //     float f = 0.5;
+  //     // vec2 pos = mod(gl_FragCoord.xy, vec2(50.0)) - vec2(25.0);
+  //     float d = abs(distance(gl_PointCoord - f, vec2(0.0, 0.0) ) );
+  //     if(d < f) {
+  //       gl_FragColor = vec4(vColor, alpha);
+  //     } else {
+  //       discard;
+  //     }
+  //   }
 
-  script(type="x-shader/x-fragment" id="fragmentshader").
-    uniform vec3 color;
-    varying float vAlpha;
-    void main() {
-        gl_FragColor = vec4( color, vAlpha );
-    }
 
-  script(src=basepath + "scripts/three.min.js" charset="utf-8")
-  script(src=basepath + "scripts/three.trackball.controls.js" charset="utf-8")
+  // script(src=basepath + "scripts/three.min.js" charset="utf-8")
+  script(src=basepath + "scripts/numeric.js" charset="utf-8")
   script(src=path + "script.js")
