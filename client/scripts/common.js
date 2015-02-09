@@ -14,10 +14,20 @@ var pi = Math.PI
   , min = Math.min
   , random = Math.random
 
-var acc_0 = function(d) { return d[0] }
-var acc_1 = function(d) { return d[1] }
-var acc_x = function(d) { return d.x }
-var acc_x = function(d) { return d.y }
+function acc_0(d) { return d[0] }
+function acc_1(d) { return d[1] }
+function acc(prop) { return function(d) { return d[prop] } }
+
+function unique(arr, key) {
+  key = key || function(d) { return d }
+  var hash = Object.create(null)
+  return arr.filter(function(d) {
+    var k = key(d)
+    if (hash[k]) return false
+    hash[k] = true
+    return true
+  })
+}
 
 var intToSub = (function() {
   function sub(n) {

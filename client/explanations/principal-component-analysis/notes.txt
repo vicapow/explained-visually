@@ -1,4 +1,4 @@
-Principle component analysis is technique for finding the most important combination of features of a data set. In addition to being widely used in machine learning, it's also used to visualize high dimensional data. Let's walk through a toy example of reducing a 2d data set to a 1d data set.
+Principle component analysis is a technique for finding the most important combination of features of a data set. In addition to being widely used in machine learning, it can also be used to visualize high dimensional data.
 
 Notice below how the data points vary the most along the blue line. This blue line is what's call the '1st principle component' (or PC1) of our data set. Drag the points around to see how PC1 changes.
 

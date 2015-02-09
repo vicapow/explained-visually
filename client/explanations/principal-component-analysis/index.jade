@@ -1,0 +1,88 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body(ng-app="myApp" ng-controller="MainCtrl")
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+    section
+      p By 
+        if twitterCreator
+          a(href="http://twitter.com/" + twitterCreator) !{author}
+        else
+         !{author}
+      p Principal component analysis (PCA) is a technique for finding the most important combination of features of a data set. In addition to being widely used in machine learning, it can also be used to visualize high dimensional data.
+    section
+      h1 2D example
+      p PCA works by finding a new coordinate system for our points where along the first new axis, our data varies the most, along the second, our data varies the second most and so on for each dimension in our data set.
+      p Drag the points around in the following visualization to see how they effect the computed PC coordinate system.
+      div(style="text-align: center; width: 100%")
+        pca-d2
+      div(style="text-align: center; width: 100%")
+        div(style="width: 50%; float: left;padding: 0px 20px 0 20px; text-align: left")
+          :markdown
+            One way to visualize high dimensional data is to simply drop dimensions. Below, we've plotted separately the 2 dimensional data above. We could pick either of the two to remove.
+
+        div(style="width: 50%; float: left;padding: 0px 20px 0 20px;text-align: left")
+          p Alternatively, we can calculate the principal axis's with PCA and drop 
+            span(style="color:#2ecc71") PC2 
+            | since it contributes the least to the variation in the data set.
+        pca-d1
+    section
+      h1 3D example
+      P With three dimensions, the task is similar. PCA aims to find the perspective onto our data set which maximizes the variance along each component. In the example below, try and find the PCA transformation yourself by dragging around the perpsective in the plot to the left.
+      pca-three-plot(rot="rotXY")
+    section
+      h1 Eating in the UK
+      div(style="text-align: left; width: 40%; display: block; float: left")
+        p We can perceive two dimensions well in a simple plot like the one above but what if we're dealing with a data set of 17 dimensions. In the table to the right is the average food concumption in grams per person per week for every country in the UK. Let's use PCA to try and eliminate the redundant dimensions.
+        p From the table we can see interesting variation in the concumption across different food types but differences amoung the countries aren't noticable.
+        p We can use PCA to find a perspective in 17 dimensional space along which there's the most variation.
+        p As an analogy, imagine we had 3 dimensional data and were interested in finding a perspective onto that highlighted the variation the most.
+      div(style="text-align: center; width: 60%; display: block; float: left")
+        defra-table
+
+    if !dev
+      +footer
+      +disqus
+
+  script(type="x-shader/x-vertex" id="vertexshader").
+    // attribute vec3 color;
+    uniform float pointSize;
+    // varying vec3 vColor;
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = pointSize;
+      gl_Position = projectionMatrix * mvPosition;
+      // vColor = color;
+    }
+
+  script(type="x-shader/x-fragment" id="fragmentshader").
+    uniform vec3 color;
+    uniform float alpha;
+    varying vec3 vColor;
+    void main() {
+      float f = 0.5;
+      // vec2 pos = mod(gl_FragCoord.xy, vec2(50.0)) - vec2(25.0);
+      float d = abs(distance(gl_PointCoord - f, vec2(0.0, 0.0) ) );
+      if(d < f) {
+        gl_FragColor = vec4(color, alpha);
+      } else {
+        discard;
+      }
+    }
+
+
+  script(src=basepath + "scripts/three.min.js" charset="utf-8")
+  script(src=basepath + "scripts/OrthographicTrackballControls.js" charset="utf-8")
+  script(src=basepath + "scripts/numeric.js" charset="utf-8")
+  script(src=path + "script.js")
