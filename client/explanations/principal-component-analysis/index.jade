@@ -42,14 +42,14 @@ html
       P With three dimensions, the task is similar. PCA aims to find the perspective onto our data set which maximizes the variance along each component. In the example below, try and find the PCA transformation yourself by dragging around the perpsective in the plot to the left.
       pca-three-plot(rot="rotXY")
     section
-      h1 Eating in the UK
+      h1 Eating in the UK (a 17D example)
       div(style="text-align: left; width: 40%; display: block; float: left")
-        p We can perceive two dimensions well in a simple plot like the one above but what if we're dealing with a data set of 17 dimensions. In the table to the right is the average food concumption in grams per person per week for every country in the UK. Let's use PCA to try and eliminate the redundant dimensions.
-        p From the table we can see interesting variation in the concumption across different food types but differences amoung the countries aren't noticable.
-        p We can use PCA to find a perspective in 17 dimensional space along which there's the most variation.
-        p As an analogy, imagine we had 3 dimensional data and were interested in finding a perspective onto that highlighted the variation the most.
+        p We can perceive three spacial dimensions well in simple plots like the ones above but what if we're dealing with a data set of 17 dimensions! In the table to the right is the average food concumption in grams per person per week for every country in the UK. Let's see if PCA can eliminate redundant dimensions.
+        p From the table we can see interesting variation in the concumption across different food types but differences amoung the countries aren't as noticable.
+        p With PCA we can find a perspective in the 17 dimensional space along which there's the most variation. This is just like the examples above but instead of 2 or 3 dimensions, we're dealing with 17.
       div(style="text-align: center; width: 60%; display: block; float: left")
         defra-table
+      defra-d1
 
     if !dev
       +footer
@@ -58,31 +58,42 @@ html
   script(type="x-shader/x-vertex" id="vertexshader").
     // attribute vec3 color;
     uniform float pointSize;
-    // varying vec3 vColor;
+    uniform vec3 color;
+    uniform float alpha;
+    uniform int shouldResize;
+    varying vec4 vColor;
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = pointSize;
+      if (shouldResize == 1) {
+        gl_PointSize = pointSize * ( mvPosition.z + 30.0) / 10.0 + 10.0;
+        // gl_PointSize = pointSize;
+      } else {
+        gl_PointSize = pointSize;
+      }
       gl_Position = projectionMatrix * mvPosition;
-      // vColor = color;
+      if (shouldResize == 1) {
+        vColor = vec4(color, ( mvPosition.z + 30.0) / 10.0 + 0.0);
+        // vColor = vec4(color, 0.8);
+      } else {
+        vColor = vec4(color, alpha);
+      }
     }
 
   script(type="x-shader/x-fragment" id="fragmentshader").
-    uniform vec3 color;
-    uniform float alpha;
-    varying vec3 vColor;
+    varying vec4 vColor;
     void main() {
       float f = 0.5;
       // vec2 pos = mod(gl_FragCoord.xy, vec2(50.0)) - vec2(25.0);
       float d = abs(distance(gl_PointCoord - f, vec2(0.0, 0.0) ) );
       if(d < f) {
-        gl_FragColor = vec4(color, alpha);
+        gl_FragColor = vColor;
       } else {
         discard;
       }
     }
 
 
-  script(src=basepath + "scripts/three.min.js" charset="utf-8")
+  script(src=basepath + "scripts/three.js" charset="utf-8")
   script(src=basepath + "scripts/OrthographicTrackballControls.js" charset="utf-8")
   script(src=basepath + "scripts/numeric.js" charset="utf-8")
   script(src=path + "script.js")

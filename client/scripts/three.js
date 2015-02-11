@@ -21125,7 +21125,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 				} else if ( geometry instanceof THREE.Geometry ) {
 
 					var geometryGroupsList = geometryGroups[ geometry.id ];
-
+					if (!geometryGroupsList) debugger
 					for ( var i = 0,l = geometryGroupsList.length; i < l; i ++ ) {
 
 						addBuffer( _webglObjects, geometryGroupsList[ i ], object );
@@ -32822,13 +32822,13 @@ THREE.AxisHelper.prototype.constructor = THREE.AxisHelper;
 
 THREE.ArrowHelper = ( function () {
 
-	var lineGeometry = new THREE.Geometry();
-	lineGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 1, 0 ) );
-
-	var coneGeometry = new THREE.CylinderGeometry( 0, 0.5, 1, 5, 1 );
-	coneGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, - 0.5, 0 ) );
-
 	return function ( dir, origin, length, color, headLength, headWidth ) {
+
+		var lineGeometry = new THREE.Geometry();
+		lineGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 1, 0 ) );
+
+		var coneGeometry = new THREE.CylinderGeometry( 0, 0.5, 1, 5, 1 );
+		coneGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, - 0.5, 0 ) );
 
 		// dir is assumed to be normalized
 

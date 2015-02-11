@@ -3,9 +3,9 @@
 var myApp = angular.module('myApp', [])
 
 var color = {
-    primary: '#3498db'
+    primary: '#e74c3c'
   , secondary: '#2ecc71'
-  , tertiary: '#e74c3c'
+  , tertiary: '#3498db'
   , quaternary: '#f1c40f'
   , quinary: '#2c3e50'
   , senary: '#9b59b6'
@@ -25,7 +25,7 @@ function tickStyle(g) {
 function pointStyle(g) {
   g.attr('r', 4)
     .style('stroke', 'none')
-    .style('fill', color.tertiary)
+    .style('fill', color.senary)
 }
 
 function axisStyle(g) {
@@ -365,7 +365,6 @@ myApp.directive('pcaD2', ['$parse', function(parse) {
     }
     redrawSamples()
   }
-
   return { link: link, restrict: 'E' }
 }])
 
@@ -498,7 +497,6 @@ myApp.directive('defraTable', function() {
     var w = 500, h = 400, yOffset = 6, horPad = 4
     svg.attr({width: w, height: h})
       .style('font-size', 14)
-      // .style('background-color', 'rgba(0, 0, 0, 0.1)')
 
     var data = d3.nest().key(acc('country')).entries(scope.defra)
       .sort(function(a, b) { return a.key.localeCompare(b.key) })
@@ -599,29 +597,41 @@ myApp.directive('defraTable', function() {
 // Not used :(
 myApp.directive('pcaThreePlot', function() {
   function link(scope, el, attr) {
-    var w = 1000, h = 400
-    var m = { l: 25, t: 25, r: 25, b: 25 }
-    var pW = h, pH = h
+    var w = 1000, h = 350
+    var m = { l: 40, t: 40, r: 40, b: 40 }
+    var pW = 333, pH = 333
     el = d3.select(el[0])
       .style('position', 'relative')
       .style('display', 'block')
-    
-    var scene = new THREE.Scene()
-
-    var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
-    renderer.setSize(pW, pH)
-    // renderer.setClearColor(0x141414)
-    renderer.setPixelRatio(window.devicePixelRatio)
-    var plotXY = el.append('div')
-      .style('margin-left', '30px')
-      .style('position', 'relative')
       .style({width: w + 'px', height: h + 'px'})
-      .style('display', 'block')
-    plotXY.node().appendChild(renderer.domElement)
+    
+    var scene1 = new THREE.Scene()
+    var scene2 = new THREE.Scene()
 
-    d3.select(renderer.domElement)
+    var renderer1 = new THREE.WebGLRenderer({alpha: true, antialias: true})
+    renderer1.setSize(pW, pH)
+    renderer1.setPixelRatio(window.devicePixelRatio)
+
+    var renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true})
+    renderer2.setSize(pW, pH)
+    renderer2.setPixelRatio(window.devicePixelRatio)
+    
+    var plot3D = el.append('div')
+      .style('margin-left', '0px')
       .style('position', 'absolute')
-      .style({top: '0px', left: '0px'})
+      .style({width: pW + 'px', height: pH + 'px'})
+      .style('display', 'block')
+    plot3D.node().appendChild(renderer1.domElement)
+
+    var plotXY = el.append('div')
+      .style('margin-left', '333px')
+      .style('position', 'absolute')
+      .style({width: pW + 'px', height: pH + 'px'})
+      .style('display', 'block')
+    plotXY.node().appendChild(renderer2.domElement)
+
+
+    d3.select(renderer2.domElement)
       .style('cursor', 'move')
 
     var plotXYSvg = plotXY.append('svg')
@@ -630,12 +640,11 @@ myApp.directive('pcaThreePlot', function() {
       .style('pointer-events', 'none')
       .style({width: pW, height: pH})
 
-    plotXYSvg.append('rect')
-      .attr({width: pW, height: pH})
-      .style('fill', 'rgba(0, 0, 0, 0.0)')
+    //  plotXYSvg.append('rect').attr({width: pW, height: pH})
+    //    .style('fill', 'rgba(0, 0, 0, 0.1)')
 
-    var xScale = d3.scale.linear().domain([-6, 6]).range([m.l, pW - m.r])
-    var yScale = d3.scale.linear().domain([6, -6]).range([m.t, pH - m.b])
+    var xScale = d3.scale.linear().domain([-10, 10]).range([m.l, pW - m.r])
+    var yScale = d3.scale.linear().domain([10, -10]).range([m.t, pH - m.b])
 
     var xTicks = xScale.ticks(5), yTicks = yScale.ticks(5)
 
@@ -647,10 +656,27 @@ myApp.directive('pcaThreePlot', function() {
       .attr('transform', 'translate(' + [0, yScale.range()[1] ] + ')')
       .call(axisStyle)
 
+    xAxisG.append('text')
+      .attr('transform', 'translate(' + [d3.mean(xScale.range()), 35 ] + ')')
+      .attr('text-anchor', 'middle')
+      .style('font-size', 12)
+      .text('pc1')
+      .style('fill', color.primary)
+
+    xAxisG.select('path').style('stroke', color.primary)
+
     var yAxisG = plotXYSvg.append('g')
       .call(yAxis)
       .attr('transform', 'translate(' + [xScale.range()[0], 0] + ')')
       .call(axisStyle)
+
+    yAxisG.append('text')
+      .attr('transform', 'translate(' + [-30, d3.mean(yScale.range())] + ')')
+      .style('text-anchor', 'middle')
+      .style('font-size', 12)
+      .text('pc2')
+      .style('fill', color.secondary)
+    yAxisG.select('path').style('stroke', color.secondary)
 
     var xTickG = plotXYSvg.append('g').selectAll('line')
       .call(updateTicks, 'x', xScale, yScale, xTicks)
@@ -671,7 +697,22 @@ myApp.directive('pcaThreePlot', function() {
       .enter().append('g')
       .attr('transform', function(d) {
         return 'translate(' + [0, oh( d < 3 ? d : d + 1)] + ')'
-      }).call(xAxis).call(axisStyle)
+      }).each(function(d, i) {
+        d3.select(this).call(xAxis)
+      }).call(axisStyle)
+    axisesG.select('path').style('stroke', function(d) {
+        return [
+        'black', 'black', 'black', color.primary, color.secondary, color.tertiary][d]
+      })
+
+    axisesG.append('text').text(function(d) {
+      return ['x', 'y', 'z', 'pc1', 'pc2', 'pc3'][d]
+    })
+      .style('text-anchor', 'end')
+      .attr('transform', 'translate(' + [30, 5] + ')')
+      .style('fill', function(d) {
+        return ['inherit', 'inherit', 'inherit', color.primary, color.secondary, color.tertiary][d]
+      })
 
     var canvas = el.append('canvas')
       .attr({width: pW, height: pH})
@@ -679,79 +720,94 @@ myApp.directive('pcaThreePlot', function() {
       .style({top: '0px', right: '0px'})
       .style('pointer-events', 'none')
     var ctx = canvas.node().getContext('2d')
+    ctx.globalCompositeOperation = 'color-burn'
 
-    // var camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000)
-    var camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 1, 100)
-    camera.position.z = 10;
-    // camera.matrixAutoUpdate = false
+    var camera1 = new THREE.PerspectiveCamera(75, pW / pH, 0.1, 1000)
+    camera1.setLens(50)
+    camera1.matrixAutoUpdate = false
+    var clock = new THREE.Clock()
+    var camera2 = new THREE.OrthographicCamera(
+      xScale.invert(0), xScale.invert(pW),
+      yScale.invert(0), yScale.invert(pH),
+      1,
+      100
+    )
+    camera2.position.z = 10
 
-    var controls = new THREE.OrthographicTrackballControls(camera, renderer.domElement)
+    var controls = new THREE.OrthographicTrackballControls(camera2, renderer2.domElement)
     // controls.rotateSpeed = 0.1
     controls.dynamicDampingFactor = 0.4
     controls.noZoom = true
+    controls.noPan = true
+    controls.noRoll = true
     // controls.staticMoving = true
 
     var particles = 500
-    var geometry = new THREE.BufferGeometry()
     var positions = new Float32Array(particles * 3)
-    var colors = new Float32Array(particles * 3)
     var shouldUpdate = true
-    var norm = d3.random.normal(0, 0.7)
     var dx = 2
+    var norm = d3.random.normal(0, 0.7)
+    var means = [0, 0, 0]
     for(var i = 0; i < positions.length; i+=3) {
       var x = norm(), y = norm(), z = norm()
-      if (i / 3 < particles / 3) {
-        colors[i] = 255, colors[i + 1] = 0, colors[i + 2] = 0
-        x -= 0.5, y += 1, z -= 0.5
-      } else if (i / 3 < particles / 3 * 2) {
-        colors[i] = 0, colors[i + 1] = 255, colors[i + 2] = 0
-        x += dx, y += dx, z += dx
-      } else {
-        colors[i] = 0, colors[i + 1] = 0, colors[i + 2] = 255
-        x -= dx, y -= dx, z -= dx
-      }
+      if (i / 3 < particles / 3) x -= 0.5, y += 1, z -= 0.5
+      else if (i / 3 < particles / 3 * 2) x += dx, y += dx, z += dx
+      else x -= dx, y -= dx, z -= dx
       positions[i] = x, positions[i + 1] = y, positions[i + 2] = z
+      means[0] += x / particles
+      means[1] += y / particles
+      means[2] += z / particles
     }
-    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.computeBoundingSphere()
+    for(var i = 0; i < positions.length; i+=3) {
+      positions[i] -= means[0]
+      positions[i + 1] -= means[1]
+      positions[i + 2] -= means[2]
+    }
 
-    // var material = new THREE.PointCloudMaterial({
-    //   size: 2,
-    //   sizeAttenuation: false,
-    //   alphaTest: 0.5,
-    //   vertexColors: THREE.VertexColors
-    // })
+    function particleGeometry() {
+      var geometry = new THREE.BufferGeometry()
+      geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3))
+      geometry.computeBoundingSphere()
+      return geometry
+    }
 
-    // attributes
-    var attributes = { }
     // uniforms
-    var uniforms = {
-      color: {
-        type: 'c',
-        value: new THREE.Color(0x3498db)
-      },
-      alpha: { type: 'f', value: 0.4 },
-      pointSize: { type: 'f', value: 10 }
+    function uniforms(opts) {
+      opts = opts || {}
+      return {
+        color: {
+          type: 'c',
+          value: new THREE.Color(color.senary)
+        },
+        alpha: { type: 'f', value: 0.4 },
+        pointSize: { type: 'f', value: 10 },
+        shouldResize: { type: '1i', value: opts.shouldResize ? 1 : 0 }
+      }
     }
 
     // point cloud material
-    var cloudMat = new THREE.ShaderMaterial({
-        uniforms:       uniforms,
-        attributes:     attributes,
-        vertexShader:   d3.select('#vertexshader').node().textContent,
-        fragmentShader: d3.select('#fragmentshader').node().textContent,
-        transparent:    true,
-        setDepthTest: false
-        // blending: THREE.CustomBlending,
-        // blendEquation: THREE.AddEquation,
-        // blendSrc: THREE.SrcAlphaSaturate,
-        // blendDst: THREE.OneMinusSrcAlphaFactor,
-    })
+    function pointCloudMaterial(opts) {
+      return new THREE.ShaderMaterial(extend({
+          uniforms:       uniforms(opts),
+          attributes:     {},
+          vertexShader:   d3.select('#vertexshader').node().textContent,
+          fragmentShader: d3.select('#fragmentshader').node().textContent,
+          transparent:    true,
+          setDepthTest: false
+      }, opts || {}))
+    }
+    
+    var cloudMat1 = pointCloudMaterial({shouldResize: true})
+    var cloudMat2 = pointCloudMaterial()
 
-    var particles = new THREE.PointCloud(geometry, cloudMat)
-    particles.sortParticles = true
+    var geometry1 = particleGeometry()
+    var geometry2 = particleGeometry()
 
-    scene.add(particles)
+    var particles1 = new THREE.PointCloud(geometry1, cloudMat1)
+    var particles2 = new THREE.PointCloud(geometry2, cloudMat2)
+
+    scene1.add(particles1)
+    scene2.add(particles2)
 
     var axisMat = new THREE.LineBasicMaterial({
       color: 0x0,
@@ -772,98 +828,197 @@ myApp.directive('pcaThreePlot', function() {
     axisGeom.vertices.push(new THREE.Vector3(0, 0, 0))
     axisGeom.vertices.push(new THREE.Vector3(0, 0, s))
     var line = new THREE.Line(axisGeom, axisMat)
-    
-    // scene.add(line)
-
-    // scene.add(camera)
 
     function toScreenXY(pos3D) {
-        var v = pos3D.project(camera)
+        var v = pos3D.project(camera2)
         var percX = (v.x + 1) / 2
         var percY = (-v.y + 1) / 2
         var percZ = (v.z + 1) / 2
         var left = percX * pW
         var top = percY * pH
-        var z = percZ * 2200
+        var z = 40 + percZ * 1400 // magic!
         return [left, top, z]
     }
 
+    var pc1Arrow1 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.primary).getHex(),
+      0.5,
+      0.5
+    )
+    scene1.add(pc1Arrow1)
+
+    var pc2Arrow1 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.secondary).getHex(),
+      0.5,
+      10
+    )
+    scene1.add(pc2Arrow1)
+
+    var pc3Arrow1 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.tertiary).getHex(),
+      0.5,
+      0.5
+    )
+    scene1.add(pc3Arrow1)
+
+    var pc1Arrow2 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.primary).getHex(),
+      0.5,
+      0.5
+    )
+    scene2.add(pc1Arrow2)
+
+    var pc2Arrow2 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.secondary).getHex(),
+      0.5,
+      0.5
+    )
+    scene2.add(pc2Arrow2)
+
+    var pc3Arrow2 = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      2.5,
+      new THREE.Color(color.tertiary).getHex(),
+      0.5,
+      0.5
+    )
+    scene2.add(pc3Arrow2)
+
+    var size = 10
+    var step = 1
+    var axisOffset = {x: -2, y: -2, z: -3}
+    var gridHelper = new THREE.GridHelper(size, step)
+    gridHelper.position.x = axisOffset.x
+    gridHelper.position.z = axisOffset.y
+    gridHelper.position.y = axisOffset.z
+    gridHelper.setColors(0x555555, 0xeeeeee)
+    scene1.add(gridHelper)
+
+    // gridHelper = new THREE.GridHelper(size, step)
+    // gridHelper.rotation.y = Math.PI / 2
+    // gridHelper.rotation.z = Math.PI / 2
+    // scene1.add(gridHelper)
+
+    var rotY = 0
+    var didDrawOriginalPoints = false
     function update() {
       requestAnimationFrame(update)
-      
+
+      rotY += 25 * Math.PI / 180 * clock.getDelta()
+
+      var cameraPosOffset = new THREE.Matrix4()
+      cameraPosOffset.setPosition(new THREE.Vector3(0, 0, 25))
+
+      var cameraRot = new THREE.Matrix4()
+      cameraRot.makeRotationFromEuler(new THREE.Euler(0, rotY, 0, 'XYZ'))
+
+      var cameraMat = new THREE.Matrix4()
+      cameraMat.multiplyMatrices(cameraRot, cameraPosOffset)
+
+      var cameraPosCenter = new THREE.Matrix4()
+      cameraMat = cameraPosCenter.multiplyMatrices(cameraPosCenter, cameraMat)
+
+      camera1.matrix = cameraMat
+      camera1.updateMatrixWorld(true)
+
+      renderer1.render(scene1, camera1)
+
       if (!shouldUpdate) return
 
-      // var cameraPosOffset = new THREE.Matrix4()
-      // cameraPosOffset.setPosition(new THREE.Vector3(0, 0, 10))
-
-      // var cameraRot = new THREE.Matrix4()
-      // cameraRot.makeRotationFromEuler(new THREE.Euler(
-      //   +scope.rot.x,
-      //   +scope.rot.y,
-      //   +scope.rot.z,
-      //   'XYZ'
-      // ))
-
-      // var cameraMat = new THREE.Matrix4()
-      // cameraMat.multiplyMatrices(cameraRot, cameraPosOffset)
-
-      // var cameraPosCenter = new THREE.Matrix4()
-      // // cameraPosCenter.setPosition(new THREE.Vector3(2.5, 2.5, 2.5))
-      // cameraMat = cameraPosCenter.multiplyMatrices(cameraPosCenter, cameraMat)
-
-      // camera.matrix = cameraMat
-      // camera.updateMatrixWorld(true)
-
       controls.update()
-      renderer.render(scene, camera)
+
+      camera2.updateMatrixWorld(true)
+
+      var pc1Dir = new THREE.Vector3(1, 0, -9/11).unproject(camera2)
+      
+      pc1Arrow1.setDirection(pc1Dir.clone().normalize())
+      pc1Arrow1.setLength(4, 1, 0.5)
+      
+      pc1Arrow2.setDirection(pc1Dir.clone().normalize())
+      pc1Arrow2.setLength(4, 1, 0.5)
+
+      var pc2Dir = new THREE.Vector3(0, 1, -9/11).unproject(camera2)
+      
+      pc2Arrow1.setDirection(pc2Dir.clone().normalize())
+      pc2Arrow1.setLength(4, 1, 0.5)
+      
+      pc2Arrow2.setDirection(pc2Dir.clone().normalize())
+      pc2Arrow2.setLength(4, 1, 0.5)
+
+      pc3Arrow1.setDirection(camera2.position.clone().normalize())
+      pc3Arrow1.setLength(4, 1, 0.5)
+
+      pc3Arrow2.setDirection(camera2.position.clone().normalize())
+      pc3Arrow2.setLength(4, 1, 0.5)
+
+      renderer2.render(scene2, camera2)
 
       var origPoints = float32ArrayToVec3Array(positions)
-
-      ctx.clearRect(0, 0, pW, pH)
-      // ctx.fillStyle = 'rgba(0, 255, 0, 1)'
-      // ctx.rect(0, 0, pW, pH)
-      // ctx.fill()
       
       // Draw points along just the X dimension.
-      ctx.fillStyle = color.primary
-      ctx.globalAlpha = 0.1
-      origPoints.forEach(function(d) {
-        ctx.beginPath()
-        ctx.arc(xScale(d.x), oh(0), 4, 0, tau)
-        ctx.fill()
-        ctx.beginPath()
-        ctx.arc(xScale(d.y), oh(1), 4, 0, tau)
-        ctx.fill()
-        ctx.beginPath()
-        ctx.arc(xScale(d.z), oh(2), 4, 0, tau)
-        ctx.fill()
-      })
+      if (!didDrawOriginalPoints) {
+        // Simple hack to cut down on redraws. This points don't change.
+        didDrawOriginalPoints = true
+        ctx.fillStyle = color.senary
+        ctx.globalAlpha = 0.05
+        origPoints.forEach(function(d) {
+          ctx.beginPath()
+            ctx.arc(xScale(d.x - axisOffset.x), oh(0), 4, 0, tau)
+            ctx.fill()
+          ctx.beginPath()
+            ctx.arc(xScale(d.y - axisOffset.y), oh(1), 4, 0, tau)
+            ctx.fill()
+          ctx.beginPath()
+            ctx.arc(xScale(d.z - axisOffset.z), oh(2), 4, 0, tau)
+            ctx.fill()
+        })
+      }
+
+      // Because of our hack above, only clear the bottom portion of the canvas
+      // leaving the original points untouched.
+      ctx.clearRect(0, pH / 2, pW, pH)
 
       // Modifies `origPoints`.
       var projPoints = origPoints.map(toScreenXY)
       projPoints.forEach(function(d) {
         ctx.beginPath()
-        ctx.arc(d[0], oh(4), 4, 0, tau)
-        ctx.fill()
+          ctx.arc(d[0], oh(4), 4, 0, tau)
+          ctx.fill()
         ctx.beginPath()
-        ctx.arc(d[1], oh(5), 4, 0, tau)
-        ctx.fill()
+          ctx.arc(d[1], oh(5), 4, 0, tau)
+          ctx.fill()
         ctx.beginPath()
-        ctx.arc(d[2], oh(6), 4, 0, tau)
-        ctx.fill()
+          ctx.arc(d[2], oh(6), 4, 0, tau)
+          ctx.fill()
       })
     }
 
     controls.addEventListener('start', function() {
-      console.log('start')
       shouldUpdate = true
       if (timer) clearTimeout(timer), timer = null
     })
-    var timer
+
     controls.addEventListener('end', function() {
-      console.log('end')
       if (!timer) timer = setTimeout(function(){ shouldUpdate = false }, 1000)
     })
+
+    var timer = setTimeout(function(){ shouldUpdate = false }, 1000)
 
     update()
   }
