@@ -102,13 +102,14 @@
     }
     , {
         "title": "Principal Component Analysis"
-      , "hideFromHomepage": true
       , "subtitle": "Explained Visually"
       , "slug": "principal-component-analysis"
-      , "quip": "The principal wants to see you."
-      , "date": "2015/01/29"
+      , "quip": "Axis of easy."
+      , "date": "2015/02/12"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
+      , "twitterCreatorText": "lewislehe"
+      , "authorText" : "Lewis Lehe"
     }
   ]
 }
