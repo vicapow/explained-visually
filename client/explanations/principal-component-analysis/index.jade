@@ -14,14 +14,8 @@ html
         h1.title !{title}
         h3.by-line !{subtitle}
       +share
-    section
-      p By 
-        if twitterCreator
-          a(href="http://twitter.com/" + twitterCreator) !{author}
-        else
-         !{author}
+      +authors
       p Principal component analysis (PCA) is a technique for finding the most important combination of features of a data set. In addition to being widely used in machine learning, it can also be used to visualize high dimensional data.
-    section
       h1 2D example
       p PCA works by finding a new coordinate system for our points where along the first new axis, our data varies the most, along the second, our data varies the second most and so on for each dimension in our data set.
       p Drag the points around in the following visualization to see how they effect the computed PC coordinate system.
