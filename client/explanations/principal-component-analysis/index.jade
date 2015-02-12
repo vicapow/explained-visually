@@ -46,19 +46,19 @@ html
         button.btn(ng-click="resetPCAThree()") reset
     section
       h1 Eating in the UK (a 17D example)
-      p Original example from Mark Richardson's 
-        a(href="http://www.dsc.ufcg.edu.br/~hmg/disciplinas/posgraduacao/rn-copin-2014.3/material/SignalProcPCA.pdf") Principal Component Analysis
-      div(style="text-align: left; width: 40%; display: block; float: left")
+      div(style="text-align: left; width: 40%; display: block; float: left; clear: both")
+        small Original example from Mark Richardson's 
+          a(href="http://www.dsc.ufcg.edu.br/~hmg/disciplinas/posgraduacao/rn-copin-2014.3/material/SignalProcPCA.pdf") Principal Component Analysis
         p We can perceive three spacial dimensions well in simple plots like the ones above but what if we're dealing with a data set of 17 dimensions! In the table to the right is the average food concumption in grams per person per week for every country in the UK. Let's see if PCA can eliminate redundant dimensions.
         p From the table we can see interesting variation in the concumption across different food types but differences amoung the countries aren't as noticable.
         p With PCA we can find a perspective in the 17 dimensional space along which there's the most variation. This is just like the examples above but instead of 2 or 3 dimensions, we're dealing with 17.
       div(style="text-align: center; width: 60%; display: block; float: left")
         defra-table
       div(style="clear:both")
-      br
-      br
+      p Here's the plot of our four points (the columns in the table above) for just the first principal component and already we can see some interesting behavior with Northern Ireland.
       div(style="text-align: center; width: 100%; display: block;")
         defra-d1
+      p Now taking a look at the first two principal components, there's an obvious trend amoung the three countries of the island of Great Britain with Northern Ireland a clear outlier.
       br
       br
       div(style="text-align: center; width: 100%; display: block;")
