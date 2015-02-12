@@ -18,22 +18,22 @@ html
       p Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset.  It's often used to make data easy to explore and visualize for researchers who aren't exactly sure what they're looking for, but it also has applications in machine learning and quality control.
       h1 2D example
       p First, consider a dataset composed of data with only two dimensions, like (height, weight). This dataset can be plotted as points in an x/y plane. If we want to keep things in two dimensions but tease out the variation, PCA finds a new coordinate system in which every point has a new (x,y) value. The axes of the new coordinates don't actually mean anything physical like height or weight; they're combinations of height and weight called "principal components" that are selected such that one axis (usually the x axis) has as much variance as possible.
-      p Drag the points around in the following visualization to see how they effect the computed PC coordinate system. Notice that, since all the variation is in the horizontal axis after PCA, the vertical axis winds up with less variation. The units of new axes are the principal components.
+      p Drag the points around in the following visualization to see how they effect the computed PC coordinate system. Notice that, since all the variation is in the horizontal axis after PCA, the vertical axis winds up with less variation.
       div(style="text-align: center; width: 100%")
         pca-d2
       div(style="text-align: center; width: 100%")
         div(style="width: 50%; float: left;padding: 0px 20px 0 20px; text-align: left")
           :markdown
-            PCA is useful for eliminating dimensions. Below, we've plotted the data along one-dimensional lines: one composed of the x-values and another of the y-values.
+            PCA is useful for eliminating dimensions. Below, we've plotted the data along a pair of lines: one composed of the x-values and another of the y-values.
 
         div(style="width: 50%; float: left;padding: 0px 20px 0 20px;text-align: left")
-          p If we're going to only see one-dimension, though, it might be better to see the principal component with most variation than x or and to drop 
+          p If we're going to only see the data along one dimension, though, it might be better to make that dimension the principal component with most variation. We don't lose much by dropping
             span(style="color:#2ecc71") PC2 
             | since it contributes the least to the variation in the data set.
         pca-d1
     section
       h1 3D example
-      P With three dimensions, PCA is more useful, because it's hard to see through a cloud of data. In the example below, the original data are plotted in three dimensions, but you can project the data into two dimensions using a coordinate transformation. In this case, the transformation is no different than finding a camera angle: rotate the axes on the plot in the middle to find the best transformation. To see the "official" PCA transformation (the one that maximizes variance along the axes), click the "Show" button.
+      P With three dimensions, PCA is more useful, because it's hard to see through a cloud of data. In the example below, the original data are plotted in three dimensions, but you can project the data into two dimensions using a coordinate transformation. In this case, the transformation is no different than finding a camera angle: rotate the axes on the plot in the middle to find the best transformation. To see the "official" PCA transformation (the one that maximizes variance along the axes), click the "Show" button. The PCA transformation ensures that the horizontal axis PC1 has the most variation, the vertical axis PC2 the second-most, and the third axis PC3 the least. Obviously, PC3 is the one we drop when we project into two dimensions.
       pca-three-plot(rot="rotXY")
       div(style="text-align: center")
         button.btn(ng-click="showPCAThree()") show PCA
