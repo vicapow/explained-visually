@@ -29,8 +29,8 @@ X1 = pca.fit_transform(X)
 
 print X1
 
-# plt.plot(X1[:,0], X1[:,1], 'ro')
-# plt.show()
+plt.plot(X1[:,0], X1[:,1], 'ro')
+plt.show()
 
 # print "PCA eigen vals:", pca.explained_variance_ratio_
 # print "PCA eigen vec[0]:", pca.components_[0]

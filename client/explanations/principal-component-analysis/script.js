@@ -138,8 +138,8 @@ myApp.controller('MainCtrl', ['$scope', function(scope) {
     ['Alcoholic drinks'  ,  375,  475,  458,  135],
     ['Confectionery'     ,   54,   64,   62,   41]
   ]
-
-  scope.defra = ['England', 'Wales', 'Scotland', 'N Ireland']
+  scope.defraLabels = ['England', 'Wales', 'Scotland', 'N Ireland']
+  scope.defra = scope.defraLabels
     .map(function(d, i) {
       return defra.map(function(row) {
         return { type: row[0], country: d, value: row[i + 1] }
@@ -158,6 +158,12 @@ myApp.controller('MainCtrl', ['$scope', function(scope) {
     d.c = c
     updateDerivedState()
     scope.$broadcast('sampleDidUpdate')
+  }
+  scope.showPCAThree = function() {
+    scope.$broadcast('showPCAThree')
+  }
+  scope.resetPCAThree = function() {
+    scope.$broadcast('resetPCAThree')
   }
   function updateDerivedState() {
     var samples = scope.samples
@@ -186,7 +192,7 @@ myApp.controller('MainCtrl', ['$scope', function(scope) {
   updateDerivedState()
 }])
 
-myApp.directive('pcaD2', ['$parse', function(parse) {
+myApp.directive('pcaD2', function() {
   function link(scope, el, attr) {
     el = d3.select(el[0])
     var svg = el.append('svg')
@@ -305,15 +311,6 @@ myApp.directive('pcaD2', ['$parse', function(parse) {
     plotG1.style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
     plotGPC.style('stroke', 'rgba(0, 0, 0, 1').attr('fill', 'none')
 
-    var points = plotG1.append('g')
-      .selectAll('circle').data(scope.samples).enter().append('circle')
-      .call(pointStyle)
-
-    var pointsPC = plotGPC.append('g')
-      .selectAll('circle').data(d3.range(scope.samples.length)).enter()
-      .append('circle')
-      .call(pointStyle)
-
     var pcs = plotG1.append('g').selectAll('path').data(d3.range(2))
       .enter()
       .append('path')
@@ -322,6 +319,27 @@ myApp.directive('pcaD2', ['$parse', function(parse) {
         return i === 0 ? color.primary : color.secondary
       })
       .style('stroke-width', 4)
+
+    plotGPC.append('g').selectAll('path').data(d3.range(2))
+      .enter().append('path')
+      .style('fill', 'none')
+      .style('stroke', function(d, i) {
+        return i === 0 ? color.primary : color.secondary
+      })
+      .style('stroke-width', 4)
+      .attr('d', function(d) {
+        return 'M' + [ xPC(0), yPC(0)] + 'L'
+          + (d === 0 ? [xPC(1),yPC(0)] : [xPC(0),yPC(1)])
+      })
+
+    var points = plotG1.append('g')
+      .selectAll('circle').data(scope.samples).enter().append('circle')
+      .call(pointStyle)
+
+    var pointsPC = plotGPC.append('g')
+      .selectAll('circle').data(d3.range(scope.samples.length)).enter()
+      .append('circle')
+      .call(pointStyle)
 
     // Nobs
     // Add the nobs.
@@ -366,7 +384,7 @@ myApp.directive('pcaD2', ['$parse', function(parse) {
     redrawSamples()
   }
   return { link: link, restrict: 'E' }
-}])
+})
 
 myApp.directive('pcaD1', function() {
   function link(scope, el, attr) {
@@ -598,7 +616,7 @@ myApp.directive('defraTable', function() {
 myApp.directive('pcaThreePlot', function() {
   function link(scope, el, attr) {
     var w = 1000, h = 350
-    var m = { l: 40, t: 40, r: 40, b: 40 }
+    var m = {l: 40, t: 40, r: 40, b: 40}
     var pW = 333, pH = 333
     el = d3.select(el[0])
       .style('position', 'relative')
@@ -735,12 +753,31 @@ myApp.directive('pcaThreePlot', function() {
     camera2.position.z = 10
 
     var controls = new THREE.OrthographicTrackballControls(camera2, renderer2.domElement)
-    // controls.rotateSpeed = 0.1
     controls.dynamicDampingFactor = 0.4
     controls.noZoom = true
     controls.noPan = true
     controls.noRoll = true
-    // controls.staticMoving = true
+
+    // camera2.matrixAutoUpdate = false
+    // camera2.updateMatrix()
+    // camera2.updateMatrixWorld(true)
+    // controls.update()
+    // camera2.matrixAutoUpdate = true
+
+
+    // var camerea2Matrix = new THREE.Matrix4().fromArray(
+    //   [
+    //       0.544613778591156,   0.5797486305236816,  0.6060423851013184, 0,
+    //     -0.4442574977874756,   0.8123205900192261,  -0.377849817276001, 0,
+    //     -0.7113586664199829, -0.06345666944980621,  0.6999586820602417, 0,
+    //       -7.11358642578125,  -0.6345667243003845,   6.999586582183838, 1
+    //   ])
+    // camera2.matrixAutoUpdate = false
+    // camera2.matrix = camerea2Matrix
+    // // camera2.matrixWorldNeedsUpdate = true
+    // // camera2.updateMatrixWorld(true)
+    // // camera2.matrixAutoUpdate = true
+    // // 
 
     var particles = 500
     var positions = new Float32Array(particles * 3)
@@ -1008,6 +1045,29 @@ myApp.directive('pcaThreePlot', function() {
           ctx.fill()
       })
     }
+    var resetQuaternion = camera2.quaternion.toArray()
+    var resetPosition = camera2.position.toArray()
+    var resetUp = camera2.up.toArray()
+    scope.$on('showPCAThree', function() {
+      shouldUpdate = true
+      if (!timer) timer = setTimeout(function(){ shouldUpdate = false }, 1000)
+      var quarternion = [-0.11840627596501767, -0.3317214811200259, 0.29096920530342185, 0.8895379426008544]
+      var position = [-6.590628370287888, 0.17612275333288233, 7.5188162938399605]
+      var up = [-0.4391004923687064, 0.8026337420184722, -0.40369522386941775]
+      camera2.quaternion.fromArray(quarternion)
+      camera2.position.fromArray(position)
+      camera2.up.fromArray(up)
+      controls.update()
+    })
+
+    scope.$on('resetPCAThree', function() {
+      shouldUpdate = true
+      if (!timer) timer = setTimeout(function(){ shouldUpdate = false }, 1000)
+      camera2.quaternion.fromArray(resetQuaternion)
+      camera2.position.fromArray(resetPosition)
+      camera2.up.fromArray(resetUp)
+      controls.update()
+    })
 
     controls.addEventListener('start', function() {
       shouldUpdate = true
@@ -1016,6 +1076,9 @@ myApp.directive('pcaThreePlot', function() {
 
     controls.addEventListener('end', function() {
       if (!timer) timer = setTimeout(function(){ shouldUpdate = false }, 1000)
+      // console.log('var quaternion = ' + camera2.quaternion.toArray())
+      // console.log('var position = ' + camera2.position.toArray())
+      // console.log('var up = ' + camera2.up.toArray())
     })
 
     var timer = setTimeout(function(){ shouldUpdate = false }, 1000)
@@ -1036,4 +1099,137 @@ myApp.directive('pcaThreePlot', function() {
     restrict: 'E',
     scope: { rot: '='}
   }
+})
+
+myApp.directive('defraD1', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var svg = el.append('svg')
+    var m = {l: 55, t: 10, r: 55, b: 10}
+    var w = 500, h = 75
+    el.style({width: w + 'px', height: h + 'px'})
+    svg.attr({width: w, height: h})
+      // .style('background-color', 'rgba(0, 0, 0, 0.1)')
+    var xScale = d3.scale.linear().domain([-300, 500]).range([m.l, w - m.r])
+    var xAxis = d3.svg.axis().scale(xScale)
+    var xAxisG = svg.append('g')
+      .attr('transform', 'translate(' + [0, h / 2] + ')')
+      .call(xAxis)
+      .call(axisStyle)
+      .select('path').style('stroke', color.primary)
+    // see defra.py to see how these were computed
+    var data = [
+      [-144.99315218,    2.53299944],
+      [-240.52914764,  224.64692488],
+      [   -91.869339, -286.08178613],
+      [ 477.39163882,   58.90186182]
+    ]
+    var label = svg.append('text').text('pc1')
+      .attr('transform', 'translate(' + [40, h / 2 + 5] + ')')
+      .style('fill', color.primary)
+      .style('text-anchor', 'end')
+      .style('font-size', 12)
+    var points = svg.append('g').selectAll('circle')
+      .data(data).enter().append('circle')
+      .attr('transform', function(d) {
+        return 'translate(' + [xScale(d[0]), h / 2] + ')'
+      }).attr('r', 4)
+      .style('fill', color.senary)
+    var labels = svg.append('g').selectAll('text')
+      .data(data).enter().append('text')
+      .style('text-anchor', 'middle')
+      .attr('transform', function(d, i) {
+        var pos = [[
+          xScale(data[0][0]) - 10,
+          xScale(data[1][0]) - 20,
+          xScale(data[2][0]) + 35,
+          xScale(data[3][0]) - 10][i], 25]
+        return 'translate(' + pos + ')'
+      }).text(function(d, i) { return scope.defraLabels[i] })
+        .style('font-size', 12)
+    svg.append('path')
+      .attr('d',
+          'M'  + [ xScale(data[0][0]) - 5, h / 2 - 10 ] + 'L' + [xScale(data[0][0]), h / 2]
+        + 'M' + [xScale(data[1][0]) - 10, h / 2 - 10] + 'L' + [xScale(data[1][0]), h / 2]
+        + 'M' + [xScale(data[2][0]) + 20, h / 2 - 10] + 'L' + [xScale(data[2][0]), h / 2]
+        + 'M' + [xScale(data[3][0]) - 5, h / 2 - 10] + 'L' + [xScale(data[3][0]), h / 2]
+      ).style('fill', 'none')
+        .style('stroke', color.senary)
+  }
+  return { link: link, restrict: 'E' }
+})
+
+myApp.directive('defraD2', function() {
+  function link(scope, el, attr) {
+    el = d3.select(el[0])
+    var svg = el.append('svg')
+    var m = {l: 55, t: 20, r: 55, b: 40}
+    var w = 500, h = 300
+    el.style({width: w + 'px', height: h + 'px'})
+    svg.attr({width: w, height: h})
+      // .style('background-color', 'rgba(0, 0, 0, 0.1)')
+    var xScale = d3.scale.linear().domain([-300, 500]).range([m.l, w - m.r])
+    var yScale = d3.scale.linear().domain([-400, 400]).range([h - m.b, m.t])
+    var xTicks = xScale.ticks(4), yTicks = yScale.ticks(4)
+    var xy = function(d) { return [xScale(d[0]), yScale(d[1])] }
+    var xAxis = d3.svg.axis().scale(xScale)
+    var yAxis = d3.svg.axis().scale(yScale).orient('left')
+    var xAxisG = svg.append('g')
+      .attr('transform', 'translate(' + [0, yScale.range()[0]] + ')')
+      .call(xAxis)
+      .call(axisStyle)
+      .select('path').style('stroke', color.primary)
+
+    var yAxisG = svg.append('g')
+      .attr('transform', 'translate(' + [xScale.range()[0], 0] + ')')
+      .call(yAxis)
+      .call(axisStyle)
+      .select('path').style('stroke', color.secondary)
+
+    var xTickG = svg.append('g').selectAll('line')
+      .call(updateTicks, 'x', xScale, yScale, xTicks)
+    var yTickG = svg.append('g').selectAll('line')
+      .call(updateTicks, 'y', xScale, yScale, yTicks)
+    
+    // see defra.py to see how these were computed
+    var data = [
+      [-144.99315218,    2.53299944],
+      [-240.52914764,  224.64692488],
+      [   -91.869339, -286.08178613],
+      [ 477.39163882,   58.90186182]
+    ]
+    svg.append('text').text('pc1')
+      .attr('transform', 'translate(' + [d3.mean(xScale.range()), yScale.range()[0] + 35] + ')')
+      .style('fill', color.primary)
+      .style('text-anchor', 'end')
+      .style('font-size', 12)
+    svg.append('text').text('pc2')
+      .attr('transform', 'translate(' + [xScale.range()[0] - 30, d3.mean(yScale.range()) + 3] + ')')
+      .style('fill', color.secondary)
+      .style('text-anchor', 'end')
+      .style('font-size', 12)
+    var points = svg.append('g').selectAll('circle')
+      .data(data).enter().append('circle')
+      .attr('transform', function(d) {
+        return 'translate(' + [xScale(d[0]), yScale(d[1])] + ')'
+      }).attr('r', 4)
+      .style('fill', color.senary)
+    var labels = svg.append('g').selectAll('text')
+      .data(data).enter().append('text')
+      .style('text-anchor', 'middle')
+      .attr('transform', function(d, i) {
+        var pos = vector(xy(data[i])).add(vector(10, -15)).array()
+        return 'translate(' + pos + ')'
+      }).text(function(d, i) { return scope.defraLabels[i] })
+        .style('font-size', 12)
+    svg.append('path')
+      .attr('d',
+          'M'  + vector(xy(data[0])).add(vector(10, -10)).array() + 'L' + xy(data[0])
+        + 'M' + vector(xy(data[1])).add(vector(10, -10)).array() + 'L' + xy(data[1])
+        + 'M' + vector(xy(data[2])).add(vector(10, -10)).array() + 'L' + xy(data[2])
+        + 'M' + vector(xy(data[3])).add(vector(10, -10)).array() + 'L' + xy(data[3])
+      ).style('fill', 'none')
+        .style('stroke', color.senary)
+  }
+  return { link: link, restrict: 'E' }
 })
