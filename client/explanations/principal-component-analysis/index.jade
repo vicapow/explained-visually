@@ -15,10 +15,10 @@ html
         h3.by-line !{subtitle}
       +share
       +authors
-      p Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset.  It's often used to make data easy to explore and visualize for researchers who aren't exactly sure what they're looking for, but it also has applications in machine learning and quality control.
+      p Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset.  It's often used to make data easy to explore and visualize.
       h1 2D example
-      p First, consider a dataset composed of data with only two dimensions, like (height, weight). This dataset can be plotted as points in an x/y plane. If we want to keep things in two dimensions but tease out the variation, PCA finds a new coordinate system in which every point has a new (x,y) value. The axes of the new coordinates don't actually mean anything physical like height or weight; they're combinations of height and weight called "principal components" that are selected such that one axis (usually the x axis) has as much variance as possible.
-      p Drag the points around in the following visualization to see how they effect the computed PC coordinate system. Notice that, since all the variation is in the horizontal axis after PCA, the vertical axis winds up with less variation.
+      p First, consider a dataset in only two dimensions, like (height, weight). This dataset can be plotted as points in a plane. But if we want to tease out variation, PCA finds a new coordinate system in which every point has a new (x,y) value. The axes don't actually mean anything physical; they're combinations of height and weight called "principal components" that are chosen to give one axes lots of variation.
+      p Drag the points around in the following visualization to see how they effect the PC coordinate system.
       div(style="text-align: center; width: 100%")
         pca-d2
       div(style="text-align: center; width: 100%")
@@ -33,7 +33,7 @@ html
         pca-d1
     section
       h1 3D example
-      P With three dimensions, PCA is more useful, because it's hard to see through a cloud of data. In the example below, the original data are plotted in three dimensions, but you can project the data into two dimensions using a coordinate transformation. In this case, the transformation is no different than finding a camera angle: rotate the axes on the plot in the middle to find the best transformation. To see the "official" PCA transformation (the one that maximizes variance along the axes), click the "Show" button. The PCA transformation ensures that the horizontal axis PC1 has the most variation, the vertical axis PC2 the second-most, and the third axis PC3 the least. Obviously, PC3 is the one we drop when we project into two dimensions.
+      P With three dimensions, PCA is more useful, because it's hard to see through a cloud of data. In the example below, the original data are plotted in 3D, but you can project the data into 2D through a transformation no different than finding a camera angle: rotate the axes to find the best angle. To see the "official" PCA transformation, click the "Show PCA" button. The PCA transformation ensures that the horizontal axis PC1 has the most variation, the vertical axis PC2 the second-most, and a third axis PC3 the least. Obviously, PC3 is the one we drop.
       pca-three-plot(rot="rotXY")
       div(style="text-align: center")
         button.btn(ng-click="showPCAThree()") show PCA
@@ -43,15 +43,15 @@ html
       div(style="text-align: left; width: 40%; display: block; float: left; clear: both")
         small Original example from Mark Richardson's class notes 
           a(href="http://people.maths.ox.ac.uk/richardsonm/SignalProcPCA.pdf") Principal Component Analysis
-        p What if our data have way more than 3-dimensions? Like, <b>17</b> dimensions?! In the table to the right is the average consumption of 17 types of food in grams per person per week for every country in the UK. 
-        p The table shows some interesting variations across different food types, but overall differences amoung the countries aren't as noticable. Let's see if PCA can eliminate dimensions to emphasize how countries differ.
+        p What if our data have way more than 3-dimensions? Like, <b>17</b> dimensions?! In the table is the average consumption of 17 types of food in grams per person per week for every country in the UK. 
+        p The table shows some interesting variations across different food types, but overall differences aren't so notable. Let's see if PCA can eliminate dimensions to emphasize how countries differ.
       div(style="text-align: center; width: 60%; display: block; float: left")
         defra-table
       div(style="clear:both")
       p Here's the plot of the data along the first principal component. Already we can see something is different about Northern Ireland.
       div(style="text-align: center; width: 100%; display: block;")
         defra-d1
-      p Now, if we look at the first and second principal components, we see Northern Ireland a major outlier. Once we go back and look at the data in the table, this makes sense: the Northern Irish eat way more grams of fresh potatoes and way fewer of fresh fruits, cheese, fish and alcoholic drinks. It's a good sign that structure we've visualized reflects a big fact of real-world geography: Northern Ireland is the only of the four countries not on the island of Great Britain. (If you're confused about the differences among England, the UK and Great Britain, see: <a href="https://www.youtube.com/watch?v=rNu8XDBSn10">this video</a>.)
+      p Now, see the first and second principal components, we see Northern Ireland a major outlier. Once we go back and look at the data in the table, this makes sense: the Northern Irish eat way more grams of fresh potatoes and way fewer of fresh fruits, cheese, fish and alcoholic drinks. It's a good sign that structure we've visualized reflects a big fact of real-world geography: Northern Ireland is the only of the four countries not on the island of Great Britain. (If you're confused about the differences among England, the UK and Great Britain, see: <a href="https://www.youtube.com/watch?v=rNu8XDBSn10">this video</a>.)
       br
       br
       div(style="text-align: center; width: 100%; display: block;")
