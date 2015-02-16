@@ -111,5 +111,15 @@
       , "twitterCreatorText": "lewislehe"
       , "authorText" : "Lewis Lehe"
     }
+    , {
+        "title": "Regression"
+      , "subtitle": "Explained Visually"
+      , "hideFromHomepage": true
+      , "slug": "regression"
+      , "quip": "Self expression, through regression."
+      , "date": "2015/02/17"
+      , "author": "Victor Powell"
+      , "twitterCreator": "vicapow"
+    }
   ]
 }

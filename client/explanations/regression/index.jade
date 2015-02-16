@@ -1,0 +1,30 @@
+include ../../templates/common.jade
+
+doctype html
+html
+  head
+    include ../../templates/head
+    include ../../templates/explanation-head
+    link(rel="stylesheet" href= path + "/style.css" type="text/css")
+  body
+    section.menu
+      a(href=basepath) Back
+    section.title
+      .title-region
+        h1.title !{title}
+        h3.by-line !{subtitle}
+      +share
+      +authors
+    div(class="myApp")
+    
+    if !dev
+      +footer
+      +disqus
+
+  if dev
+    script(src=basepath + "scripts/react.js" charset="utf-8")
+  else
+    script(src=basepath + "scripts/react.min.js" charset="utf-8")
+  script(src=basepath + "scripts/numeric.js" charset="utf-8")
+
+  script(src=path + "script.js")
