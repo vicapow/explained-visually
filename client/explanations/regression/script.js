@@ -256,8 +256,7 @@ var LeastSquares = React.createClass({
         .attr({r: 4})
         .style('fill', function(d, i) { return alphaify(colorScale(i), 1) })
         .style('pointer-events', 'none')
-
-
+    
     this._updateDOM()
   },
   componentWillReceiveProps: function(newProps) {
@@ -450,19 +449,252 @@ var OLS3D = React.createClass({
   getDefaultProps: function() {
     return {
       valueAccessor: function(d) { return d.value },
-      width: 400, height: 400
+      width: 500,
+      height: 400,
+      pointColor: color.senary,
+      errorSquareColor: color.primary,
+      regressionPlaneColor: color.secondary,
+      pointSize: 0.015
     }
   },
   getInitialState: function() {
-    var props = this.props
-    return {}
+    var scene = new THREE.Scene()
+    var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
+    var state = {
+      scene: scene,
+      renderer: renderer,
+      materials: {},
+      geometries: {},
+      objects: {}
+    }
+    return this._updateStateFromProps(this.props, state)
+  },
+  _updateStateFromProps: function(props, state) {
+    state = state || this.state
+    state.renderer.setSize(props.width, props.height)
+    state.renderer.setPixelRatio(window.devicePixelRatio)
+    var X = props.points.map(function(d) { return [d.point[0], d.point[2] ] })
+    var y = props.points.map(function(d) { return d.point[1] })
+    state.betas = hessian(y, X)
+    return state
+  },
+  _getPrediction: function(x1, x2) {
+    var state = this.state
+    return state.betas[0] + state.betas[1] * x1 + state.betas[2] * x2
+  },
+  componentDidMount: function() {
+    var self = this
+    var props = this.props, state = extend({}, this.state)
+    this.sel().node().appendChild(state.renderer.domElement)
+    var ratio = props.width / props.height
+
+    state.xScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
+    state.yScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
+    state.zScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
+
+    state.objects.camera = new THREE.PerspectiveCamera(75, ratio, 0.1, 1000)
+    state.objects.camera.setLens(50)
+
+    this._setupGrid(state)
+
+    state.materials.point = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(props.pointColor).getHex()
+    })
+    state.geometries.point = new THREE.SphereGeometry(props.pointSize, 32, 32)
+    state.objects.pointGroup = new THREE.Object3D()
+    state.scene.add(state.objects.pointGroup)
+
+    this._setupRegressionPlane(state)
+    this._setupErrorLines(state)
+    this._setupErrorSquares(state)
+
+    this.setState(state) // TODO: move to end?
+    this._updateScene()
+    this._renderScene()
+
+    var prev_t = 0, dt, rotY = Math.PI / 8
+    d3.timer(function(t) {
+      dt = t - prev_t, prev_t = t
+      
+      // rotY += Math.PI * dt / 20000
+
+      var cameraPos = new THREE.Vector3(0, 0, 3.3)
+      cameraPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY)
+      cameraPos.y = 0.5
+      state.objects.camera.position.copy(cameraPos)
+      state.objects.camera.lookAt(new THREE.Vector3(0, 0, 0))
+      self._renderScene()
+    })
+  },
+  componentWillReceiveProps: function(newProps) {
+    if (newProps.points === this.props.points) return
+    // Won't trigger double-render.
+    this.setState(this._updateStateFromProps(newProps))
+  },
+  shouldComponentUpdate: function(newProps, nextState) {
+    // Simple dirty checking. Requires copy to force redraw.
+    return newProps.points !== this.props.points
+  },
+  componentDidUpdate: function() {
+    this._updateScene()
+    this._renderScene()
+  },
+  _setupGrid: function(state) {
+    var gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
+    var colorCenterLine = 0x000000, colorGrid = 0xdddddd
+    // gridHelper.rotation.x = Math.PI / 2
+    gridHelper.position.y = -0.5
+    gridHelper.setColors(colorCenterLine, colorGrid)
+    state.scene.add(gridHelper)
+    state.objects.gridHelperX = gridHelper
+
+    gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
+    gridHelper.position.x = -0.5
+    gridHelper.rotation.z = Math.PI / 2
+    gridHelper.setColors(colorCenterLine, colorGrid)
+    state.scene.add(gridHelper)
+    state.objects.gridHelperY = gridHelper
+
+    gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
+    gridHelper.position.z = -0.5
+    gridHelper.rotation.x = Math.PI / 2
+    gridHelper.setColors(colorCenterLine, colorGrid)
+    state.scene.add(gridHelper)
+    state.objects.gridHelperZ = gridHelper
+  },
+  _setupRegressionPlane: function(state) {
+    var geom = state.geometries.plane = new THREE.Geometry()
+    geom.dynamic = true
+    
+    geom.vertices.push(new THREE.Vector3(-0.5, 0, -0.5))
+    geom.vertices.push(new THREE.Vector3( 0.5, 0, -0.5))
+    geom.vertices.push(new THREE.Vector3( 0.5, 0,  0.5))
+    geom.vertices.push(new THREE.Vector3(-0.5, 0,  0.5))
+
+    geom.faces.push(new THREE.Face3(0, 1, 2))
+    geom.faces.push(new THREE.Face3(2, 3, 0))
+    
+    var mat = state.materials.plane = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(this.props.regressionPlaneColor).getHex(),
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthTest: true,
+      opacity: 0.6
+    })
+    state.scene.add(state.objects.plane = new THREE.Mesh(geom, mat))
+  },
+  _setupErrorLines: function(state) {
+    var materials = state.materials, geometries = state.geometries
+    // state.materials.errorLines = new THREE.LineBasicMaterial({color: 0xff0000})
+    state.materials.errorLines = new THREE.LineDashedMaterial({
+      color: 0xff0000,
+      dashSize: 0.01,
+      gapSize: 0.01,
+      linewidth: 2
+    })
+    state.geometries.errorLines = new THREE.Geometry()
+    geometries.errorLines.dynamic = true
+    state.objects.errorLines = new THREE.Line(
+      state.geometries.errorLines,
+      state.materials.errorLines,
+      THREE.LinePieces
+    )
+    state.scene.add(state.objects.errorLines)
+  },
+  _setupErrorSquares: function(state) {
+    var materials = state.materials, geometries = state.geometries
+
+    var geom = state.geometries.errorSquares = new THREE.Geometry()
+    geom.dynamic = true
+    var mat = state.materials.errorSquares = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(this.props.errorSquareColor).getHex(),
+      side: THREE.DoubleSide,
+      trasparent: true,
+      depthTest: true,
+      // opacity: 0.2
+    })
+    state.scene.add(state.objects.errorSquares = new THREE.Mesh(geom, mat))
+  },
+  _updatePoints: function() {
+    var points = this.props.points, state = this.state
+    state.objects.pointGroup.children.forEach(function(child) {
+      state.objects.pointGroup.remove(child)
+    })
+    points.forEach(function(d) {
+      var sphere = new THREE.Mesh(state.geometries.point, state.materials.point)
+      sphere.position.x = state.xScale(d.point[0])
+      sphere.position.y = state.yScale(d.point[1])
+      sphere.position.z = state.zScale(d.point[2])
+      state.objects.pointGroup.add(sphere)
+    })
+  },
+  _updateErrorLines: function() {
+    var state = this.state, geom = state.geometries.errorLines
+    geom.vertices.splice(0, geom.vertices.length) // empty
+    this.props.points.forEach(function(d) {
+      var x = state.xScale(d.point[0])
+      var y = state.yScale(d.point[1])
+      var z = state.zScale(d.point[2])
+      var py = state.yScale(this._getPrediction(d.point[0], d.point[2]))
+      geom.vertices.push(new THREE.Vector3(x, y, z))
+      geom.vertices.push(new THREE.Vector3(x, py, z))
+    }, this)
+    geom.verticesNeedUpdate = true
+    geom.computeLineDistances()
+  },
+  _updateErrorSquares: function() {
+    var state = this.state, geom = state.geometries.errorSquares
+    geom.vertices.splice(0, geom.vertices.length) // empty
+
+    var idx = 0
+    this.props.points.forEach(function(d) {
+      var x = state.xScale(d.point[0])
+      var y = state.yScale(d.point[1])
+      var z = state.zScale(d.point[2])
+      var py = state.yScale(this._getPrediction(d.point[0], d.point[2]))
+      var s = Math.abs(py - y)
+      
+      geom.vertices.push(new THREE.Vector3(x, y, z))
+      geom.vertices.push(new THREE.Vector3(x, py, z))
+      geom.vertices.push(new THREE.Vector3(x + s, py, z))
+      geom.vertices.push(new THREE.Vector3(x + s, y, z))
+      
+      geom.faces.push(new THREE.Face3(idx + 0, idx + 1, idx + 2))
+      geom.faces.push(new THREE.Face3(idx + 0, idx + 2, idx + 3))
+      
+      idx += 4
+      geom.verticesNeedUpdate = true
+    }, this)
+  },
+  _updateRegressionPlane: function() {
+    var state = this.state
+    var verts = state.geometries.plane.vertices
+    var B = state.betas
+    for (var i = 0; i < 4; i++) {
+      verts[i].y = state.yScale(
+          B[0]
+        + B[1] * state.xScale.invert(verts[i].x)
+        + B[2] * state.zScale.invert(verts[i].z)
+      )
+    }
+    this.state.geometries.plane.verticesNeedUpdate = true
+  },
+  _updateScene: function() {
+    this._updatePoints()
+    this._updateErrorLines()
+    this._updateErrorSquares()
+    this._updateRegressionPlane()
+  },
+  _renderScene: function() {
+    var state = this.state
+    state.renderer.render(state.scene, state.objects.camera)
   },
   render: function() {
     var props = this.props, data = props.data
     var style = extend({
       width: props.width,
       height: props.height,
-      backgroundColor: 'rgba(0, 0, 0, 0.1)'
+      // backgroundColor: 'rgba(0, 0, 0, 0.1)'
     }, this.props.style || {})
     return React.DOM.div(extend({style: style}, props), null)
   }
@@ -531,7 +763,11 @@ function hessian(y, X_) {
   var i, j, n = X_.length, p = X_[0].length + 1, X = []
   for(i = 0; i < n; i++) X[i] = [1].concat(X_[i])
   var X_T = numeric.transpose(X)
-  return numeric.dot(numeric.dot(numeric.inv(numeric.dot(X_T, X)), X_T), y)
+  var X_T_X = numeric.dot(X_T, X)
+  // console.log('hessian X_T_X', JSON.stringify(X_T_X))
+  // console.log('hessian X_T_X', JSON.stringify(numeric.det(X_T_X)))
+  // console.log('hessian X_T_X', JSON.stringify(numeric.inv(X_T_X)))
+  return numeric.dot(numeric.dot(numeric.inv(X_T_X), X_T), y)
 }
 
 function copyArray(a) {
@@ -543,7 +779,7 @@ function copyArray(a) {
 var App = React.createClass({
   getInitialState: function() {
     var color = d3.scale.category10()
-    var leastSquaresPoints = [
+    var points = [
       [16,  5],
       [13, 23],
       [24, 33],
@@ -553,10 +789,11 @@ var App = React.createClass({
       [90, 85]
     ].map(function(point, i) { return { point: point, color: color(i) } })
     var state = {
-      leastSquaresPoints: leastSquaresPoints,
+      leastSquaresPoints: points,
+      leastSquaresPoints3D: this._leastSquaresPoints3D(points),
       regressionPoints: [ [20, 20], [80, 80] ],
       // Dependent state / possible pre-mature optimization.
-      leastSquaresErrors: this._leastSquaresErrors(leastSquaresPoints)
+      leastSquaresErrors: this._leastSquaresErrors(points)
     }
     return state
   },
@@ -575,7 +812,7 @@ var App = React.createClass({
     if (type === 'regression') {
       var points = copyArray(this.state.regressionPoints)
       points[e.i] = e.pos
-      this.setState({ regressionPoints: points })
+      this.setState({regressionPoints: points})
     }
   },
   _leastSquaresErrors: function(points) {
@@ -585,6 +822,12 @@ var App = React.createClass({
       var point = acc(d)
       var value = Math.abs(rs(point[0]) - point[1]) /* err = x - X */
       return { value: value * value, d: d }
+    })
+  },
+  _leastSquaresPoints3D: function(points) {
+    return points.map(function(d) {
+      var point = d.point.concat([Math.random() * 100])
+      return { point: point, color: d.color }
     })
   },
   render: function() {
@@ -615,8 +858,11 @@ var App = React.createClass({
         key: 'regression-2',
         style: {float: 'left'}
       }),
-      React.DOM.div({style: { clear: 'both' } }),
-      OLS3D()
+      React.DOM.div(),
+      OLS3D({
+        style: { float: 'left' },
+        points: this.state.leastSquaresPoints3D
+      })
     ])
   }
 })
