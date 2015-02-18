@@ -98,12 +98,22 @@ var LeastSquares = React.createClass({
   sel: function() { return d3.select(this.getDOMNode()) },
   getDefaultProps: function() {
     return {
-      pointAccessor: function(d) { return d.point },
+      points: [],
+      locationAccessor: function(d) { return d.point },
+      colorAccessor: function(d) { return d.color },
+      onDragNob: function() { },
       mode: 'points',
+      showErrorSquares: true,
+      showErrorLines: true,
+      showRegressionLine: true,
+      width: 410,
+      height: 410,
+      xAxisLabel: 'x',
+      yAxisLabel: 'y'
     }
   },
   getInitialState: function() {
-    var w = 410, h = 410
+    var w = this.props.width, h = this.props.height
     var m = {l: 30, t: 20, r: 20, b: 30}
     var x = d3.scale.linear().domain([0, 100]).range([m.l, w - m.r])
     var y = d3.scale.linear().domain([0, 100]).range([h - m.b, m.t])
@@ -125,7 +135,6 @@ var LeastSquares = React.createClass({
   componentDidMount: function() {
     var self = this
     var state = this.state
-    var colorScale = d3.scale.category10()
     var el = this.sel()
 
     var svg = this.sel().append('svg').attr({
@@ -140,49 +149,54 @@ var LeastSquares = React.createClass({
 
     var defs = svg.append('defs')
     
-    var gradient1 = defs.append('linearGradient')
-        .attr({
-          id: 'bg-gradient-0',
-          gradientUnits: 'objectBoundingBox',
-          x2: 1, y2: 0
-        })
+    var gradient1 = defs.append('linearGradient').attr({
+      id: 'bg-gradient-0',
+      gradientUnits: 'objectBoundingBox',
+      x2: 1, y2: 0
+    })
     var fade = 0.1
     gradient1.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 0).attr('offset', 0)
+      .attr('stop-color', 'white').attr('stop-opacity', 0)
+      .attr('offset', 0)
     gradient1.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 1).attr('offset', fade)
+      .attr('stop-color', 'white').attr('stop-opacity', 1)
+      .attr('offset', fade)
     gradient1.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 1).attr('offset', 1 - fade)
+      .attr('stop-color', 'white').attr('stop-opacity', 1)
+      .attr('offset', 1 - fade)
     gradient1.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 0).attr('offset', 1)
+      .attr('stop-color', 'white').attr('stop-opacity', 0)
+      .attr('offset', 1)
 
-    var gradient2 = defs.append('linearGradient')
-        .attr({
-          id: 'bg-gradient-1',
-          gradientUnits: 'objectBoundingBox',
-          x2: 0, y2: 1
-        })
+    var gradient2 = defs.append('linearGradient').attr({
+      id: 'bg-gradient-1',
+      gradientUnits: 'objectBoundingBox',
+      x2: 0, y2: 1
+    })
     gradient2.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 0).attr('offset', 0)
+      .attr('stop-color', 'white').attr('stop-opacity', 0)
+      .attr('offset', 0)
     gradient2.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 1).attr('offset', fade)
+      .attr('stop-color', 'white').attr('stop-opacity', 1)
+      .attr('offset', fade)
     gradient2.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 1).attr('offset', 1 - fade)
+      .attr('stop-color', 'white').attr('stop-opacity', 1)
+      .attr('offset', 1 - fade)
     gradient2.append('stop')
-      .attr('stop-color', 'white').attr('stop-opacity', 0).attr('offset', 1)
+      .attr('stop-color', 'white').attr('stop-opacity', 0)
+      .attr('offset', 1)
 
-    var mask0 = defs.append('mask').attr('id', 'bg-mask-0')
-    
-    mask0.append('rect')
-      .attr({
+    // Masks
+
+    defs.append('mask').attr('id', 'bg-mask-0')
+      .append('rect').attr({
         width: state.w + state.svgPadding * 2,
         height: state.h + state.svgPadding * 2,
         fill: 'url(#bg-gradient-0)'
       })
 
-    var mask1 = defs.append('mask').attr('id', 'bg-mask-1')
-
-    mask1.append('rect').attr({
+    defs.append('mask').attr('id', 'bg-mask-1')
+      .append('rect').attr({
         width: state.w + state.svgPadding * 2,
         height: state.h + state.svgPadding * 2,
         fill: 'url(#bg-gradient-1)'
@@ -193,15 +207,25 @@ var LeastSquares = React.createClass({
 
     var stage = bg1.append('g')
       .attr('class', 'stage')
-      .attr('transform', 'translate(' + [state.svgPadding, state.svgPadding] + ')')
+      .attr('transform', 'translate('
+        + [state.svgPadding, state.svgPadding] +
+      ')')
 
-    stage.append('g').call(d3.svg.axis().scale(state.x))
+    stage.append('g').call(d3.svg.axis().scale(state.x).ticks(5))
       .call(axisStyle)
       .attr('transform', 'translate(' + [0, state.y.range()[0]] + ')')
+      .append('text')
+        .attr('transform', 'translate(' + [d3.mean(state.x.range()), 20] + ')')
+        .text(this.props.xAxisLabel)
+        .attr('text-anchor', 'middle')
 
-    stage.append('g').call(d3.svg.axis().scale(state.y).orient('left'))
+    stage.append('g').call(d3.svg.axis().scale(state.y).orient('left').ticks(5))
       .call(axisStyle)
       .attr('transform', 'translate(' + [state.x.range()[0], 0] + ')')
+      .append('text')
+        .attr('transform', 'translate(' + [-10, d3.mean(state.y.range())] + ')')
+        .text(this.props.yAxisLabel)
+        .attr('text-anchor', 'end')
     
     stage.append('g').call(updateTicks, 'x', state.x, state.y, state.x.ticks())
       .attr('class', 'x-ticks')
@@ -209,21 +233,26 @@ var LeastSquares = React.createClass({
       .attr('class', 'y-ticks')
 
     // Add trend line.
-    stage.append('line').attr('class', 'line-ols')
-      .style('stroke', color.primary)
+    if (this.props.showRegressionLine)
+      stage.append('line').attr('class', 'line-ols')
+        .style('stroke', color.primary)
 
     // Add error lines.
+    if (this.props.showErrorLines)
     stage.append('g').attr('class', 'error-lines')
       .selectAll('line').data(this.state.errors).enter().append('line')
-      .style('stroke', function(d, i) { return alphaify(colorScale(i), 1) })
+      .style('stroke', this.props.colorAccessor)
       .style('stroke-width', 2)
       .style('stroke-dasharray', '2, 2')
 
-    stage.append('g').attr('class', 'error-squares')
-      .selectAll('rect').data(this.state.errors).enter().append('rect')
-      .style('fill', function(d, i) { return alphaify(colorScale(i), 0.2) })
-      .style('pointer-events', 'none')
-
+    // Add error squares.
+    if (this.props.showErrorSquares)
+      stage.append('g').attr('class', 'error-squares')
+        .selectAll('rect').data(this.state.errors).enter().append('rect')
+        .style('fill', function(d, i) {
+          return alphaify(self.props.colorAccessor(d.d, i), 0.2)
+        })
+        .style('pointer-events', 'none')
 
     // Add nobs.
     if (this.props.mode === 'point')
@@ -254,7 +283,7 @@ var LeastSquares = React.createClass({
       .data(this.props.points)
       .enter().append('g').append('circle')
         .attr({r: 4})
-        .style('fill', function(d, i) { return alphaify(colorScale(i), 1) })
+        .style('fill', this.props.colorAccessor)
         .style('pointer-events', 'none')
     
     this._updateDOM()
@@ -277,11 +306,12 @@ var LeastSquares = React.createClass({
   // Private methods.
   _updatePoints: function() {
     var state = this.state
+    var acc = this.props.locationAccessor
     this.sel().select('.points').selectAll('g')
       .data(this.props.points)
       .attr({
         transform: function(d) {
-          return 'translate(' + state.xy(acc('point')(d)) + ')'
+          return 'translate(' + state.xy(acc(d)) + ')'
         }
       })
   },
@@ -311,7 +341,7 @@ var LeastSquares = React.createClass({
     this.sel().select('.point-nobs').selectAll('.nob')
       .data(this.props.points)
       .attr('transform', function(d) {
-        return 'translate(' + state.xy(props.pointAccessor(d)) + ')'
+        return 'translate(' + state.xy(props.locationAccessor(d)) + ')'
       })
     if (this.props.regressionPoints)
       this.sel().select('.regression-nobs').selectAll('.nob')
@@ -322,7 +352,7 @@ var LeastSquares = React.createClass({
   },
   _updateErrors: function() {
     var state = this.state, errors = state.errors
-    var acc = this.props.pointAccessor
+    var acc = this.props.locationAccessor
     this.sel().select('.error-lines').selectAll('line')
       .data(errors)
       .attr({
@@ -358,10 +388,10 @@ var LeastSquares = React.createClass({
   _updateStateFromProps: function(props, state) {
     state = state || this.state
     var x = state.x, y = state.y
+    var acc = this.props.locationAccessor
     var reg
-    if (props.mode === 'point') {
-       reg = ols(props.points, this.props.pointAccessor)
-    } else {
+    if (props.mode === 'point') reg = ols(props.points, acc)
+    else {
       reg = (function() {
         var x1 = props.regressionPoints[0][0], y1 = props.regressionPoints[0][1]
         var x2 = props.regressionPoints[1][0], y2 = props.regressionPoints[1][1]
@@ -373,7 +403,8 @@ var LeastSquares = React.createClass({
     }
     var rs = d3.scale.linear().domain([0, 1]).range([reg.a, reg.a + reg.b * 1])
     state.errors = props.points.map(function(d) {
-      return { err: rs(d.point[0]) - d.point[1] /* err = x - X */, d: d }
+      var point = acc(d)
+      return { err: rs(point[0]) - point[1] /* err = x - X */, d: d }
     })
     state.reg = reg
     state.rs = rs
@@ -451,10 +482,11 @@ var OLS3D = React.createClass({
       valueAccessor: function(d) { return d.value },
       width: 500,
       height: 400,
-      pointColor: color.senary,
       errorSquareColor: color.primary,
       regressionPlaneColor: color.secondary,
       pointSize: 0.015,
+      colorAccessor: function(d) { return d.color },
+      locationAccessor: function(d) { return d.point },
       onDragPoint: function() { }
     }
   },
@@ -505,7 +537,7 @@ var OLS3D = React.createClass({
     return state.betas[0] + state.betas[1] * x1 + state.betas[2] * x2
   },
   /**
-    * React Lifecycle hooks.
+    * React Lifecycle hooks
     */
   componentDidMount: function() {
     var self = this
@@ -535,15 +567,13 @@ var OLS3D = React.createClass({
     state.objects.camera.position.copy(cameraPos)
     state.objects.camera.lookAt(new THREE.Vector3(0, 0, 0))
 
-    var controls = new THREE.TrackballControls(camera, state.renderer.domElement)
+    var controls = new THREE.OrbitControls(camera, state.renderer.domElement)
+    controls.noZoom = true
+    controls.noPan = true
+    controls.autoRotateSpeed = 1.0
+    controls.autoRotate = true
+
     state.objects.controls = controls
-    controls.rotateSpeed = 1.0
-    controls.zoomSpeed = 1.2
-    controls.panSpeed = 0.8
-    controls.noZoom = false
-    controls.noPan = false
-    controls.staticMoving = true
-    controls.dynamicDampingFactor = 0.3
     controls.addEventListener('change', function() {
       self._updateNobData(props, self.state)
       self._updateNobs()
@@ -563,15 +593,13 @@ var OLS3D = React.createClass({
 
     state.objects.raycaster = new THREE.Raycaster()
 
-
     this._setupGrid(state)
+    this._setupGridLabels(state)
 
-    state.materials.point = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(props.pointColor).getHex()
-    })
-    state.geometries.point = new THREE.SphereGeometry(props.pointSize, 32, 32)
     state.objects.pointGroup = new THREE.Object3D()
     state.scene.add(state.objects.pointGroup)
+
+    state.geometries.point = new THREE.SphereGeometry(props.pointSize, 32, 32)
 
     this._setupRegressionPlane(state)
     this._setupErrorLines(state)
@@ -585,7 +613,7 @@ var OLS3D = React.createClass({
         .on('dragend', this._onDragEnd)
       ).style('pointer-events', 'auto')
 
-    this.setState(state)
+    this.setState(state) // Needs to come first.
     this._updateScene()
     this._renderScene()
     this._updateNobData(props, self.state)
@@ -623,27 +651,35 @@ var OLS3D = React.createClass({
     * ------- SETUP --------
     */
   _setupGrid: function(state) {
-    var gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
-    var colorCenterLine = 0x000000, colorGrid = 0xdddddd
+    var size = 0.5, step = 0.1
+    var gridHelper = new THREE.GridHelper(size, step)
+    var colorCenterLine = 0x000000, colorGrid = 0xeeeeee
     // gridHelper.rotation.x = Math.PI / 2
     gridHelper.position.y = -0.5
     gridHelper.setColors(colorCenterLine, colorGrid)
     state.scene.add(gridHelper)
     state.objects.gridHelperX = gridHelper
 
-    gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
+    gridHelper = new THREE.GridHelper(size, step)
     gridHelper.position.x = -0.5
     gridHelper.rotation.z = Math.PI / 2
     gridHelper.setColors(colorCenterLine, colorGrid)
     state.scene.add(gridHelper)
     state.objects.gridHelperY = gridHelper
 
-    gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
+    gridHelper = new THREE.GridHelper(size, step)
     gridHelper.position.z = -0.5
     gridHelper.rotation.x = Math.PI / 2
     gridHelper.setColors(colorCenterLine, colorGrid)
     state.scene.add(gridHelper)
     state.objects.gridHelperZ = gridHelper
+  },
+  _setupGridLabels: function(state) {
+    var map = THREE.ImageUtils.loadTexture('resources/me.png')
+    var material = new THREE.SpriteMaterial({map: map, color: 0xffffff})
+    var sprite = new THREE.Sprite(material)
+    sprite.position.x = 0.5
+    state.scene.add(sprite)
   },
   _setupRegressionPlane: function(state) {
     var geom = state.geometries.plane = new THREE.Geometry()
@@ -662,42 +698,27 @@ var OLS3D = React.createClass({
       side: THREE.DoubleSide,
       transparent: true,
       depthTest: true,
-      opacity: 0.6,
-      // blending: THREE.AdditiveBlending
+      opacity: 0.6
     })
     state.scene.add(state.objects.plane = new THREE.Mesh(geom, mat))
   },
   _setupErrorLines: function(state) {
     var materials = state.materials, geometries = state.geometries
     // state.materials.errorLines = new THREE.LineBasicMaterial({color: 0xff0000})
-    state.materials.errorLines = new THREE.LineDashedMaterial({
+    var mat = state.materials.errorLines = new THREE.LineDashedMaterial({
       color: 0xff0000,
       dashSize: 0.01,
       gapSize: 0.01,
       linewidth: 2
     })
-    state.geometries.errorLines = new THREE.Geometry()
-    geometries.errorLines.dynamic = true
-    state.objects.errorLines = new THREE.Line(
-      state.geometries.errorLines,
-      state.materials.errorLines,
-      THREE.LinePieces
-    )
+    var geom = state.geometries.errorLines = new THREE.Geometry()
+    geom.dynamic = true
+    state.objects.errorLines = new THREE.Line(geom, mat, THREE.LinePieces)
     state.scene.add(state.objects.errorLines)
   },
   _setupErrorSquares: function(state) {
-    var materials = state.materials, geometries = state.geometries
-
-    var geom = state.geometries.errorSquares = new THREE.Geometry()
-    geom.dynamic = true
-    var mat = state.materials.errorSquares = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(this.props.errorSquareColor).getHex(),
-      side: THREE.DoubleSide,
-      trasparent: true,
-      depthTest: true,
-      opacity: 0.8
-    })
-    state.scene.add(state.objects.errorSquares = new THREE.Mesh(geom, mat))
+    state.objects.errorSquaresGroup = new THREE.Object3D()
+    state.scene.add(state.objects.errorSquaresGroup)
   },
 
   /**
@@ -706,17 +727,24 @@ var OLS3D = React.createClass({
 
   _updatePoints: function() {
     var points = this.props.points, state = this.state
-    state.objects.pointGroup.children.forEach(function(child) {
-      state.objects.pointGroup.remove(child)
+    var group = state.objects.pointGroup
+
+    group.children.forEach(function(mesh) {
+      group.remove(mesh)
+      mesh.material.dispose()
     })
+
     points.forEach(function(d) {
-      var sphere = new THREE.Mesh(state.geometries.point, state.materials.point)
+      var mat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(this.props.colorAccessor(d)).getHex()
+      })
+      var sphere = new THREE.Mesh(this.state.geometries.point, mat)
       sphere.position.x = state.xScale(d.point[0])
       sphere.position.y = state.yScale(d.point[1])
       sphere.position.z = state.zScale(d.point[2])
       sphere.userData = d
-      state.objects.pointGroup.add(sphere)
-    })
+      group.add(sphere)
+    }, this)
   },
   _updateNobs: function() {
     var self = this
@@ -741,11 +769,23 @@ var OLS3D = React.createClass({
     geom.computeLineDistances()
   },
   _updateErrorSquares: function() {
-    var state = this.state, geom = state.geometries.errorSquares
-    geom.vertices.splice(0, geom.vertices.length) // empty
-
-    var idx = 0
+    var state = this.state
+    var group = state.objects.errorSquaresGroup
+    group.children.forEach(function(mesh) {
+      group.remove(mesh)
+      mesh.geometry.dispose()
+      mesh.material.dispose()
+    })
     this.props.points.forEach(function(d) {
+      var geom = new THREE.Geometry()
+      var mat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(this.props.colorAccessor(d)).getHex(),
+        side: THREE.DoubleSide,
+        trasparent: true,
+        depthTest: true,
+        opacity: 0.8
+      })
+
       var x = state.xScale(d.point[0])
       var y = state.yScale(d.point[1])
       var z = state.zScale(d.point[2])
@@ -757,11 +797,11 @@ var OLS3D = React.createClass({
       geom.vertices.push(new THREE.Vector3(x + s, py, z))
       geom.vertices.push(new THREE.Vector3(x + s, y, z))
       
-      geom.faces.push(new THREE.Face3(idx + 0, idx + 1, idx + 2))
-      geom.faces.push(new THREE.Face3(idx + 0, idx + 2, idx + 3))
-      
-      idx += 4
-      geom.verticesNeedUpdate = true
+      geom.faces.push(new THREE.Face3(0, 1, 2))
+      geom.faces.push(new THREE.Face3(0, 2, 3))
+
+      // geom.verticesNeedUpdate = true
+      group.add(new THREE.Mesh(geom, mat))
     }, this)
   },
   _updateRegressionPlane: function() {
@@ -808,6 +848,7 @@ var OLS3D = React.createClass({
     var mouse = this._mouseToDevice(d3.mouse(this.sel().node()))
     var camera = this.state.objects.camera
     state.objects.controls.enabled = false
+    state.objects.controls.autoRotate = false
     intersectPlane.position.fromArray([
       state.xScale(d.datum.point[0]),
       state.yScale(d.datum.point[1]),
@@ -835,48 +876,14 @@ var OLS3D = React.createClass({
   },
   _onDragEnd: function() {
     this.state.objects.controls.enabled = true
+    // just stop rotating after the first interaction.
+    // this.state.objects.controls.autoRotate = true
   },
-  // _onMouseDown: function() {
-  //   var state = this.state
-  //   var intersectPlane = state.objects.intersectPlane
-  //   var mouse = this._mouseToDevice(d3.mouse(state.renderer.domElement))
-  //   var camera = this.state.objects.camera
-  //   var vector = new THREE.Vector3(mouse[0], mouse[1], 0.5).unproject(camera)
-  //   var objects = state.objects.pointGroup.children
-  //   state.objects.raycaster.set(camera.position,
-  //     vector.sub(camera.position).normalize())
-  //   var intersects = state.objects.raycaster.intersectObjects(objects)
-  //   if (!intersects.length) return
-  //   intersects.sort(function(a, b) { return b.distance - a.distance })
-  //   var selectedObject = state.objects.selectedObject = intersects[0].object
-  //   state.objects.controls.enabled = false
-  //   intersectPlane.position.copy(selectedObject.position)
-  //   intersectPlane.lookAt(camera.position)
-  // },
-  // _onMouseMove: function() {
-  //   var selectedObject = this.state.objects.selectedObject
-  //   if (!selectedObject) return
-  //   var intersectPlane = this.state.objects.intersectPlane
-  //   var intersects, point, mouse = new THREE.Vector2()
-  //   var mouseScreen = d3.mouse(this.state.renderer.domElement)
-  //   mouse.fromArray(this._mouseToDevice(mouseScreen))
-  //   this.state.objects.raycaster.setFromCamera(mouse, this.state.objects.camera)
-  //   intersects = this.state.objects.raycaster.intersectObject(intersectPlane)
-  //   if (!intersects.length) {
-  //     console.warn('warning: intersect plane on hit in mouse move')
-  //     return
-  //   }
-  //   // new point location
-  //   point = intersects[0].point.toArray()
-  //   point[0] = this.state.xScale.invert(point[0])
-  //   point[1] = this.state.yScale.invert(point[1])
-  //   point[2] = this.state.zScale.invert(point[2])
-  //   this.props.onDragPoint(point, selectedObject.userData)
-  // },
-  // _onMouseUp: function() {
-  //   this.state.objects.controls.enabled = true
-  //   this.state.objects.selectedObject = false
-  // },
+  _onMouseDown: function() {
+      this.state.objects.controls.autoRotate = false
+  },
+  _onMouseMove: function() {},
+  _onMouseUp: function() {},
   _renderScene: function() {
     var state = this.state
     state.objects.controls.update()
@@ -969,6 +976,93 @@ function copyArray(a) {
   return b
 }
 
+var LeastSquares3DModule = React.createClass({
+  getInitialState: function() {
+    var color = d3.scale.category10()
+    var points = [
+      [16, 10,  5],
+      [13, 30, 23],
+      [24, 20, 33],
+      [43, 44, 32],
+      [51, 52, 53],
+      [84, 71, 65],
+      [90, 80, 85]
+    ].map(function(point, i) { return { point: point, color: color(i) } })
+    return {
+      points: points
+    }
+  },
+  _locationAccessorX1Y: function(d) { return [d.point[0], d.point[1]] },
+  _locationAccessorX2Y: function(d) { return [d.point[2], d.point[1]] },
+  _onDragPoint3: function(point, data) {
+    data.point = point
+    this.setState({
+      points: this.state.points.slice(0) // copy
+    })
+  },
+  _onDragPointX1Y: function(type, event) {
+    if (type === 'point') {
+      event.d.point[0] = event.pos[0]
+      event.d.point[1] = event.pos[1]
+    }
+    this.setState({
+      points: this.state.points.slice(0) // copy
+    })
+  },
+  _onDragPointX2Y: function(type, event) {
+    if (type === 'point') {
+      event.d.point[2] = event.pos[0]
+      event.d.point[1] = event.pos[1]
+    }
+    this.setState({
+      points: this.state.points.slice(0) // copy
+    })
+  },
+  render: function() {
+    return React.DOM.div(null, [
+      LeastSquares({
+        key: 'least-squares-x1-y',
+        width: 250,
+        height: 250,
+        xAxisLabel: 'x1',
+        yAxisLabel: 'y',
+        showErrorSquares: false,
+        showErrorLines: false,
+        showRegressionLine: false,
+        points: this.state.points,
+        locationAccessor: this._locationAccessorX1Y,
+        onDragNob: this._onDragPointX1Y,
+        mode: 'point',
+        style: {float: 'left'}
+      }),
+      LeastSquares({
+        key: 'least-squares-x2-y',
+        width: 250,
+        height: 250,
+        xAxisLabel: 'x2',
+        yAxisLabel: 'y',
+        showErrorSquares: false,
+        showErrorLines: false,
+        showRegressionLine: false,
+        points: this.state.points,
+        locationAccessor: this._locationAccessorX2Y,
+        onDragNob: this._onDragPointX2Y,
+        mode: 'point',
+        style: {float: 'left'}
+      }),
+      OLS3D({
+        width: 400,
+        height: 300,
+        regressionPlaneColor: color.primary,
+        key: 'least-squares-x1-x2-y',
+        points: this.state.points,
+        onDragPoint: this._onDragPoint3,
+        style: {float: 'left'}
+      })
+    ])
+  }
+})
+
 var App = React.createClass({
   getInitialState: function() {
     var color = d3.scale.category10()
@@ -990,7 +1084,7 @@ var App = React.createClass({
     }
     return state
   },
-  _pointAccessor: function(d) { return d.point },
+  _locationAccessor: function(d) { return d.point },
   _onDragOLSNob: function(type, e) {
     if (type === 'point') {
       var points = this.state.leastSquaresPoints.slice(0)
@@ -1009,7 +1103,7 @@ var App = React.createClass({
     }
   },
   _leastSquaresErrors: function(points) {
-    var acc = this._pointAccessor, reg = ols(points, acc)
+    var acc = this._locationAccessor, reg = ols(points, acc)
     var rs = d3.scale.linear().domain([0, 1]).range([reg.a, reg.a + reg.b * 1])
     return points.map(function(d) {
       var point = acc(d)
@@ -1023,46 +1117,50 @@ var App = React.createClass({
       return { point: point, color: d.color }
     })
   },
-  _onDragPoint: function(point, data) {
-    data.point = point
-    this.setState({
-      leastSquaresPoints3D: this.state.leastSquaresPoints3D.slice(0) // copy
-    })
-  },
   render: function() {
     return React.DOM.div(null, [
-      LeastSquares({
-        points: this.state.leastSquaresPoints,
-        pointAccessor: this._pointAccessor,
-        onDragNob: this._onDragOLSNob,
-        mode: 'point',
-        key: 'least-squares',
-        style: {float: 'left'}
-      }),
-      StackedBars({
-        width: 1000,
-        height: 10,
-        domain: [0, 20000],
-        data: this.state.leastSquaresErrors,
-        key: 'least-squares-stacked-bar',
-        colorAccessor: function(d) { return d.d.color }
-      }),
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-      LeastSquares({
-        points: this.state.leastSquaresPoints,
-        pointAccessor: this._pointAccessor,
-        onDragNob: this._onDragRegressionNob,
-        mode: 'regression',
-        regressionPoints: this.state.regressionPoints,
-        key: 'regression-2',
-        style: {float: 'left'}
-      }),
-      React.DOM.div(),
-      OLS3D({
-        style: { float: 'left' },
-        points: this.state.leastSquaresPoints3D,
-        onDragPoint: this._onDragPoint
-      })
+      React.DOM.section({key: 'section-intro'}, [
+        React.DOM.h1({key: 'h1'}, 'Intro'),
+        LeastSquares({
+          width: 410,
+          height: 410,
+          points: this.state.leastSquaresPoints,
+          colorAccessor: function(d) { return color.senary },
+          onDragNob: this._onDragOLSNob,
+          mode: 'point',
+          showErrorSquares: false,
+          showErrorLines: false,
+          key: 'least-squares-without-squares'
+        })
+      ]),
+      React.DOM.section({key: 'section-about-min'}, [
+        React.DOM.h1({key: 'h1'}, "Minimizing the squared errors"),
+        LeastSquares({
+          key: 'least-squares',
+          points: this.state.leastSquaresPoints,
+          onDragNob: this._onDragOLSNob,
+          mode: 'point'
+        }),
+        StackedBars({
+          width: 1000,
+          height: 10,
+          domain: [0, 20000],
+          data: this.state.leastSquaresErrors,
+          key: 'least-squares-stacked-bar',
+          colorAccessor: function(d) { return d.d.color }
+        }),
+        LeastSquares({
+          key: 'regression-2',
+          points: this.state.leastSquaresPoints,
+          onDragNob: this._onDragRegressionNob,
+          mode: 'regression',
+          regressionPoints: this.state.regressionPoints
+        }),
+      ]),
+      React.DOM.section({key: 'section-d3'},[
+        React.DOM.h1({key: 'h1'}, 'Hello world!'),
+        LeastSquares3DModule(null)
+      ])
     ])
   }
 })
