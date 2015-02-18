@@ -454,7 +454,8 @@ var OLS3D = React.createClass({
       pointColor: color.senary,
       errorSquareColor: color.primary,
       regressionPlaneColor: color.secondary,
-      pointSize: 0.015
+      pointSize: 0.015,
+      onDragPoint: function() { }
     }
   },
   getInitialState: function() {
@@ -465,7 +466,10 @@ var OLS3D = React.createClass({
       renderer: renderer,
       materials: {},
       geometries: {},
-      objects: {}
+      objects: {},
+      xScale: d3.scale.linear().domain([0, 100]).range([-0.5, 0.5]),
+      yScale: d3.scale.linear().domain([0, 100]).range([-0.5, 0.5]),
+      zScale: d3.scale.linear().domain([0, 100]).range([-0.5, 0.5]),
     }
     return this._updateStateFromProps(this.props, state)
   },
@@ -476,24 +480,89 @@ var OLS3D = React.createClass({
     var X = props.points.map(function(d) { return [d.point[0], d.point[2] ] })
     var y = props.points.map(function(d) { return d.point[1] })
     state.betas = hessian(y, X)
+    this._updateNobData(props, state)
     return state
+  },
+  /**
+    * helpers
+    */
+  _mouseToDevice: function(mouse) {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    var device = []
+    device[0] = (mouse[0] / this.props.width) * 2 - 1
+    device[1] = -(mouse[1] / this.props.height) * 2 + 1
+    return device
+  },
+  _deviceToMouse: function(device) {
+    var mouse = []
+    mouse[0] = (device[0] + 1) / 2 * this.props.width
+    mouse[1] = -(device[1] - 1) / 2 * this.props.height
+    return mouse
   },
   _getPrediction: function(x1, x2) {
     var state = this.state
     return state.betas[0] + state.betas[1] * x1 + state.betas[2] * x2
   },
+  /**
+    * React Lifecycle hooks.
+    */
   componentDidMount: function() {
     var self = this
     var props = this.props, state = extend({}, this.state)
-    this.sel().node().appendChild(state.renderer.domElement)
     var ratio = props.width / props.height
+    var canvas = d3.select(state.renderer.domElement)
 
-    state.xScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
-    state.yScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
-    state.zScale = d3.scale.linear().domain([0, 100]).range([-0.5, 0.5])
+    this.sel().node().appendChild(canvas.node())
 
-    state.objects.camera = new THREE.PerspectiveCamera(75, ratio, 0.1, 1000)
-    state.objects.camera.setLens(50)
+    canvas.on('mousedown', this._onMouseDown)
+      .on('mousemove', this._onMouseMove)
+      .on('mouseup', this._onMouseUp)
+      .style({position: 'absolute', left: '0px', top: '0px'})
+
+    var overlay = this.sel().append('svg')
+      .attr({width: props.width, height: props.height})
+      .style({position: 'absolute', left: '0px', top: '0px'})
+      .style('pointer-events', 'none')
+      .attr('class', 'overlay')
+
+    var camera = new THREE.PerspectiveCamera(75, ratio, 0.1, 1000)
+    camera.setLens(50)
+    state.objects.camera = camera
+
+    var cameraPos = new THREE.Vector3(0, 0, 3.3)
+    cameraPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 8)
+    state.objects.camera.position.copy(cameraPos)
+    state.objects.camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+    var controls = new THREE.TrackballControls(camera, state.renderer.domElement)
+    state.objects.controls = controls
+    controls.rotateSpeed = 1.0
+    controls.zoomSpeed = 1.2
+    controls.panSpeed = 0.8
+    controls.noZoom = false
+    controls.noPan = false
+    controls.staticMoving = true
+    controls.dynamicDampingFactor = 0.3
+    controls.addEventListener('change', function() {
+      self._updateNobData(props, self.state)
+      self._updateNobs()
+    })
+
+    var intersectPlane = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(10, 10, 8, 8),
+      new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        opacity: 0.25,
+        transparent: true
+      })
+    )
+    intersectPlane.visible = false
+    state.scene.add(intersectPlane)
+    state.objects.intersectPlane = intersectPlane
+
+    state.objects.raycaster = new THREE.Raycaster()
+
 
     this._setupGrid(state)
 
@@ -508,9 +577,19 @@ var OLS3D = React.createClass({
     this._setupErrorLines(state)
     this._setupErrorSquares(state)
 
-    this.setState(state) // TODO: move to end?
+    this._updateNobData(props, state)
+    buildNobs(overlay, state.nobData, 'point-nobs')
+      .call(d3.behavior.drag()
+        .on('dragstart', this._onDragStart)
+        .on('drag', this._onDrag)
+        .on('dragend', this._onDragEnd)
+      ).style('pointer-events', 'auto')
+
+    this.setState(state)
     this._updateScene()
     this._renderScene()
+    this._updateNobData(props, self.state)
+    this._updateNobs()
 
     var prev_t = 0, dt, rotY = Math.PI / 8
     d3.timer(function(t) {
@@ -518,11 +597,12 @@ var OLS3D = React.createClass({
       
       // rotY += Math.PI * dt / 20000
 
-      var cameraPos = new THREE.Vector3(0, 0, 3.3)
-      cameraPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY)
-      cameraPos.y = 0.5
-      state.objects.camera.position.copy(cameraPos)
-      state.objects.camera.lookAt(new THREE.Vector3(0, 0, 0))
+      // var cameraPos = new THREE.Vector3(0, 0, 3.3)
+      // cameraPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY)
+      // cameraPos.y = 0.5
+      // state.objects.camera.position.copy(cameraPos)
+      // state.objects.camera.lookAt(new THREE.Vector3(0, 0, 0))
+      
       self._renderScene()
     })
   },
@@ -539,6 +619,9 @@ var OLS3D = React.createClass({
     this._updateScene()
     this._renderScene()
   },
+  /**
+    * ------- SETUP --------
+    */
   _setupGrid: function(state) {
     var gridHelper = new THREE.GridHelper(0.5 /*size*/, 0.2 /*step*/)
     var colorCenterLine = 0x000000, colorGrid = 0xdddddd
@@ -579,7 +662,8 @@ var OLS3D = React.createClass({
       side: THREE.DoubleSide,
       transparent: true,
       depthTest: true,
-      opacity: 0.6
+      opacity: 0.6,
+      // blending: THREE.AdditiveBlending
     })
     state.scene.add(state.objects.plane = new THREE.Mesh(geom, mat))
   },
@@ -611,10 +695,15 @@ var OLS3D = React.createClass({
       side: THREE.DoubleSide,
       trasparent: true,
       depthTest: true,
-      // opacity: 0.2
+      opacity: 0.8
     })
     state.scene.add(state.objects.errorSquares = new THREE.Mesh(geom, mat))
   },
+
+  /**
+    * ------- UPDATE ---------
+    */
+
   _updatePoints: function() {
     var points = this.props.points, state = this.state
     state.objects.pointGroup.children.forEach(function(child) {
@@ -625,8 +714,17 @@ var OLS3D = React.createClass({
       sphere.position.x = state.xScale(d.point[0])
       sphere.position.y = state.yScale(d.point[1])
       sphere.position.z = state.zScale(d.point[2])
+      sphere.userData = d
       state.objects.pointGroup.add(sphere)
     })
+  },
+  _updateNobs: function() {
+    var self = this
+    this.sel().select('.overlay').select('.point-nobs').selectAll('.nob')
+      .data(this.state.nobData)
+      .attr('transform', function(d) {
+        return 'translate(' + self._deviceToMouse(d.pos) + ')'
+      })
   },
   _updateErrorLines: function() {
     var state = this.state, geom = state.geometries.errorLines
@@ -681,22 +779,118 @@ var OLS3D = React.createClass({
   },
   _updateScene: function() {
     this._updatePoints()
+    this._updateNobs()
     this._updateErrorLines()
     this._updateErrorSquares()
     this._updateRegressionPlane()
   },
+  _updateNobData: function(props, state) {
+    var camera = state.objects.camera
+    if (camera) {
+      state.nobData = props.points.map(function(d, i) {
+        var point = [
+          state.xScale(d.point[0]),
+          state.yScale(d.point[1]),
+          state.zScale(d.point[2])
+        ]
+        var pos = new THREE.Vector3().fromArray(point).project(camera)
+          .toArray().slice(0, 2)
+        return {pos: pos, datum: d}
+      })
+    }
+  },
+  /**
+    * ------- EVENT LISTENERS -------
+    */
+  _onDragStart: function(d, i) {
+    var state = this.state
+    var intersectPlane = state.objects.intersectPlane
+    var mouse = this._mouseToDevice(d3.mouse(this.sel().node()))
+    var camera = this.state.objects.camera
+    state.objects.controls.enabled = false
+    intersectPlane.position.fromArray([
+      state.xScale(d.datum.point[0]),
+      state.yScale(d.datum.point[1]),
+      state.zScale(d.datum.point[2])
+    ])
+    intersectPlane.lookAt(camera.position)
+  },
+  _onDrag: function(d, i) {
+    console.log('drag!')
+    var intersectPlane = this.state.objects.intersectPlane
+    var intersects, point, mouse = new THREE.Vector2()
+    mouse.fromArray(this._mouseToDevice(d3.mouse(this.sel().node())))
+    this.state.objects.raycaster.setFromCamera(mouse, this.state.objects.camera)
+    intersects = this.state.objects.raycaster.intersectObject(intersectPlane)
+    if (!intersects.length) {
+      console.warn('warning: intersect plane on hit in mouse move')
+      return
+    }
+    // new point location
+    point = intersects[0].point.toArray()
+    point[0] = this.state.xScale.invert(point[0])
+    point[1] = this.state.yScale.invert(point[1])
+    point[2] = this.state.zScale.invert(point[2])
+    this.props.onDragPoint(point, d.datum)
+  },
+  _onDragEnd: function() {
+    this.state.objects.controls.enabled = true
+  },
+  // _onMouseDown: function() {
+  //   var state = this.state
+  //   var intersectPlane = state.objects.intersectPlane
+  //   var mouse = this._mouseToDevice(d3.mouse(state.renderer.domElement))
+  //   var camera = this.state.objects.camera
+  //   var vector = new THREE.Vector3(mouse[0], mouse[1], 0.5).unproject(camera)
+  //   var objects = state.objects.pointGroup.children
+  //   state.objects.raycaster.set(camera.position,
+  //     vector.sub(camera.position).normalize())
+  //   var intersects = state.objects.raycaster.intersectObjects(objects)
+  //   if (!intersects.length) return
+  //   intersects.sort(function(a, b) { return b.distance - a.distance })
+  //   var selectedObject = state.objects.selectedObject = intersects[0].object
+  //   state.objects.controls.enabled = false
+  //   intersectPlane.position.copy(selectedObject.position)
+  //   intersectPlane.lookAt(camera.position)
+  // },
+  // _onMouseMove: function() {
+  //   var selectedObject = this.state.objects.selectedObject
+  //   if (!selectedObject) return
+  //   var intersectPlane = this.state.objects.intersectPlane
+  //   var intersects, point, mouse = new THREE.Vector2()
+  //   var mouseScreen = d3.mouse(this.state.renderer.domElement)
+  //   mouse.fromArray(this._mouseToDevice(mouseScreen))
+  //   this.state.objects.raycaster.setFromCamera(mouse, this.state.objects.camera)
+  //   intersects = this.state.objects.raycaster.intersectObject(intersectPlane)
+  //   if (!intersects.length) {
+  //     console.warn('warning: intersect plane on hit in mouse move')
+  //     return
+  //   }
+  //   // new point location
+  //   point = intersects[0].point.toArray()
+  //   point[0] = this.state.xScale.invert(point[0])
+  //   point[1] = this.state.yScale.invert(point[1])
+  //   point[2] = this.state.zScale.invert(point[2])
+  //   this.props.onDragPoint(point, selectedObject.userData)
+  // },
+  // _onMouseUp: function() {
+  //   this.state.objects.controls.enabled = true
+  //   this.state.objects.selectedObject = false
+  // },
   _renderScene: function() {
     var state = this.state
+    state.objects.controls.update()
     state.renderer.render(state.scene, state.objects.camera)
   },
   render: function() {
-    var props = this.props, data = props.data
     var style = extend({
-      width: props.width,
-      height: props.height,
+      width: this.props.width,
+      height: this.props.height,
+      // cursor: 'move',
+      position: 'relative',
       // backgroundColor: 'rgba(0, 0, 0, 0.1)'
     }, this.props.style || {})
-    return React.DOM.div(extend({style: style}, props), null)
+    return React.DOM.div({style: style}, null)
   }
 })
 
@@ -713,7 +907,9 @@ var StackedBars = React.createClass({
   },
   render: function() {
     var props = this.props, data = props.data
-    var style = extend({ backgroundColor: 'rgba(0, 0, 0, 0.1)' }, props.style || {})
+    var style = extend({
+      backgroundColor: 'rgba(0, 0, 0, 0.1)'
+    }, props.style || {})
     delete props.style
     delete props.data
     
@@ -764,9 +960,6 @@ function hessian(y, X_) {
   for(i = 0; i < n; i++) X[i] = [1].concat(X_[i])
   var X_T = numeric.transpose(X)
   var X_T_X = numeric.dot(X_T, X)
-  // console.log('hessian X_T_X', JSON.stringify(X_T_X))
-  // console.log('hessian X_T_X', JSON.stringify(numeric.det(X_T_X)))
-  // console.log('hessian X_T_X', JSON.stringify(numeric.inv(X_T_X)))
   return numeric.dot(numeric.dot(numeric.inv(X_T_X), X_T), y)
 }
 
@@ -800,7 +993,7 @@ var App = React.createClass({
   _pointAccessor: function(d) { return d.point },
   _onDragOLSNob: function(type, e) {
     if (type === 'point') {
-      var points = copyArray(this.state.leastSquaresPoints)
+      var points = this.state.leastSquaresPoints.slice(0)
       points[e.i].point = e.pos
       this.setState({
         leastSquaresPoints: points,
@@ -828,6 +1021,12 @@ var App = React.createClass({
     return points.map(function(d) {
       var point = d.point.concat([Math.random() * 100])
       return { point: point, color: d.color }
+    })
+  },
+  _onDragPoint: function(point, data) {
+    data.point = point
+    this.setState({
+      leastSquaresPoints3D: this.state.leastSquaresPoints3D.slice(0) // copy
     })
   },
   render: function() {
@@ -861,7 +1060,8 @@ var App = React.createClass({
       React.DOM.div(),
       OLS3D({
         style: { float: 'left' },
-        points: this.state.leastSquaresPoints3D
+        points: this.state.leastSquaresPoints3D,
+        onDragPoint: this._onDragPoint
       })
     ])
   }
