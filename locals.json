@@ -112,10 +112,10 @@
       , "authorText" : "Lewis Lehe"
     }
     , {
-        "title": "Regression"
+        "title": "Linear Regression"
       , "subtitle": "Explained Visually"
       , "hideFromHomepage": true
-      , "slug": "regression"
+      , "slug": "linear-regression"
       , "quip": "Self expression, through regression."
       , "date": "2015/02/17"
       , "author": "Victor Powell"

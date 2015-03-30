@@ -6,7 +6,7 @@ html
     include ../../templates/head
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
-  body
+  body(style="width: 620px")
     section.menu
       a(href=basepath) Back
     section.title
@@ -30,5 +30,6 @@ html
   script(src=basepath + "scripts/OrbitControls.js" charset="utf-8")
   script(src=basepath + "scripts/TrackballControls.js" charset="utf-8")
   script(src=basepath + "scripts/numeric.js" charset="utf-8")
+  script(src=basepath + "scripts/d3-masonic.js" charset="utf-8")
 
   script(src=path + "script.js")

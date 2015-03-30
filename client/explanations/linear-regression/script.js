@@ -94,6 +94,13 @@ function buildNobs(coord, data, className) {
   return nobs
 }
 
+var PureRenderMixin = {
+  shouldComponentUpdate: function(nextProps, nextState) {
+    return !shallowEqual(this.props, nextProps) || 
+      !shallowEqual(this.state, nextState);
+  }
+}
+
 var LeastSquares = React.createClass({
   sel: function() { return d3.select(this.getDOMNode()) },
   getDefaultProps: function() {
@@ -220,17 +227,20 @@ var LeastSquares = React.createClass({
       .call(axisStyle)
       .attr('transform', 'translate(' + [0, state.y.range()[0]] + ')')
       .append('text')
-        .attr('transform', 'translate(' + [d3.mean(state.x.range()), 20] + ')')
-        .text(this.props.xAxisLabel)
+        .attr('transform', 'translate(' + [d3.mean(state.x.range()), 35] + ')')
         .attr('text-anchor', 'middle')
+        .style('font-size', 14)
+        .text(this.props.xAxisLabel)
+        
 
     stage.append('g').call(d3.svg.axis().scale(state.y).orient('left').ticks(5))
       .call(axisStyle)
       .attr('transform', 'translate(' + [state.x.range()[0], 0] + ')')
       .append('text')
-        .attr('transform', 'translate(' + [-10, d3.mean(state.y.range())] + ')')
+        .attr('transform', 'translate(' + [-30, d3.mean(state.y.range())] + ') rotate(-90)')
         .text(this.props.yAxisLabel)
-        .attr('text-anchor', 'end')
+        .style('font-size', 14)
+        .attr('text-anchor', 'middle')
     
     stage.append('g').call(updateTicks, 'x', state.x, state.y, state.x.ticks())
       .attr('class', 'x-ticks')
@@ -294,13 +304,22 @@ var LeastSquares = React.createClass({
     this._updateDOM()
   },
   componentWillReceiveProps: function(newProps) {
-    // Simple dirty checking. Requires copy to force redraw.
-    if (   newProps.points === this.props.points
-        && newProps.regressionPoints === this.props.regressionPoints
-    ) return
     // Won't trigger re-render.
     this.setState(this._updateStateFromProps(newProps))
     this._updateDOM()
+  },
+  shouldComponentUpdate: function(newProps) {
+    // Simple dirty checking. Requires copy to force redraw.
+    var shouldUpdate =
+         newProps.points !== this.props.points
+      || newProps.regressionPoints !== this.props.regressionPoints
+      || newProps.betas !== this.props.betas
+      || newProps.betas && this.props.betas &&
+        (
+             newProps.betas[0] !== this.props.betas[0]
+          || newProps.betas[1] !== this.props.betas[1]
+        )
+    return shouldUpdate
   },
   _clamp: function(p) {
     var x = this.state.x, y = this.state.y
@@ -497,13 +516,16 @@ var OLS3D = React.createClass({
       colorAccessor: function(d) { return d.color },
       locationAccessor: function(d) { return d.point },
       onDragPoint: function() { },
-      showPointNobs: true
+      regressionNob: null,
+      showPointNobs: true,
+      betas: null
     }
   },
   getInitialState: function() {
     var scene = new THREE.Scene()
     var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
     var state = {
+      betas: [0, 0, 0],
       scene: scene,
       renderer: renderer,
       materials: {},
@@ -521,7 +543,7 @@ var OLS3D = React.createClass({
     state.renderer.setPixelRatio(window.devicePixelRatio)
     var X = props.points.map(function(d) { return [d.point[0], d.point[2] ] })
     var y = props.points.map(function(d) { return d.point[1] })
-    state.betas = hessian(y, X)
+    state.betas = props.betas || hessian(y, X)
     this._updateNobData(props, state)
     return state
   },
@@ -616,7 +638,7 @@ var OLS3D = React.createClass({
     this._setupErrorSquares(state)
 
     this._updateNobData(props, state)
-    buildNobs(overlay, state.nobData, 'point-nobs')
+    buildNobs(overlay, state.pointNobData, 'point-nobs')
       .call(d3.behavior.drag()
         .on('dragstart', this._onDragStart)
         .on('drag', this._onDrag)
@@ -645,13 +667,13 @@ var OLS3D = React.createClass({
     })
   },
   componentWillReceiveProps: function(newProps) {
-    if (newProps.points === this.props.points) return
-    // Won't trigger double-render.
     this.setState(this._updateStateFromProps(newProps))
   },
   shouldComponentUpdate: function(newProps, nextState) {
     // Simple dirty checking. Requires copy to force redraw.
-    return newProps.points !== this.props.points
+    var should = !!(newProps.points !== this.props.points
+      || (newProps.betas && newProps.betas !== this.props.betas))
+    return should
   },
   componentDidUpdate: function() {
     this._updateScene()
@@ -802,7 +824,7 @@ var OLS3D = React.createClass({
   _updateNobs: function() {
     var self = this
     this.sel().select('.overlay').select('.point-nobs').selectAll('.nob')
-      .data(this.state.nobData)
+      .data(this.state.pointNobData)
       .attr('transform', function(d) {
         return 'translate(' + self._deviceToMouse(d.pos) + ')'
       })
@@ -880,7 +902,7 @@ var OLS3D = React.createClass({
   _updateNobData: function(props, state) {
     var camera = state.objects.camera
     if (camera && props.showPointNobs) {
-      state.nobData = props.points.map(function(d, i) {
+      state.pointNobData = props.points.map(function(d, i) {
         var point = [
           state.xScale(d.point[0]),
           state.yScale(d.point[1]),
@@ -891,7 +913,7 @@ var OLS3D = React.createClass({
         return {pos: pos, datum: d}
       })
     } else {
-      state.nobData = []
+      state.pointNobData = []
     }
   },
   /**
@@ -1015,6 +1037,16 @@ function ols(points_, pointAccessor) {
   return {a: a, b: b}
 }
 
+function wrapLeastSquaresErrors(points, accessor, betas) {
+  var reg = betas ? {a: betas[0], b: betas[1]} : ols(points, accessor)
+  var rs = d3.scale.linear().domain([0, 1]).range([reg.a, reg.a + reg.b * 1])
+  return points.map(function(d) {
+    var point = accessor(d)
+    var error = Math.abs(rs(point[0]) - point[1]) /* err = x - X */
+    return {error: error * error, d: d}
+  })
+}
+
 // Sum of squared residuals using positive-definite Hessian.
 function hessian(y, X_) {
   var i, j, n = X_.length, p = X_[0].length + 1, X = []
@@ -1038,7 +1070,13 @@ var LeastSquares3DModule = React.createClass({
     ].map(function(point, i) { return { point: point, color: color(i) } })
     var state = {
       points: points,
-      betas: this._getBetas(points)
+      betas: this._getBetas(points),
+      regressionPoints: {
+        x1: [ [20, 20], [80, 80] ],
+        x2: [ [20, 20], [80, 80] ]
+      },
+      regressionBetas: [0, 0, 0],
+      regressionPlaneNob: { pos: [0, 0, 0], rot: [0, 0, 0] }
     }
     return state
   },
@@ -1068,53 +1106,597 @@ var LeastSquares3DModule = React.createClass({
     d.point = pos
     this.setState({points: points, betas: this._getBetas(points)})
   },
+  _updateRegressionBeta: function(idx, val) {
+    var regressionBetas = this.state.regressionBetas.slice()
+    regressionBetas[idx] = val
+    this.setState({
+      regressionBetas: regressionBetas
+    })
+  },
+  _updateRegressionBeta1: function(val) { this._updateRegressionBeta(0, val) },
+  _updateRegressionBeta2: function(val) { this._updateRegressionBeta(1, val) },
+  _updateRegressionBeta3: function(val) { this._updateRegressionBeta(2, val) },
   render: function() {
     var margins = {l: 93, t: 65, r: 72, b: 20}
+    var betas = this.state.betas
     return React.DOM.div(null, [
-      LeastSquares({
-        key: 'least-squares-x1-y',
-        width: 330,
-        height: 250,
-        margins: margins,
-        betas: this.state.betas,
-        mode: 'point',
-        xAxisLabel: 'x1',
-        yAxisLabel: 'y',
-        showErrorSquares: false,
-        showErrorLines: false,
-        showRegressionLine: true,
-        points: this.state.points,
-        locationAccessor: this._locationAccessorX1Y,
-        onDragNob: this._onDragPointX1Y,
-        style: {float: 'left'}
+      React.DOM.section({key: 'ls3d-1'}, [
+        React.DOM.h1({key: 'title'}, '3D Ordinal least squares'),
+        LeastSquares({
+          key: 'least-squares-x1-y',
+          width: 330,
+          height: 250,
+          margins: margins,
+          betas: [betas[0], betas[1]],
+          mode: 'point',
+          xAxisLabel: 'x1',
+          yAxisLabel: 'y',
+          showErrorSquares: false,
+          showErrorLines: false,
+          showRegressionLine: true,
+          points: this.state.points,
+          locationAccessor: this._locationAccessorX1Y,
+          onDragNob: this._onDragPointX1Y,
+          style: {float: 'left'}
+        }),
+        LeastSquares({
+          key: 'least-squares-x2-y',
+          width: 330,
+          height: 250,
+          margins: margins,
+          betas: [betas[0], betas[2]],
+          mode: 'point',
+          xAxisLabel: 'x2',
+          yAxisLabel: 'y',
+          showErrorSquares: false,
+          showErrorLines: false,
+          showRegressionLine: true,
+          points: this.state.points,
+          locationAccessor: this._locationAccessorX2Y,
+          onDragNob: this._onDragPointX2Y,
+          style: {float: 'left'}
+        }),
+        OLS3D({
+          width: 340,
+          height: 300,
+          showPointNobs: false,
+          regressionPlaneColor: color.primary,
+          key: 'least-squares-x1-x2-y',
+          points: this.state.points,
+          onDragPoint: this._onDragPoint3,
+          style: {float: 'left'}
+        })
+      ]),
+      React.DOM.section({key: 'ls3d-2'}, [
+        React.DOM.h1({key: 'title'}, 'Manual least squares'),
+        Slider({
+          key: 'beta-slider-1',
+          width: 330,
+          style: {display: 'block'},
+          onChangeValue: this._updateRegressionBeta1,
+          min: 0,
+          max: 100,
+          value: this.state.regressionBetas[0]
+        }),
+        Slider({
+          key: 'beta-slider-2',
+          width: 330,
+          min: -1,
+          max: 1,
+          style: {display: 'block'},
+          onChangeValue: this._updateRegressionBeta2,
+          value: this.state.regressionBetas[1]
+        }),
+        Slider({
+          key: 'beta-slider-3',
+          width: 330,
+          min: -1,
+          max: 1,
+          style: {display: 'block'},
+          onChangeValue: this._updateRegressionBeta3,
+          value: this.state.regressionBetas[2]
+        }),
+        LeastSquares({
+          key: 'least-squares-x1-y-basis',
+          width: 330,
+          height: 250,
+          betas: [this.state.regressionBetas[0], this.state.regressionBetas[1]],
+          mode: 'point',
+          margins: margins,
+          xAxisLabel: 'x1',
+          yAxisLabel: 'y',
+          showErrorSquares: false,
+          showErrorLines: false,
+          showRegressionLine: true,
+          points: this.state.points,
+          locationAccessor: this._locationAccessorX1Y,
+          onDragNob: this._onDragPointX1Y,
+          style: {float: 'left'}
+        }),
+        LeastSquares({
+          key: 'least-squares-x2-y-basis',
+          width: 330,
+          height: 250,
+          betas: [this.state.regressionBetas[0], this.state.regressionBetas[2]],
+          mode: 'point',
+          margins: margins,
+          xAxisLabel: 'x1',
+          yAxisLabel: 'y',
+          showErrorSquares: false,
+          showErrorLines: false,
+          showRegressionLine: true,
+          points: this.state.points,
+          locationAccessor: this._locationAccessorX2Y,
+          onDragNob: this._onDragPointX2Y,
+          style: {float: 'left'}
+        }),
+        OLS3D({
+          width: 340,
+          height: 300,
+          showPointNobs: false,
+          regressionNob: this.state.regressionNob,
+          regressionPlaneColor: color.primary,
+          key: 'least-squares-x1-x2-y',
+          betas: this.state.regressionBetas,
+          points: this.state.points,
+          onDragPoint: this._onDragPoint3,
+          style: {float: 'left'}
+        })
+      ])
+    ])
+  }
+})
+
+var Slider = React.createClass({
+  mixins: [PureRenderMixin],
+  sel: function() { return d3.select(this.getDOMNode()) },
+  getDefaultProps: function() {
+    return {
+      min: 0,
+      max: 100,
+      step: 1,
+      value: 33,
+      width: 100,
+      height: 40,
+      grooveHeight: 5,
+      handleColor: 'rgba(0, 0, 0, 0.3)',
+      nobRadius: 15,
+      nobFill: 'rgba(255, 255, 255, 1)',
+      nobStroke: 'rgba(0, 0, 0, 0.2)',
+      onChangeValue: function() { }
+    }
+  },
+  getInitialState: function() {
+    return this._updateStateFromProps(this.props, {
+      xScale: null
+    })
+  },
+  _updateStateFromProps: function(props, state) {
+    state.xScale = d3.scale.linear()
+      .domain([props.min, props.max])
+      .range([props.nobRadius, props.width - props.nobRadius])
+      .clamp(true)
+    return state
+  },
+  componentWillReceiveProps: function(props) {
+    this.setState(this._updateStateFromProps(props, this.state))
+  },
+  componentDidMount: function() {
+    var sel = this.sel(), self = this
+    var drag = d3.behavior.drag().on('drag', function() {
+      var value = self.state.xScale.invert(d3.mouse(sel.node())[0])
+      self.props.onChangeValue(value)
+    })
+    sel.call(drag)
+  },
+  render: function() {
+    var d = React.DOM, svg = d.svg, g = d.g, rect = d.rect, circle = d.circle
+    var props = this.props
+    var width = props.width, height = props.height, style = props.style
+    var innerWidth = props.nobRadius * 2
+    var xScale = this.state.xScale
+    return svg({width: width, height: height, key: 'root-1', style: style},
+      rect({
+        width: xScale(props.max) - xScale(props.min),
+        height: props.grooveHeight,
+        x: xScale(props.min),
+        y: height / 2 - props.grooveHeight / 2,
+        key: 'rect-1',
+        style: {
+          fill: props.handleColor
+        }
       }),
-      LeastSquares({
-        key: 'least-squares-x2-y',
-        width: 330,
-        height: 250,
-        margins: margins,
-        betas: this.state.betas,
-        mode: 'point',
-        xAxisLabel: 'x2',
-        yAxisLabel: 'y',
-        showErrorSquares: false,
-        showErrorLines: false,
-        showRegressionLine: true,
-        points: this.state.points,
-        locationAccessor: this._locationAccessorX2Y,
-        onDragNob: this._onDragPointX2Y,
-        style: {float: 'left'}
+      circle({
+        cx: xScale(props.value) + 1, cy: height / 2 + 1, r: props.nobRadius,
+        style: {
+          fill: 'rgba(0, 0, 0, 0.2)',
+          stroke: 'none',
+          cursor: 'move'
+        },
+        key: 'nob-shadow'
       }),
-      OLS3D({
-        width: 340,
-        height: 300,
-        showPointNobs: false,
-        regressionPlaneColor: color.primary,
-        key: 'least-squares-x1-x2-y',
-        points: this.state.points,
-        onDragPoint: this._onDragPoint3,
-        style: {float: 'left'}
+      circle({
+        cx: xScale(props.value), cy: height / 2, r: props.nobRadius,
+        style: {
+          fill: props.nobFill,
+          stroke: props.nobStroke,
+          cursor: 'move'
+        }
       })
+    )
+  }
+})
+
+var Dial = React.createClass({
+  mixins: [PureRenderMixin],
+  sel: function() { return d3.select(this.getDOMNode()) },
+  getDefaultProps: function() {
+    return {
+      min: -10,
+      max: 10,
+      value: 0,
+      size: 120,
+      nobFill: 'rgba(0, 0, 0, 0.1)',
+      wrapInSVG: true,
+    }
+  },
+  getInitialState: function() {
+    return this._updateStateFromProps(this.props, {
+      scale: null
+    })
+  },
+  _updateStateFromProps: function(props, state) {
+    state.scale = d3.scale.linear()
+      .domain([props.min, props.max])
+      .range([0, 360])
+      .clamp(true)
+    return state
+  },
+  componentWillReceiveProps: function(props) {
+    this.setState(this._updateStateFromProps(props, this.state))
+  },
+  componentDidMount: function() {
+    var sel = this.sel().select('.stage'), self = this
+    var drag = d3.behavior.drag().on('drag', function() {
+      var p = d3.mouse(sel.node())
+      var value = self.state.scale.invert(Math.atan2(p[1], p[0]) / Math.PI * 180 + 180)
+      self.props.onChangeValue(value)
+    })
+    sel.call(drag)
+  },
+  render: function() {
+    var d = React.DOM, svg = d.svg, g = d.g, rect = d.rect, circle = d.circle
+    var path = d.path
+    var props = this.props, size = props.size, style = props.style
+    var state = this.state
+    var padding = 10
+    var nobRadius = size / 2 - padding
+    var innerNobRadius = nobRadius / 4
+    var contentProps = extend({}, this.props)
+    if (this.props.wrapInSVG) {
+      contentProps.transform = 'translate(' + [size / 2, size / 2] + ') '
+    }
+    var numTicks = 30
+    var contents = g(contentProps,
+      g({className: 'stage'},
+        g(null,
+          d3.range(numTicks).map(function(d) {
+            return rect({
+              width: d / (numTicks - 1) * 5,
+              height: 4,
+              transform:
+                  ' rotate(' + (d / (numTicks - 1) * 360 + 180) + ')'
+                + ' translate(' + (nobRadius + 5) + ', 0)',
+              style: {
+                fill: 'rgba(0, 0, 0, ' + (d / (numTicks - 1)) + ')'
+              }
+            })
+          })
+        ),
+        g({
+          transform: 'rotate('
+            + state.scale(props.value)
+          + ')'
+        }, circle({
+            r: nobRadius,
+            style: {
+              fill: props.nobFill,
+              stroke: props.nobStroke,
+              cursor: 'move'
+            }
+          }),
+          g({
+            transform: 'translate(' + [-size/4, 0] + ')',
+          },
+            circle({
+              r: innerNobRadius,
+              style: {
+                fill: 'rgba(0, 0, 0, 0.1)',
+                stroke: 'none',
+                cursor: 'move'
+              }
+            }),
+            path({
+              d: 'M 8, -2 L -8, -2 M 8, 2 L -8, 2',
+              transform: 'rotate('
+                + (-state.scale(props.value))
+              + ')',
+              style: {
+                shapeRendering: 'crispEdges',
+                stroke: 'rgba(0, 0, 0, 0.1)',
+                strokeWidth: 2,
+                fill: 'none',
+              },
+            })
+          )
+        )
+      )
+    )
+    if (!this.props.wrapInSVG) return contents
+    var svgProps = {width: size, height: size, key: 'root-1', style: style}
+    return svg(svgProps, contents)
+  }
+})
+
+var MasonicSquares = React.createClass({
+  mixins: [PureRenderMixin],
+  sel: function() { return d3.select(this.getDOMNode()) },
+  getDefaultProps: function() {
+    return {
+      valueAccessor: function(d) { return d.value },
+      colorAccessor: function(d) { return d.color },
+    }
+  },
+  getInitialState: function() {
+    return this._updateStateFromProps(this.props, {})
+  },
+  _updateStateFromProps: function(props, state) {
+    var props = this.props
+    var masonic = d3.masonic()
+      .width(function(d) { return d.width })
+      .height(function(d) { return d.height })
+      .columnWidth(1)
+      .outerWidth(props.width)
+      .reset()
+    state.wrappedData = props.data.map(function(d, i) {
+      var width = Math.sqrt(props.valueAccessor(d)) * 4
+      var nd = masonic({width: width, height: width})
+      nd.id = i
+      nd.color = props.colorAccessor(d)
+      delete nd.data
+      return nd
+    })
+    return state
+  },
+  componentWillReceiveProps: function(props) {
+    this.setState(this._updateStateFromProps(props, this.state))
+  },
+  componentDidMount: function() {
+    this._redraw()
+  },
+  componentDidUpdate: function() {
+    this._redraw()
+  },
+  _redraw: function() {
+    var rects = this.sel().selectAll('rect').data(this.state.wrappedData)
+    rects.enter().append('rect')
+    rects.exit().remove()
+    rects
+      .transition()
+      .ease('cubic-out')
+      .style('fill', acc('color'))
+      .attr({
+        x: acc('x'),
+        y: acc('y'),
+        width: acc('width'),
+        height: acc('height')
+      })
+  },
+  render: function() {
+    var props = {width: this.props.width, height: this.props.height}
+    props.style = this.props.style
+    return React.DOM.svg(props)
+  }
+})
+
+var RegressionAsNobsModule = React.createClass({
+  getDefaultProps: function() {
+    return {
+      onDragOLSNob: function() { },
+      points: null,
+    }
+  },
+  getInitialState: function() {
+    return this._updateStateFromProps(this.props, {
+      betas: [0, 1],
+    })
+  },
+  _updateStateFromProps: function(props, state) {
+    var points = props.points
+    var errors = wrapLeastSquaresErrors(points, acc('point'), state.betas)
+    state.leastSquaresErrors = errors
+    return state
+  },
+  _updateBetas: function(betas) {
+    var errors = wrapLeastSquaresErrors(this.props.points, acc('point'), betas)
+    this.setState({
+      betas: betas,
+      leastSquaresErrors: errors,
+    })
+  },
+  componentWillReceiveProps: function(props) {
+    this.setState(this._updateStateFromProps(props, this.state))
+  },
+  _onChangeDialValueB0: function(value) {
+    var betas = this.state.betas
+    betas[0] = value
+    this._updateBetas(betas)
+  },
+  _onChangeDialValueB1: function(value) {
+    var betas = this.state.betas
+    betas[1] = value
+    this._updateBetas(betas)
+  },
+  render: function() {
+    var dialDemoStyle = {
+      backgroundColor: 'rgba(0, 0, 0, 0)'
+    }
+    var fontStyle = {pointerEvents: 'none', fontSize: 20}
+    var h = 120
+    return React.DOM.section({style: {padding: '0'}},
+      React.DOM.svg({width: 620, height: h, style: dialDemoStyle},
+        React.DOM.text({
+          transform: 'translate(100, ' + (h / 2 + 8) + ')',
+          textAnchor: 'middle',
+          style: fontStyle
+        }, d3.round(this.state.betas[0], 2)),
+        /* Dial for beta 0 */
+        Dial({
+          transform: 'translate(100, ' + h / 2 + ')',
+          min: -100,
+          max: 100,
+          value: this.state.betas[0],
+          onChangeValue: this._onChangeDialValueB0,
+          wrapInSVG: false,
+        }),
+        React.DOM.text({
+          transform: 'translate(200, ' + (h / 2 + 8) + ')',
+          textAnchor: 'middle',
+          style: fontStyle
+        }, '+'),
+        React.DOM.text({
+          transform: 'translate(300, ' + (h / 2 + 8) + ')',
+          textAnchor: 'middle',
+          style: fontStyle
+        }, d3.round(this.state.betas[1], 2)),
+        /* Dial for beta 1 */
+        Dial({
+          transform: 'translate(300, ' + h / 2 + ')',
+          min: -5,
+          max: 5,
+          value: this.state.betas[1],
+          onChangeValue: this._onChangeDialValueB1,
+          wrapInSVG: false,
+        }),
+        React.DOM.text({
+          transform: 'translate(370, ' + (h / 2 + 8) + ')',
+          textAnchor: 'start',
+          style: fontStyle
+        }, ' * hand size = height')
+      ),
+      React.DOM.div({style: {clear: 'both'}},[
+        LeastSquares({
+          width: 310,
+          height: 310,
+          style: {float: 'left'},
+          points: this.props.points,
+          betas: this.state.betas,
+          colorAccessor: function(d) { return d.color },
+          onDragNob: this.props.onDragOLSNob,
+          mode: 'point',
+          showErrorSquares: true,
+          key: 'least-squares-without-squares'
+        }),
+        MasonicSquares({
+          style: {float: 'left'},
+          width: 310,
+          height: 310,
+          data: this.state.leastSquaresErrors,
+          valueAccessor: this.props.leastSquaresValueAccessor,
+          colorAccessor: this.props.leastSquaresColorAccessor,
+        })
+      ])
+    )
+  }
+})
+
+var SLRParameters = React.createClass({
+  mixins: [PureRenderMixin],
+  componentDidMount: function() { this._DOMWasUpdated() },
+  componentDidUpdate: function() { this._DOMWasUpdated() },
+  _DOMWasUpdated: function() {
+    var svgBB = this.getDOMNode().getBoundingClientRect()
+    
+    var beta1Text = this.refs.beta1Text.getDOMNode()
+    // using `getClientRects` is a hack to avoid a Chrome bug with using 
+    // `getBBox()`
+    var beta1TextBB = beta1Text.getClientRects()[0]
+    var beta1TextLength = beta1Text.getComputedTextLength()
+    var highlight1Pos = {
+      x: beta1TextBB.left + beta1TextBB.width / 2 - svgBB.left,
+      y: beta1TextBB.top + beta1TextBB.height / 2 - svgBB.top,
+    }
+
+    var beta2Text = this.refs.beta2Text.getDOMNode()
+    var beta2TextBB = beta2Text.getClientRects()[0]
+    var beta2TextLength = beta2Text.getComputedTextLength()
+    var highlight2Pos = {
+      x: beta2TextBB.left + beta2TextBB.width / 2 - svgBB.left,
+      y: beta2TextBB.top + beta2TextBB.height / 2 - svgBB.top,
+    }
+
+    d3.select(this.refs.beta1Highlight.getDOMNode()).attr({
+      transform: 'translate(' + [highlight1Pos.x, highlight1Pos.y] + ')'
+    })
+    d3.select(this.refs.beta2Highlight.getDOMNode()).attr({
+      transform: 'translate(' + [highlight2Pos.x, highlight2Pos.y] + ')'
+    })
+  },
+  render: function() {
+    return React.DOM.svg({width: 310, height: 310},[
+      React.DOM.g({
+        ref: 'beta1Highlight',
+      }, [
+        React.DOM.circle({
+          r: 25,
+          style: {
+            fill: alphaify(color.primary, 0.5),
+          }
+        }),
+        React.DOM.line({
+          x1: 0, y1: -25, x2: 0, y2: -50,
+          style: {stroke: color.primary},
+        }),
+      ]),
+      React.DOM.g({
+        ref: 'beta2Highlight',
+      }, [
+        React.DOM.circle({
+          r: 25,
+          style: {
+            fill: alphaify(color.secondary, 0.5),
+          }
+        }),
+        React.DOM.line({
+          x1: 0, y1: 25, x2: 0, y2: 50,
+          style: {stroke: color.secondary},
+        }),
+      ]),
+      React.DOM.g({transform: 'translate(' + [160, 160] + ')'}, [
+        React.DOM.text({
+          transform: 'translate(-20, -60)',
+          textAnchor: 'middle',
+          fontSize: 12,
+          fill: color.primary,
+        }, 'Beta 1 - The y-intercept of the regression line.'),
+        React.DOM.text({
+          transform: 'translate(-20, 60)',
+          textAnchor: 'middle',
+          fontSize: 12,
+          fill: color.secondary,
+        }, 'Beta 2 - The slope of the regression line.'),
+        React.DOM.text({
+          ref: 'equation',
+          transform: 'translate(' + [0, 0] + ')',
+          textAnchor: 'middle',
+          fontSize: '20px',
+        }, [
+          React.DOM.tspan({ref: 'beta1Text'}, d3.round(this.props.betas[0], 2)),
+          React.DOM.tspan(null, ' + '),
+          React.DOM.tspan({ref: 'beta2Text'}, d3.round(this.props.betas[1], 2)),
+          React.DOM.tspan(null, ' * hand size = height'),
+        ])
+      ])
     ])
   }
 })
@@ -1135,7 +1717,7 @@ var App = React.createClass({
       leastSquaresPoints: points,
       regressionPoints: [[20, 20], [80, 80]],
       betas: this._getBetas(points),
-      leastSquaresErrors: this._updateLeastSquaredErrors(points)
+      leastSquaresErrors: this._updateLeastSquaresErrors(points),
     }
     return state
   },
@@ -1159,7 +1741,7 @@ var App = React.createClass({
     this.setState({
       leastSquaresPoints: points,
       betas: this._getBetas(points),
-      leastSquaresErrors: this._updateLeastSquaredErrors(points),
+      leastSquaresErrors: this._updateLeastSquaresErrors(points),
     })
   },
   _updateRegressionPoint: function(d, pos) {
@@ -1167,25 +1749,55 @@ var App = React.createClass({
     d[0] = pos[0], d[1] = pos[1]
     this.setState({regressionPoints: points})
   },
-  _updateLeastSquaredErrors: function(points) {
-    var acc = this._locationAccessor, reg = ols(points, acc)
-    var rs = d3.scale.linear().domain([0, 1]).range([reg.a, reg.a + reg.b * 1])
-    return points.map(function(d) {
-      var point = acc(d)
-      var error = Math.abs(rs(point[0]) - point[1]) /* err = x - X */
-      return { error: error * error, d: d }
-    })
+  _updateLeastSquaresErrors: function(points) {
+    return wrapLeastSquaresErrors(points, this._locationAccessor)
   },
   _getBetas: function(points) {
     var X = points.map(function(d) { return [d.point[0]] })
     var y = points.map(function(d) { return d.point[1] })
     return hessian(y, X)
   },
+  _leastSquaresValueAccessor: function(d) { return d.error },
+  _leastSquaresColorAccessor: function(d) { return d.d.color },
   render: function() {
     return React.DOM.div(null, [
+      React.DOM.p(null,
+        "Linear regression is one of the oldest and most widely used techniques in machine learning. With it, a computer can \"learn\" from data and predict future outcomes. The thing we want to predict is the output of our model."
+      ),
+      React.DOM.p(null,
+        "Say we had the following data on hand size vs height for a bunch of people and we want to predict the height of someone we know only the hand size of. The result of linear regression would give us the equation on the right. The input is 'hand size', the output, 'height'."
+      ),
+      LeastSquares({
+        key: 'least-squares',
+        points: this.state.leastSquaresPoints,
+        betas: this.state.betas,
+        onDragNob: this._onDragOLSNob,
+        margins: {l: 20, t: 20, r: 30, b: 30},
+        mode: 'point',
+        width: 310,
+        height: 310,
+        showErrorSquares: false,
+        showErrorLines: false,
+        colorAccessor: function(d) { return color.senary },
+        xAxisLabel: 'hand size',
+        yAxisLabel: 'height',
+        style: {
+          float: 'left',
+        }
+      }),
+      SLRParameters({width: 310, height: 310, betas: this.state.betas}),
+      React.DOM.p(null,
+        'The goal of linear regression is to find the parameters (slop and y-intercept in the two 2d example) for a line that minimizes the squared errors.'
+      ),
+      RegressionAsNobsModule({
+        key: 'regression-as-nobs-module',
+        points: this.state.leastSquaresPoints,
+        onDragOLSNob: this._onDragOLSNob,
+        leastSquaresValueAccessor: this._leastSquaresValueAccessor,
+        leastSquaresColorAccessor: this._leastSquaresColorAccessor,
+      }),
       React.DOM.section({key: 'section-intro'}, [
         React.DOM.h1({key: 'h1'}, 'Intro'), [
-          'Betas' + JSON.stringify(this.state.betas, null, 2),
           LeastSquares({
             width: 300,
             height: 300,
@@ -1207,16 +1819,29 @@ var App = React.createClass({
           points: this.state.leastSquaresPoints,
           betas: this.state.betas,
           onDragNob: this._onDragOLSNob,
-          mode: 'point'
+          mode: 'point',
+          style: {
+            float: 'left',
+          }
+        }),
+        MasonicSquares({
+          style: {
+            float: 'left',
+          },
+          width: 1000 - 410,
+          height: 400,
+          data: this.state.leastSquaresErrors,
+          valueAccessor: this._leastSquaresValueAccessor,
+          colorAccessor: this._leastSquaresColorAccessor,
         }),
         StackedBars({
-          valueAccessor: function(d) { return d.error },
           width: 1000,
           height: 10,
           domain: [0, 20000],
           data: this.state.leastSquaresErrors,
           key: 'least-squares-stacked-bar',
-          colorAccessor: function(d) { return d.d.color }
+          colorAccessor: this._leastSquaresColorAccessor,
+          valueAccessor: this._leastSquaresValueAccessor,
         }),
         LeastSquares({
           key: 'regression-2',
@@ -1226,11 +1851,7 @@ var App = React.createClass({
           regressionPoints: this.state.regressionPoints
         }),
       ]),
-      React.DOM.section({key: 'section-d3'},[
-        React.DOM.h1({key: 'h1'}, 'Hello world!'),
-        LeastSquares3DModule(null),
-        LeastSquares3DModule(null)
-      ])
+      LeastSquares3DModule({key: 'least-squared-3d'})
     ])
   }
 })
