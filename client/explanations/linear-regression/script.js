@@ -12,6 +12,13 @@ var color = {
   , shy: 'rgba(0, 0, 0, 0.2)'
 }
 
+var dialDemoStyle = {backgroundColor: 'rgba(0, 0, 0, 0)'}
+var dialFontStyle = {pointerEvents: 'none', fontSize: 20}
+var dialFontStyleSmall = {
+  pointerEvents: 'none',
+  fontSize: 14,
+}
+
 function tickStyle(g) {
   g.style({
     'stroke-width': 1,
@@ -1070,6 +1077,8 @@ var LeastSquares3DModule = React.createClass({
     ].map(function(point, i) { return { point: point, color: color(i) } })
     var state = {
       points: points,
+      width: 205,
+      height: 205,
       betas: this._getBetas(points),
       regressionPoints: {
         x1: [ [20, 20], [80, 80] ],
@@ -1109,23 +1118,96 @@ var LeastSquares3DModule = React.createClass({
   _updateRegressionBeta: function(idx, val) {
     var regressionBetas = this.state.regressionBetas.slice()
     regressionBetas[idx] = val
-    this.setState({
-      regressionBetas: regressionBetas
-    })
+    this.setState({regressionBetas: regressionBetas})
   },
-  _updateRegressionBeta1: function(val) { this._updateRegressionBeta(0, val) },
-  _updateRegressionBeta2: function(val) { this._updateRegressionBeta(1, val) },
-  _updateRegressionBeta3: function(val) { this._updateRegressionBeta(2, val) },
+  _updateRegressionBeta0: function(val) { this._updateRegressionBeta(0, val) },
+  _updateRegressionBeta1: function(val) { this._updateRegressionBeta(1, val) },
+  _updateRegressionBeta2: function(val) { this._updateRegressionBeta(2, val) },
+  _renderDial: function(opts) {
+    var w = this.state.width, h = this.state.height
+    var dialSize = 60
+    var dialFontY = h / 2 + 6
+    var dialY = h / 2
+    return React.DOM.g(null,
+      React.DOM.text({
+        transform: 'translate(' + [opts.posX, dialFontY] + ')',
+        textAnchor: 'middle',
+        style: dialFontStyleSmall,
+      }, d3.round(this.state.regressionBetas[opts.betaIndex], 2)),
+      Dial({
+        transform: 'translate(' + [opts.posX, dialY] + ')',
+        min: opts.min,
+        max: opts.max,
+        size: dialSize,
+        innerNobRadius: dialSize / 4,
+        value: this.state.regressionBetas[opts.betaIndex],
+        onChangeValue: this['_updateRegressionBeta' + opts.betaIndex],
+        wrapInSVG: false,
+      })
+    )
+  },
+  _renderDials: function() {
+    var w = this.state.width, h = this.state.height
+    var pos = [75, 115, 155, 190, 305, 350, 385, 490]
+    var textY = h / 2 + 8
+    // For the demo video.
+    // if (true) {
+    //   return React.DOM.svg({width: 620, height: h, style: dialDemoStyle},
+    //     this._renderDial({posX: 620 / 2, betaIndex: 0, min: -5, max: 5})
+    //   )
+    // }
+    return React.DOM.svg({width: 620, height: h, style: dialDemoStyle},
+      
+      /* Dial for beta 0 */
+      this._renderDial({posX: pos[0], betaIndex: 0, min: -100, max: 100}),
+
+      React.DOM.text({
+        transform: 'translate(' + [pos[1], textY] + ')',
+        textAnchor: 'middle',
+        style: dialFontStyle,
+      }, '+'),
+
+      this._renderDial({posX: pos[2], betaIndex: 1, min: -5, max: 5}),
+
+      React.DOM.text({
+        transform: 'translate(' + [pos[3], textY] + ')',
+        textAnchor: 'start',
+        style: dialFontStyle,
+      }, '* hand size '),
+
+      React.DOM.text({
+        transform: 'translate(' + [pos[4], textY] + ')',
+        textAnchor: 'middle',
+        style: dialFontStyle,
+      }, '+'),
+
+      /* Dial for beta 2 */
+      this._renderDial({posX: pos[5], betaIndex: 2, min: -5, max: 5}),
+
+      React.DOM.text({
+        transform: 'translate(' + [pos[6], textY] + ')',
+        textAnchor: 'start',
+        style: dialFontStyle,
+      }, '* hand size '),
+
+      React.DOM.text({
+        transform: 'translate(' + [pos[7], textY] + ')',
+        textAnchor: 'start',
+        style: dialFontStyle,
+      }, ' = height')
+    )
+  },
   render: function() {
-    var margins = {l: 93, t: 65, r: 72, b: 20}
+    var margins = {l: 15, t: 15, r: 15, b: 15}
+    var w = this.state.width, h = this.state.height
     var betas = this.state.betas
     return React.DOM.div(null, [
-      React.DOM.section({key: 'ls3d-1'}, [
-        React.DOM.h1({key: 'title'}, '3D Ordinal least squares'),
+      React.DOM.section({key: 'ls3d-1', style: {clear: 'both', padding: 0}}, [
+        React.DOM.h1({key: 'title'}, '3D least squares'),
         LeastSquares({
           key: 'least-squares-x1-y',
-          width: 330,
-          height: 250,
+          width: w,
+          height: h,
           margins: margins,
           betas: [betas[0], betas[1]],
           mode: 'point',
@@ -1141,8 +1223,8 @@ var LeastSquares3DModule = React.createClass({
         }),
         LeastSquares({
           key: 'least-squares-x2-y',
-          width: 330,
-          height: 250,
+          width: w,
+          height: h,
           margins: margins,
           betas: [betas[0], betas[2]],
           mode: 'point',
@@ -1157,8 +1239,8 @@ var LeastSquares3DModule = React.createClass({
           style: {float: 'left'}
         }),
         OLS3D({
-          width: 340,
-          height: 300,
+          width: w,
+          height: h,
           showPointNobs: false,
           regressionPlaneColor: color.primary,
           key: 'least-squares-x1-x2-y',
@@ -1167,39 +1249,13 @@ var LeastSquares3DModule = React.createClass({
           style: {float: 'left'}
         })
       ]),
-      React.DOM.section({key: 'ls3d-2'}, [
+      React.DOM.section({key: 'ls3d-2', style: {padding: 0, clear: 'both'}}, [
         React.DOM.h1({key: 'title'}, 'Manual least squares'),
-        Slider({
-          key: 'beta-slider-1',
-          width: 330,
-          style: {display: 'block'},
-          onChangeValue: this._updateRegressionBeta1,
-          min: 0,
-          max: 100,
-          value: this.state.regressionBetas[0]
-        }),
-        Slider({
-          key: 'beta-slider-2',
-          width: 330,
-          min: -1,
-          max: 1,
-          style: {display: 'block'},
-          onChangeValue: this._updateRegressionBeta2,
-          value: this.state.regressionBetas[1]
-        }),
-        Slider({
-          key: 'beta-slider-3',
-          width: 330,
-          min: -1,
-          max: 1,
-          style: {display: 'block'},
-          onChangeValue: this._updateRegressionBeta3,
-          value: this.state.regressionBetas[2]
-        }),
+        this._renderDials(),
         LeastSquares({
           key: 'least-squares-x1-y-basis',
-          width: 330,
-          height: 250,
+          width: w,
+          height: h,
           betas: [this.state.regressionBetas[0], this.state.regressionBetas[1]],
           mode: 'point',
           margins: margins,
@@ -1215,8 +1271,8 @@ var LeastSquares3DModule = React.createClass({
         }),
         LeastSquares({
           key: 'least-squares-x2-y-basis',
-          width: 330,
-          height: 250,
+          width: w,
+          height: h,
           betas: [this.state.regressionBetas[0], this.state.regressionBetas[2]],
           mode: 'point',
           margins: margins,
@@ -1231,8 +1287,8 @@ var LeastSquares3DModule = React.createClass({
           style: {float: 'left'}
         }),
         OLS3D({
-          width: 340,
-          height: 300,
+          width: w,
+          height: h,
           showPointNobs: false,
           regressionNob: this.state.regressionNob,
           regressionPlaneColor: color.primary,
@@ -1371,7 +1427,7 @@ var Dial = React.createClass({
     var state = this.state
     var padding = 10
     var nobRadius = size / 2 - padding
-    var innerNobRadius = nobRadius / 4
+    var innerNobRadius = props.innerNobRadius || nobRadius / 4
     var contentProps = extend({}, this.props)
     if (this.props.wrapInSVG) {
       contentProps.transform = 'translate(' + [size / 2, size / 2] + ') '
@@ -1411,7 +1467,7 @@ var Dial = React.createClass({
             circle({
               r: innerNobRadius,
               style: {
-                fill: 'rgba(0, 0, 0, 0.1)',
+                fill: 'rgba(0, 0, 0, 0.2)',
                 stroke: 'none',
                 cursor: 'move'
               }
@@ -1423,6 +1479,7 @@ var Dial = React.createClass({
               + ')',
               style: {
                 shapeRendering: 'crispEdges',
+                pointerEvents: 'none',
                 stroke: 'rgba(0, 0, 0, 0.1)',
                 strokeWidth: 2,
                 fill: 'none',
@@ -1538,17 +1595,13 @@ var RegressionAsNobsModule = React.createClass({
     this._updateBetas(betas)
   },
   render: function() {
-    var dialDemoStyle = {
-      backgroundColor: 'rgba(0, 0, 0, 0)'
-    }
-    var fontStyle = {pointerEvents: 'none', fontSize: 20}
     var h = 120
     return React.DOM.section({style: {padding: '0'}},
       React.DOM.svg({width: 620, height: h, style: dialDemoStyle},
         React.DOM.text({
           transform: 'translate(100, ' + (h / 2 + 8) + ')',
           textAnchor: 'middle',
-          style: fontStyle
+          style: dialFontStyle,
         }, d3.round(this.state.betas[0], 2)),
         /* Dial for beta 0 */
         Dial({
@@ -1562,12 +1615,12 @@ var RegressionAsNobsModule = React.createClass({
         React.DOM.text({
           transform: 'translate(200, ' + (h / 2 + 8) + ')',
           textAnchor: 'middle',
-          style: fontStyle
+          style: dialFontStyle,
         }, '+'),
         React.DOM.text({
           transform: 'translate(300, ' + (h / 2 + 8) + ')',
           textAnchor: 'middle',
-          style: fontStyle
+          style: dialFontStyle,
         }, d3.round(this.state.betas[1], 2)),
         /* Dial for beta 1 */
         Dial({
@@ -1581,7 +1634,7 @@ var RegressionAsNobsModule = React.createClass({
         React.DOM.text({
           transform: 'translate(370, ' + (h / 2 + 8) + ')',
           textAnchor: 'start',
-          style: fontStyle
+          style: dialFontStyle,
         }, ' * hand size = height')
       ),
       React.DOM.div({style: {clear: 'both'}},[
@@ -1701,6 +1754,51 @@ var SLRParameters = React.createClass({
   }
 })
 
+var PointDragDemo = React.createClass({
+  getDefaultProps: function() {
+    var width = 620, height = 70
+    return {
+      width: width,
+      height: height,
+    }
+  },
+  getInitialState: function(props) {
+    return {
+      point: [this.props.width / 2, this.props.height / 2]
+    }
+  },
+  componentDidMount: function() {
+    var svg = d3.select(this.getDOMNode())
+    var nob = d3.select(this.refs.nob.getDOMNode())
+    var self = this
+    var drag = d3.behavior.drag().on('drag', function() {
+      self.setState({point: d3.mouse(svg.node())})
+    })
+    nob.call(drag)
+  },
+  render: function() {
+    var width = this.props.width, height = this.props.height
+    return React.DOM.svg({
+      width: width,
+      height: height,
+      style: {
+        // border: '1px solid rgba(0, 0, 0, 0.1)',
+      }
+    },
+      React.DOM.g({
+        ref: 'nob',
+        transform: 'translate(' + this.state.point + ')',
+        style: {
+          cursor: 'move',
+        }
+      },
+        React.DOM.circle({r: 20, fill: 'rgba(0, 0, 0, 0.1)'}),
+        React.DOM.circle({r: 4, fill: color.primary})
+      )
+    )
+  }
+})
+
 var App = React.createClass({
   getInitialState: function() {
     var color = d3.scale.category10()
@@ -1761,6 +1859,18 @@ var App = React.createClass({
   _leastSquaresColorAccessor: function(d) { return d.d.color },
   render: function() {
     return React.DOM.div(null, [
+      React.DOM.h2(null, 'This explanation is interactive!'),
+      React.DOM.p(null,
+        React.DOM.i(null, 'Dials'),
+        ' allow you to adjust scalar values.'
+      ),
+      React.DOM.img({src: '/ev/linear-regression/resources/dial-tutorial.gif'}),
+      React.DOM.p(null,
+        React.DOM.i(null, 'Points'),
+        ' that have a gray circle around them are draggable.'
+      ),
+      React.DOM.img({src: '/ev/linear-regression/resources/point-tutorial.gif'}),
+      // PointDragDemo(null),
       React.DOM.p(null,
         "Linear regression is one of the oldest and most widely used techniques in machine learning. With it, a computer can \"learn\" from data and predict future outcomes. The thing we want to predict is the output of our model."
       ),
@@ -1790,68 +1900,17 @@ var App = React.createClass({
         'The goal of linear regression is to find the parameters (slop and y-intercept in the two 2d example) for a line that minimizes the squared errors.'
       ),
       RegressionAsNobsModule({
-        key: 'regression-as-nobs-module',
         points: this.state.leastSquaresPoints,
         onDragOLSNob: this._onDragOLSNob,
         leastSquaresValueAccessor: this._leastSquaresValueAccessor,
         leastSquaresColorAccessor: this._leastSquaresColorAccessor,
       }),
-      React.DOM.section({key: 'section-intro'}, [
-        React.DOM.h1({key: 'h1'}, 'Intro'), [
-          LeastSquares({
-            width: 300,
-            height: 300,
-            points: this.state.leastSquaresPoints,
-            betas: this.state.betas,
-            colorAccessor: function(d) { return color.senary },
-            onDragNob: this._onDragOLSNob,
-            mode: 'point',
-            showErrorSquares: false,
-            showErrorLines: false,
-            key: 'least-squares-without-squares'
-          })
-        ]
-      ]),
-      React.DOM.section({key: 'section-about-min'}, [
-        React.DOM.h1({key: 'h1'}, 'Minimizing the squared errors'),
-        LeastSquares({
-          key: 'least-squares',
-          points: this.state.leastSquaresPoints,
-          betas: this.state.betas,
-          onDragNob: this._onDragOLSNob,
-          mode: 'point',
-          style: {
-            float: 'left',
-          }
-        }),
-        MasonicSquares({
-          style: {
-            float: 'left',
-          },
-          width: 1000 - 410,
-          height: 400,
-          data: this.state.leastSquaresErrors,
-          valueAccessor: this._leastSquaresValueAccessor,
-          colorAccessor: this._leastSquaresColorAccessor,
-        }),
-        StackedBars({
-          width: 1000,
-          height: 10,
-          domain: [0, 20000],
-          data: this.state.leastSquaresErrors,
-          key: 'least-squares-stacked-bar',
-          colorAccessor: this._leastSquaresColorAccessor,
-          valueAccessor: this._leastSquaresValueAccessor,
-        }),
-        LeastSquares({
-          key: 'regression-2',
-          points: this.state.leastSquaresPoints,
-          onDragNob: this._onDragRegressionNob,
-          mode: 'regression',
-          regressionPoints: this.state.regressionPoints
-        }),
-      ]),
-      LeastSquares3DModule({key: 'least-squared-3d'})
+      LeastSquares3DModule(),
+      React.DOM.br({style: {clear: 'both'}}),
+      React.DOM.br(null),
+      React.DOM.br(null),
+      React.DOM.br(null),
+      React.DOM.p(null, "Special thanks to Ian Johnson and Lewis Lehe for reviewing earlier version of this document.")
     ])
   }
 })
