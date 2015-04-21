@@ -4,3 +4,5 @@ node_modules
 .tmp
 build
 captains.log
+_static
+some-ideas.txt

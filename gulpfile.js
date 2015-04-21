@@ -10,11 +10,11 @@ var mkdirp = require('mkdirp')
 var localsStore = require('./localsStore')
 var locals = localsStore.refresh()
 var src = locals.src
-var out = './build/' + locals.name
+var out = path.join(__dirname, locals.staticOutputDir, locals.name)
 
 gulp.task('default', ['styles', 'pages', 'scripts', 'resources'])
 
-// Pages
+// Pages.
 
 var pagesSrc = [src + '/pages/**/*.jade', src + '/explanations/**/*.jade']
 gulp.task('pages', ['locals'], function() {
@@ -82,7 +82,7 @@ gulp.task('resources', ['locals'], function(cb) {
 })
 
 gulp.task('scripts', function(cb) {
-  fse.copy(src + '/scripts', out + '/scripts', cb)
+  fse.copy(path.join(src, 'scripts'), path.join(out, 'scripts'), cb)
 })
 
 gulp.task('locals', function(cb) {
@@ -91,12 +91,12 @@ gulp.task('locals', function(cb) {
 })
 
 gulp.watch(pagesSrc, ['pages'])
-gulp.watch(src + '/explanations/*', ['pages'])
-gulp.watch(src + '/explanations/**/*.jade', ['pages'])
-gulp.watch(src + '/templates/*.jade', ['pages'])
-gulp.watch(src + '/pages/*', ['pages'])
+gulp.watch(path.join(src, 'explanations/*'), ['pages'])
+gulp.watch(path.join(src, 'explanations/**/*.jade'), ['pages'])
+gulp.watch(path.join(src, 'templates/*.jade'), ['pages'])
+gulp.watch(path.join(src, 'pages/*'), ['pages'])
 gulp.watch(stylesSrc, ['styles'])
-gulp.watch(src + '/explanations/**/*.js', ['resources'])
-gulp.watch(src + '/scripts/*', ['scripts'])
+gulp.watch(path.join(src, 'explanations/**/*.js'), ['resources'])
+gulp.watch(path.join(src, 'scripts/*'), ['scripts'])
 gulp.watch('./locals.json', ['default'])
 

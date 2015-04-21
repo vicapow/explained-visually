@@ -1030,20 +1030,6 @@ var StackedBars = React.createClass({
   }
 })
 
-// Ordinary Least Squares
-function ols(points_, pointAccessor) {
-  var points = points_.map(pointAccessor || function(d) { return d })
-  var xmean = d3.mean(points, function(d) { return d[0] })
-  var ymean = d3.mean(points, function(d) { return d[1] })
-  var bNum = points
-    .reduce(function(c, d) { return (d[0] - xmean) * (d[1] - ymean) + c }, 0)
-  var bDenom = points
-    .reduce(function(c, d) { return c + Math.pow(d[0] - xmean, 2) }, 0)
-  var b = bNum / bDenom
-  var a = ymean - b * xmean
-  return {a: a, b: b}
-}
-
 function wrapLeastSquaresErrors(points, accessor, betas) {
   var reg = betas ? {a: betas[0], b: betas[1]} : ols(points, accessor)
   var rs = d3.scale.linear().domain([0, 1]).range([reg.a, reg.a + reg.b * 1])
@@ -1435,16 +1421,18 @@ var Dial = React.createClass({
     var numTicks = 30
     var contents = g(contentProps,
       g({className: 'stage'},
+        // Ticks.
         g(null,
           d3.range(numTicks).map(function(d) {
+            var show = state.scale(props.value) > (d / (numTicks - 1) * 360)
             return rect({
-              width: d / (numTicks - 1) * 5,
+              width: 5,
               height: 4,
               transform:
                   ' rotate(' + (d / (numTicks - 1) * 360 + 180) + ')'
                 + ' translate(' + (nobRadius + 5) + ', 0)',
               style: {
-                fill: 'rgba(0, 0, 0, ' + (d / (numTicks - 1)) + ')'
+                fill: 'rgba(0, 0, 0, ' + (show ? (d / (numTicks - 1)) : 0) + ')'
               }
             })
           })
@@ -1872,7 +1860,7 @@ var App = React.createClass({
       React.DOM.img({src: '/ev/linear-regression/resources/point-tutorial.gif'}),
       // PointDragDemo(null),
       React.DOM.p(null,
-        "Linear regression is one of the oldest and most widely used techniques in machine learning. With it, a computer can \"learn\" from data and predict future outcomes. The thing we want to predict is the output of our model."
+        "Linear regression ."
       ),
       React.DOM.p(null,
         "Say we had the following data on hand size vs height for a bunch of people and we want to predict the height of someone we know only the hand size of. The result of linear regression would give us the equation on the right. The input is 'hand size', the output, 'height'."

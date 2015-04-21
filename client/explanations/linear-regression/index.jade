@@ -3,6 +3,7 @@ include ../../templates/common.jade
 doctype html
 html
   head
+    - var excludeCommonScriptHeader = true
     include ../../templates/head
     include ../../templates/explanation-head
     link(rel="stylesheet" href= path + "/style.css" type="text/css")
@@ -21,15 +22,5 @@ html
       +footer
       +disqus
 
-  if dev
-    script(src=basepath + "scripts/react.js" charset="utf-8")
-    script(src=basepath + "scripts/three.js" charset="utf-8")
-  else
-    script(src=basepath + "scripts/react.min.js" charset="utf-8")
-    script(src=basepath + "scripts/three.min.js" charset="utf-8")
-  script(src=basepath + "scripts/OrbitControls.js" charset="utf-8")
-  script(src=basepath + "scripts/TrackballControls.js" charset="utf-8")
-  script(src=basepath + "scripts/numeric.js" charset="utf-8")
-  script(src=basepath + "scripts/d3-masonic.js" charset="utf-8")
-
-  script(src=path + "script.js")
+  script(src=basepath + '_build/js/third-party.js' charst="utf-8")
+  script(src=path + '_bundle.js' charst="utf-8")

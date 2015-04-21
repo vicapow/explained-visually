@@ -2,6 +2,7 @@
   "basepath": "/ev/"
   , "name": "ev"
   , "src": "client"
+  , "staticOutputDir": "_static"
   , "host": "setosa.io"
   , "debug": false
   , "bg": "#2c3e50"
