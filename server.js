@@ -5,20 +5,20 @@
   * static resources.
   */
 
+'use strict'
+
 var fs = require('fs')
 var path = require('path')
 var mkdirp = require('mkdirp')
 var express = require('express')
-var browserify = require('browserify')
-var watchify = require('watchify')
-var babelify = require("babelify");
-var reactify = require('reactify')
-var xtend = require('xtend')
+var bundlers = require('./bundlers')
 var app = express()
 var jade = require('jade')
 var localsStore = require('./localsStore')
 var locals = localsStore.refresh()
 var argv = require('minimist')(process.argv.slice(2))
+var minify = true
+var debug = true
 
 app.set('etag', 'strong')
 
@@ -38,7 +38,7 @@ function explanationResource(slug, resource) {
   return path.join(__dirname, locals.src, 'explanations', slug, resource)
 }
 
-// old script version...
+// Old individual script file version...
 app.get(/\/ev\/([^\/]*)\/(.*)/, function(req, res, next) {
   var slug = req.params[0] // Explanation slug.
   if (!locals.explanationsHash[slug]) return next()
@@ -50,7 +50,7 @@ app.get(/\/ev\/([^\/]*)\/(.*)/, function(req, res, next) {
   })
 })
 
-// New browserify friendly script version!
+// New browserify friendly commonJS and es6 enabled version!
 app.get('/ev/:slug/_bundle.js', function(req, res, next) {
   res.type('.js')
   var slug = req.params.slug
@@ -62,38 +62,25 @@ app.get('/ev/:slug/_bundle.js', function(req, res, next) {
       return next(new Error('Request for bundle without entry point. Path: \n'
         + entryPoint))
     }
-    watchify(browserify(xtend(watchify.args, {debug: true})))
-      .external('react')
-      .external('d3')
-      .external('numeric')
-      .external('three')
-      .external('OrbitControls')
-      .external('TrackballControls')
-      .external('d3-masonic')
-      .external('color')
-      .external('alphaify')
-      .external('puid')
-      .external('shallowEqual')
-      .external('PureRenderMixin')
-      // compile all .js files except the ones coming from node_modules
-      .transform(babelify.configure({
-        optional: ['runtime', 'es7.objectRestSpread'],
-      }))
-      .require(entryPoint, {entry: true})
-      .bundle()
+    var bundle = bundlers.js.explanationMain({
+      debug: debug,
+      watchify: true,
+      minify: minify,
+    }).require(entryPoint, {entry: true})
       .on('error', function(err) {
         console.error(err.message)
         res.status(500).send(err.message)
         this.emit('end')
       })
+      .bundle()
       .pipe(res)
   })
 })
 
 app.use(express.static(__dirname + '/_static'))
 
-;(function thirdPartyRequestHandler() {
-  var relative = '/ev/_build/js/third-party.js'
+;(function commonSharedRequestHandler() {
+  var relative = '/ev/_build/js/common-shared.js'
   var output = path.join(__dirname, locals.staticOutputDir, relative)
   mkdirp.sync(path.dirname(output))
   fs.exists(output, function(exists) {
@@ -104,21 +91,10 @@ app.use(express.static(__dirname + '/_static'))
   console.log('rebuilding third party modules')
   app.get(relative, function(req, res) {
     res.type('.js') // Set Content-Type: text/javascript
-    var bundle = browserify({debug: true})
-      .require('react')
-      .require('d3')
-      .require('numeric')
-      .require('three')
-      // .require('./node_modules/babel-runtime/helpers/extends', {
-      //   expose: 'babel-runtime/helpers/extends'
-      // })
-      .require('./client/scripts/src/color', {expose: 'color'})
-      .require('./client/scripts/src/alphaify', {expose: 'alphaify'})
-      .require('./client/scripts/src/puid', {expose: 'puid'})
-      .require('./third-party/OrbitControls', {expose: 'OrbitControls'})
-      .require('./third-party/TrackballControls', {expose: 'TrackballControls'})
-      .require('./third-party/d3-masonic', {expose: 'd3-masonic'})
-      .bundle()
+    var bundle = bundlers.js.commonSharedModules({
+      debug: debug,
+      minify: minify,
+    }).bundle()
     bundle.pipe(res)
     bundle.pipe(fs.createWriteStream(output))
   })

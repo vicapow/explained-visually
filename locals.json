@@ -12,14 +12,12 @@
   , "textExtraSoft": "#aaa"
   , "textHighlight": "#e67e22"
   , "seperation": "rgba(0, 0, 0, 0.08)"
-
   , "bg": "#fff"
   , "highlight": "#e74c3c"
   , "textPrimary": "#222"
   , "textSoft": "#c1c0c1"
   , "textExtraSoft": "#aaa"
   , "textHighlight": "#e74c3c"
-
   , "explanations": [
     {
         "title": "Conditional probability"
