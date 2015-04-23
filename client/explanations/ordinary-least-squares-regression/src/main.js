@@ -83,22 +83,24 @@ var App = React.createClass({
   _leastSquaresColorAccessor: d => d.color,
   render() {
     return <div>
-      <h1>This explanation is interactive!</h1>
+      <h3>This explanation is interactive!</h3>
       <p>
         <i>Dials</i> allow you to adjust scalar values.
+        <img src='/ev/linear-regression/resources/dial-tutorial.gif'
+          style={style.tutorialVideo} />
       </p>
-      <img style={style.tutorialVideo}
-        src='/ev/linear-regression/resources/dial-tutorial.gif' />
       <p>
         <i>Points</i> that have a gray circle around them are draggable.
+        <img style={style.tutorialVideo}
+          src='/ev/linear-regression/resources/point-tutorial.gif' />
       </p>
-      <img style={style.tutorialVideo}
-        src='/ev/linear-regression/resources/point-tutorial.gif' />
+      <h3>
+        Simple Linear regression
+      </h3>
       <p>
         Say we had the following data on hand size vs height for a bunch of 
         people and we want to predict the height of someone we know only the 
-        hand size of. The result of linear regression would give us the equation 
-        below to the right. The input is 'hand size', the output, 'height'.
+        hand size of. The thing we know, (the explanatory variable) is 'hand size' and the thing we're trying to predict (the dependent variable) is 'height'. The result of linear regression would give us an equation that would take the things we know, and give us a guess 'height' as output.
       </p>
       <LeastSquares
         key='least-squares'
@@ -117,9 +119,9 @@ var App = React.createClass({
         yAxisLabel='height'/>
       <SLRParameters width={310} height={310} betas={this.state.betas} />
       <p>
-        The goal of linear regression is to find the parameters (slop and
+        Linear regression works by finding the parameters (slop and
         y-intercept in the two 2d example) for a line that minimizes the 
-        squared errors.
+        squared errors. Try using the dials below to find the minimum size of all the squares.
       </p>
       <RegressionAsNobsModule
         points={this.state.leastSquaresPoints}
@@ -127,13 +129,9 @@ var App = React.createClass({
         leastSquaresValueAccessor={d => d.error}
         leastSquaresColorAccessor={d => d.d.color} />
       <LeastSquares3DModule />
-      <br style={{clear: 'both'}} />
-      <br />
-      <br />
-      <br />
       <p>
-        Special thanks to Ian Johnson and Lewis Lehe for reviewing earlier 
-        version of this document.
+        Special thanks to <a href="twitter.com/enjalot">Ian Johnson</a> and <a href="twitter.com/lewislehe">Lewis Lehe</a> for reviewing early
+        version of this explorable explanation.
       </p>
     </div>
   }

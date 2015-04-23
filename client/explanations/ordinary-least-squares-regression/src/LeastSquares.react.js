@@ -55,6 +55,7 @@ var LeastSquares = React.createClass({
       onDragNob: () => undefined,
       mode: 'points',
       showErrorSquares: true,
+      showNobs: true,
       showErrorLines: true,
       showRegressionLine: true,
       width: 410,
@@ -168,7 +169,6 @@ var LeastSquares = React.createClass({
         .attr('text-anchor', 'middle')
         .style('font-size', 14)
         .text(this.props.xAxisLabel)
-        
 
     stage.append('g').call(d3.svg.axis().scale(state.y).orient('left').ticks(5))
       .call(axisStyle)
@@ -296,10 +296,15 @@ var LeastSquares = React.createClass({
   _updateNobs() {
     var {state, props} = this
     var {xy} = state
-    var {locationAccessor, points, regressionPoints} = props
-    this.sel().select('.point-nobs').selectAll('.nob')
+    var {locationAccessor, points, regressionPoints, showNobs} = props
+    this.sel().select('.point-nobs')
+      .selectAll('.nob')
       .data(points)
       .attr('transform', d => `translate(${xy(locationAccessor(d))})`)
+      .style({
+        opacity: showNobs ? 1 : 0,
+        'pointer-events': showNobs ? 'auto' : 'none',
+      })
     if (regressionPoints) this.sel().select('.regression-nobs')
       .selectAll('.nob')
         .data(regressionPoints)

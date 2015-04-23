@@ -28,12 +28,13 @@ var LeastSquares3DModule = React.createClass({
       points: points,
       width: 205,
       height: 205,
+      dialHeight: 100,
       betas: this._getBetas(points),
       regressionPoints: {
         x1: [[20, 20], [80, 80]],
         x2: [[20, 20], [80, 80]],
       },
-      regressionBetas: [0, 0, 0],
+      regressionBetas: [50, 0, 0],
       regressionPlaneNob: {pos: [0, 0, 0], rot: [0, 0, 0]},
     }
     return state
@@ -73,10 +74,10 @@ var LeastSquares3DModule = React.createClass({
   _updateRegressionBeta1(val) { this._updateRegressionBeta(1, val) },
   _updateRegressionBeta2(val) { this._updateRegressionBeta(2, val) },
   _renderDial(opts) {
-    var {height} = this.state
+    var {dialHeight} = this.state
     var dialSize = 60
-    var dialFontY = height / 2 + 6
-    var dialY = height / 2
+    var dialFontY = dialHeight / 2 + 6
+    var dialY = dialHeight / 2
     return <g>
       <text
         transform={`translate(${opts.posX}, ${dialFontY})`}
@@ -96,16 +97,16 @@ var LeastSquares3DModule = React.createClass({
     </g>
   },
   _renderDials() {
-    var {height} = this.state
+    var {dialHeight} = this.state
     var pos = [75, 115, 155, 190, 305, 350, 385, 490]
-    var textY = height / 2 + 8
+    var textY = dialHeight / 2 + 8
     // For the demo video.
     // if (true) {
-    //   return <svg width={620} height={height} style={style.dialDemo}>
+    //   return <svg width={620} height={dialHeight} style={style.dialDemo}>
     //     {this._renderDial({posX: 620 / 2, betaIndex: 0, min: -5, max: 5})}
     //   </svg>
     // }
-    return <svg width={620} height={height} style={style.dialDemo}>
+    return <svg width={620} height={dialHeight} style={style.dialDemo}>
       {/* Dial for beta 0 */}
       {this._renderDial({posX: pos[0], betaIndex: 0, min: -100, max: 100})}
       
@@ -131,11 +132,14 @@ var LeastSquares3DModule = React.createClass({
     </svg>
   },
   render() {
-    var margins = {l: 15, t: 15, r: 15, b: 15}
+    var margins = {l: 20, t: 20, r: 20, b: 20}
     var {width, height, betas} = this.state
     return <div>
-      <section key='ls3d-1' style={{clear: 'both', padding: 0}}>
-        <h1 key='title'>3D least squares</h1>
+      <section key='ls3d-1' style={{clear: 'both', padding: 0, marginBottom: 60}}>
+        <h1 key='title'>Multiple linear regression</h1>
+        <p>
+          Multiple linear regression is just like simple linear regression expect there are multiple explanatory variables with still just one dependent (predicted/output) variable.
+        </p>
         <LeastSquares
           key='least-squares-x1-y'
           width={width}
@@ -160,7 +164,7 @@ var LeastSquares3DModule = React.createClass({
           betas={[betas[0], betas[2]]}
           mode='point'
           xAxisLabel='x2'
-          yAxisLabel='y'
+          yAxisLabel=''
           showErrorSquares={false}
           showErrorLines={false}
           showRegressionLine={true}
@@ -177,9 +181,15 @@ var LeastSquares3DModule = React.createClass({
           points={this.state.points}
           onDragPoint={this._onDragPoint3}
           style={{float: 'left'}} />
+        <div style={{clear:'both'}} />
       </section>
-      <section key='ls3d-2' style={{padding: 0, clear: 'both'}}>
-        <h1 key='title'>Manual least squares</h1>
+      <section key='ls3d-2' style={{padding: 0, clear: 'both', marginBottom: 60}}>
+        <p>
+          With multiple linear regression using O.L.S, we want to find a the parameters of a <b>plane</b> that minimizes the squared errors (instead of a <b>line</b>.)
+        </p>
+        <p>
+          Multiple O.L.S. regression works just like the simple version. The goal is to find the parameters that minimize the squared errors to a plane.
+        </p>
         {this._renderDials()}
         <LeastSquares
           key='least-squares-x1-y-basis'
@@ -193,6 +203,7 @@ var LeastSquares3DModule = React.createClass({
           showErrorSquares={false}
           showErrorLines={false}
           showRegressionLin={true}
+          showNobs={false}
           points={this.state.points}
           locationAccessor={this._locationAccessorX1Y}
           onDragNob={this._onDragPointX1Y}
@@ -204,11 +215,12 @@ var LeastSquares3DModule = React.createClass({
           betas={[this.state.regressionBetas[0], this.state.regressionBetas[2]]}
           mode='point'
           margins={margins}
-          xAxisLabel='x1'
-          yAxisLabel='y'
+          xAxisLabel='x2'
+          yAxisLabel=''
           showErrorSquares={false}
           showErrorLines={false}
           showRegressionLine={true}
+          showNobs={false}
           points={this.state.points}
           locationAccessor={this._locationAccessorX2Y}
           onDragNob={this._onDragPointX2Y}
@@ -224,6 +236,7 @@ var LeastSquares3DModule = React.createClass({
           points={this.state.points}
           onDragPoint={this._onDragPoint3}
           style={{float: 'left'}} />
+        <div style={{clear:'both'}} />
       </section>
     </div>
   }

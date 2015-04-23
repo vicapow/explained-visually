@@ -47,7 +47,7 @@ var RegressionAsNobsModule = React.createClass({
   },
   render() {
     var h = 120
-    return <section style={{padding: '0'}}>
+    return <section style={{padding: 0, marginBottom: 40}}>
       <svg width={620} height={h} style={style.dialDemo}>
 
         {/* Beta 0 Dial. */}
@@ -87,6 +87,7 @@ var RegressionAsNobsModule = React.createClass({
           onDragNob={this.props.onDragOLSNob}
           mode='point'
           showErrorSquares={true}
+          showNobs={false}
           key='least-squares-without-squares' />
         <MasonicSquares
           style={{float: 'left'}}
@@ -96,6 +97,7 @@ var RegressionAsNobsModule = React.createClass({
           valueAccessor={this.props.leastSquaresValueAccessor}
           colorAccessor={this.props.leastSquaresColorAccessor} />
       </div>
+      <div style={{clear: 'both'}}></div>
     </section>
   },
 })

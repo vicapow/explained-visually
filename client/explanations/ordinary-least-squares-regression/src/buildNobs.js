@@ -19,15 +19,17 @@ module.exports = function buildNobs(coord, data, className) {
       .style({fill: 'rgba(0, 0, 0, 0.1)'})
       .each('end', function() { return loop(d3.select(this)) })
   }
-  circle.call(loop).on('mousedown', function() {
-    d3.selectAll('.nob').select('circle')
-      .transition()
-      .each('end', null)
-      .transition()
-      .duration(1000)
-      .ease('ease-out')
-      .attr({r: 20})
-      .style({fill: 'rgba(0, 0, 0, 0.1)'})
-  })
+  circle
+    .call(loop)
+    .on('mousedown', function() {
+      d3.selectAll('.nob').select('circle')
+        .transition()
+        .each('end', null)
+        .transition()
+        .duration(1000)
+        .ease('ease-out')
+        .attr({r: 20})
+        .style({fill: 'rgba(0, 0, 0, 0.1)'})
+    })
   return nobs
 }

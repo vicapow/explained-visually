@@ -69,7 +69,7 @@
       , "twitterCreator": "vicapow"
     }
     , {
-        "title": "Eigenvectors and eigenvalues"
+        "title": "Eigenvectors and Eigenvalues"
       , "hideFromHomepage": false
       , "subtitle": "Explained Visually"
       , "slug": "eigenvectors-and-eigenvalues"
@@ -91,7 +91,7 @@
       , "twitterCreator": "vicapow"
     }
     , {
-        "title": "Image kernels"
+        "title": "Image Kernels"
       , "subtitle": "Explained Visually"
       , "slug": "image-kernels"
       , "quip": "The kernel's secret recipe."
@@ -111,11 +111,11 @@
       , "authorText" : "Lewis Lehe"
     }
     , {
-        "title": "Linear Regression"
+        "title": "Ordinary Least Squares Regression"
       , "subtitle": "Explained Visually"
       , "hideFromHomepage": true
-      , "slug": "linear-regression"
-      , "quip": "Self expression, through regression."
+      , "slug": "ordinary-least-squares-regression"
+      , "quip": "As opposed to Extraordinary Least Squares Regression."
       , "date": "2015/02/17"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
