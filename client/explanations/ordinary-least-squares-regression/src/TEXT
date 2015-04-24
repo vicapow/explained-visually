@@ -1,0 +1,23 @@
+TEXT
+
+Statistical regression is basically a way to predict unknown quantities from a batch of existing data. For example, suppose we start out knowing the height and hand size of a bunch of individuals in a "sample population," and that we want to figure out a way to predict hand size from height for individuals not in the sample. By applying OLS, we'll get an equation that takes hand size---the 'independent' variable---as an input, and gives height---the 'dependent' variable---as an output. 
+
+Below, OLS is done behdind-the-scnes to produce the regression equation. The constants in the regression---called 'betas'---are what OLS spits out. Here, beta_1 is an intercept; it tells what height would be even for a hand size of zero. And beta_2 is the coefficient on hand size; it tells how much taller we should expect someone to be for a given increment in their hand size. Drag the sample data to see the betas change. 
+
+vis
+
+At some point, you probably asked your parents, "Where do betas come from?" Let's raise the curtain on how OLS finds its betas.
+
+Error is the difference between prediction and reality: the vertical distance between a real data point and the regression line. OLS is concerned with the <em>squares</em> of the errors. It tries to find the line going through the sample data that minimizes the sum of the squared errors. Below, the squared errors are represented as squares, and your job is to choose betas (the slope and intercept of the regression line) so that the total area of all the squares (the sum of the squared errors) is as small as possible. That's OLS!
+
+VIS
+
+Now, real scientists and even sociologists rarely do regression with just one independent variable, but OLS works exactly the same with more. Below is OLS with two independent variables. Instead of the errors being relative to a line, though, they're now relative to a plane in 3D space. So now the job of OLS is to find the equation for that plane. The slice of the plane through each axis is shown in the first two figures.
+
+VIS
+
+By playing with the dots, you can see that, when there are multiple variables involved, the true relationships can be very counterintuitive. That's why we have statistics: to make us unsure about things.
+
+Below, see if you can choose the betas to minimize the sum of squared errors.
+
+There are many other prediction techniques much more complicated than OLS, like logistic regression, weighted least-squares regression, robust regression and the growing family of non-parametric methods. 
