@@ -94,13 +94,11 @@ var App = React.createClass({
         <img style={style.tutorialVideo}
           src='/ev/linear-regression/resources/point-tutorial.gif' />
       </p>
-      <h3>
-        Simple Linear regression
-      </h3>
       <p>
-        Say we had the following data on hand size vs height for a bunch of 
-        people and we want to predict the height of someone we know only the 
-        hand size of. The thing we know, (the explanatory variable) is 'hand size' and the thing we're trying to predict (the dependent variable) is 'height'. The result of linear regression would give us an equation that would take the things we know, and give us a guess 'height' as output.
+        Statistical regression is basically a way to predict unknown quantities from a batch of existing data. For example, suppose we start out knowing the height and hand size of a bunch of individuals in a "sample population," and that we want to figure out a way to predict hand size from height for individuals not in the sample. By applying OLS, we'll get an equation that takes hand size---the 'independent' variable---as an input, and gives height---the 'dependent' variable---as an output.
+      </p>
+      <p>
+        Below, OLS is done behind-the-scenes to produce the regression equation. The constants in the regression---called 'betas'---are what OLS spits out. Here, beta_1 is an intercept; it tells what height would be even for a hand size of zero. And beta_2 is the coefficient on hand size; it tells how much taller we should expect someone to be for a given increment in their hand size. Drag the sample data to see the betas change.
       </p>
       <LeastSquares
         key='least-squares'
@@ -119,9 +117,10 @@ var App = React.createClass({
         yAxisLabel='height'/>
       <SLRParameters width={310} height={310} betas={this.state.betas} />
       <p>
-        Linear regression works by finding the parameters (slop and
-        y-intercept in the two 2d example) for a line that minimizes the 
-        squared errors. Try using the dials below to find the minimum size of all the squares.
+        At some point, you probably asked your parents, "Where do betas come from?" Let's raise the curtain on how OLS finds its betas.
+      </p>
+      <p>
+        Error is the difference between prediction and reality: the vertical distance between a real data point and the regression line. OLS is concerned with the <em>squares</em> of the errors. It tries to find the line going through the sample data that minimizes the sum of the squared errors. Below, the squared errors are represented as squares, and your job is to choose betas (the slope and intercept of the regression line) so that the total area of all the squares (the sum of the squared errors) is as small as possible. That's OLS!
       </p>
       <RegressionAsNobsModule
         points={this.state.leastSquaresPoints}
@@ -130,8 +129,7 @@ var App = React.createClass({
         leastSquaresColorAccessor={d => d.d.color} />
       <LeastSquares3DModule />
       <p>
-        Special thanks to <a href="twitter.com/enjalot">Ian Johnson</a> and <a href="twitter.com/lewislehe">Lewis Lehe</a> for reviewing early
-        version of this explorable explanation.
+        Special thanks to <a href="http://twitter.com/enjalot">Ian Johnson</a> for reviewing an earlier version of this explorable explanation and suggesting the idea of using GIFs to explain how the controls work.
       </p>
     </div>
   }

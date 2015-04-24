@@ -19,6 +19,7 @@
     "init": "~0.1.2",
     "jade": "~1.7.0",
     "marked": "~0.3.2",
+    "minifyify": "^6.4.0",
     "minimist": "~1.1.0",
     "mkdirp": "~0.5.0",
     "numeric": "~1.2.6",

@@ -136,9 +136,8 @@ var LeastSquares3DModule = React.createClass({
     var {width, height, betas} = this.state
     return <div>
       <section key='ls3d-1' style={{clear: 'both', padding: 0, marginBottom: 60}}>
-        <h1 key='title'>Multiple linear regression</h1>
         <p>
-          Multiple linear regression is just like simple linear regression expect there are multiple explanatory variables with still just one dependent (predicted/output) variable.
+          Now, real scientists and even sociologists rarely do regression with just one independent variable, but OLS works exactly the same with more. Below is OLS with two independent variables. Instead of the errors being relative to a line, though, they're now relative to a plane in 3D space. So now the job of OLS is to find the equation for that plane. The slice of the plane through each axis is shown in the first two figures.
         </p>
         <LeastSquares
           key='least-squares-x1-y'
@@ -185,10 +184,13 @@ var LeastSquares3DModule = React.createClass({
       </section>
       <section key='ls3d-2' style={{padding: 0, clear: 'both', marginBottom: 60}}>
         <p>
-          With multiple linear regression using O.L.S, we want to find a the parameters of a <b>plane</b> that minimizes the squared errors (instead of a <b>line</b>.)
+          By playing with the dots, you can see that, when there are multiple variables involved, the true relationships can be very counterintuitive. That's why we have statistics: to make us unsure about things.
         </p>
         <p>
-          Multiple O.L.S. regression works just like the simple version. The goal is to find the parameters that minimize the squared errors to a plane.
+          Below, see if you can choose the betas to minimize the sum of squared errors.
+        </p>
+        <p>
+          There are many other prediction techniques much more complicated than OLS, like logistic regression, weighted least-squares regression, robust regression and the growing family of non-parametric methods. 
         </p>
         {this._renderDials()}
         <LeastSquares

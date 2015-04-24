@@ -28,7 +28,7 @@ bundlers.js.commonSharedModules = function commonSharedModules(opts) {
   return bundle
 }
 
-bundlers.js.explanationMain = function explanationsMain(opts) {
+bundlers.js.explanationMain = function explanationMain(opts) {
   var bundle
   if (opts.watchify)
     bundle = watchify(browserify(xtend(watchify.args, {debug: opts.debug})))

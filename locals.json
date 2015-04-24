@@ -113,12 +113,13 @@
     , {
         "title": "Ordinary Least Squares Regression"
       , "subtitle": "Explained Visually"
-      , "hideFromHomepage": true
       , "slug": "ordinary-least-squares-regression"
-      , "quip": "As opposed to Extraordinary Least Squares Regression."
+      , "quip": "Where do betas come from?"
       , "date": "2015/02/17"
       , "author": "Victor Powell"
       , "twitterCreator": "vicapow"
+      , "author2": "Lewis Lehe"
+      , "twitterCreator2": "lewislehe"
     }
   ]
 }
