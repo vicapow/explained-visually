@@ -53,7 +53,7 @@ var RegressionAsNobsModule = React.createClass({
         {/* Beta 0 Dial. */}
 
         <text transform={`translate(100, ${h / 2 + 8})`} textAnchor='middle'
-          style={style.dialFont}>{d3.round(this.state.betas[0], 2)}</text>
+          style={style.dialFont}>{d3.format('.2f')(this.state.betas[0])}</text>
         
         <Dial min={-100} max={100} transform={`translate(100, ${h / 2})`}
           value={this.state.betas[0]} onChangeValue={this._onChangeDialValueB0}
@@ -67,7 +67,7 @@ var RegressionAsNobsModule = React.createClass({
         {/* Beta 1 Dial. */}
 
         <text transform={`translate(300, ${h / 2 + 8})`} textAnchor={'middle'}
-          style={style.dialFont}>{d3.round(this.state.betas[1], 2)}</text>
+          style={style.dialFont}>{d3.format('.2f')(this.state.betas[1])}</text>
 
         <Dial min={-5} max={5} transform={`translate(300, ${h / 2})`}
           value={this.state.betas[1]} onChangeValue={this._onChangeDialValueB1}
