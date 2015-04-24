@@ -83,7 +83,7 @@ var LeastSquares3DModule = React.createClass({
         transform={`translate(${opts.posX}, ${dialFontY})`}
         textAnchor="middle"
         style={style.dialFontSmall}>
-        {d3.round(this.state.regressionBetas[opts.betaIndex], 2)}
+        {d3.format('.2f')(this.state.regressionBetas[opts.betaIndex])}
       </text>
       <Dial
         transform={`translate(${opts.posX}, ${dialY})`}

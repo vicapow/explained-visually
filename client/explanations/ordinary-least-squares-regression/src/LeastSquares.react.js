@@ -329,8 +329,7 @@ var LeastSquares = React.createClass({
         x: d => {
           if (reg.b > 0 && d.err < 0)
             return x(acc(d.d)[1] + d.err) - x(acc(d.d)[1])
-          else
-            return - x(acc(d.d)[1] + d.err) + x(acc(d.d)[1])
+          else return 0
         },
         y: d => (d.err < 0) ? 0 : y(acc(d.d)[1] + d.err) - y(acc(d.d)[1]),
         width: d => Math.abs(x(acc(d.d)[1] + d.err) - x(acc(d.d)[1])),

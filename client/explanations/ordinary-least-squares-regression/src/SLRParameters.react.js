@@ -66,9 +66,9 @@ var SLRParameters = React.createClass({
           transform={`translate(${0}, ${0})`}
           textAnchor='middle'
           fontSize='20px'>
-          <tspan ref='beta1Text'>{d3.round(this.props.betas[0], 2)}</tspan>
+          <tspan ref='beta1Text'>{d3.format('.2f')(this.props.betas[0])}</tspan>
           <tspan> + </tspan>
-          <tspan ref='beta2Text'>{d3.round(this.props.betas[1], 2)}</tspan>
+          <tspan ref='beta2Text'>{d3.format('.2f')(this.props.betas[1])}</tspan>
           <tspan> * hand size = height</tspan>
         </text>
       </g>
