@@ -25,7 +25,7 @@ setosa site.
 ## List of possible topics.
 
 ### Topic ideas
-* [Logorithms](https://en.wikipedia.org/wiki/Logarithm)
+* [Logarithms](https://en.wikipedia.org/wiki/Logarithm)
 * [Log scales](https://en.wikipedia.org/wiki/Logarithmic_scale)
 * [Taylor Series](https://en.wikipedia.org/wiki/Taylor_series)
 * [Div Grad Curl](https://en.wikipedia.org/wiki/Vector_calculus_identities)
@@ -35,7 +35,7 @@ setosa site.
 * Function transforms (Z, Laplace, Fourier)
 * [Moment Generating Function](https://en.wikipedia.org/wiki/Moment-generating_function)
 * [Fourier Series](https://en.wikipedia.org/wiki/Fourier_series)
-* [Partial Differntial Equations](https://en.wikipedia.org/wiki/Partial_differential_equation) (all about flows and waves)
+* [Partial Differential Equations](https://en.wikipedia.org/wiki/Partial_differential_equation) (all about flows and waves)
 
 ### Linear Systems
 * [Determinant](https://en.wikipedia.org/wiki/Determinant)
@@ -59,5 +59,5 @@ setosa site.
 * [Theory Of Relativity](https://en.wikipedia.org/wiki/Theory_of_relativity)
 
 ### Machine Learning
-* [logistic regression](https://en.wikipedia.org/wiki/Logistic_regression)
+* [Logistic regression](https://en.wikipedia.org/wiki/Logistic_regression)
 
