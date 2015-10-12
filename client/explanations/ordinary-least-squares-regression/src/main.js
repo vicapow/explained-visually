@@ -86,13 +86,13 @@ var App = React.createClass({
       <h3>This explanation is interactive!</h3>
       <p>
         <i>Dials</i> allow you to adjust scalar values.
-        <img src='/ev/linear-regression/resources/dial-tutorial.gif'
+        <img src='/ev/ordinary-least-squares-regression/resources/dial-tutorial.gif'
           style={style.tutorialVideo} />
       </p>
       <p>
         <i>Points</i> that have a gray circle around them are draggable.
         <img style={style.tutorialVideo}
-          src='/ev/linear-regression/resources/point-tutorial.gif' />
+          src='/ev/ordinary-least-squares-regression/resources/point-tutorial.gif' />
       </p>
       <p>
         Statistical regression is basically a way to predict unknown quantities from a batch of existing data. For example, suppose we start out knowing the height and hand size of a bunch of individuals in a "sample population," and that we want to figure out a way to predict hand size from height for individuals not in the sample. By applying OLS, we'll get an equation that takes hand size---the 'independent' variable---as an input, and gives height---the 'dependent' variable---as an output.
