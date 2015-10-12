@@ -21,7 +21,7 @@ me.refresh = function resfresh() {
     if (!filesHash[d.slug])
       cb(new Error('missing folder for explanation ' + d.slug))
   })
-  locals.people = JSON.parse(fs.readFileSync('./people.json'))
+  locals.people = JSON.parse(fs.readFileSync('./inspiring-people.json'))
   locals.people.forEach(function(d) {
     if(d.src) d.hostname = url.parse(d.src).hostname.replace(/www\./, '')
   })
