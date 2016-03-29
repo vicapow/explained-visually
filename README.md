@@ -29,6 +29,7 @@ setosa site.
 * [Log scales](https://en.wikipedia.org/wiki/Logarithmic_scale)
 * [Taylor Series](https://en.wikipedia.org/wiki/Taylor_series)
 * [Div Grad Curl](https://en.wikipedia.org/wiki/Vector_calculus_identities)
+* [Finite State Transducer](https://en.wikipedia.org/wiki/Finite_state_transducer)
 
 
 ### Transforms
