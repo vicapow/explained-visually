@@ -15,7 +15,16 @@ html
         }
       });
 
-    script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
+    // DEPRECATED
+    // script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
+
+    script(async src="https://cdn.jsdelivr.net/npm/mathjax@2/unpacked/MathJax.js?config=TeX-AMS_HTML")
+
+    // ALTERNATIVES
+    // script(src="https://cdn.jsdelivr.net/npm/mathjax@2/unpacked/MathJax.js")
+    // script(src="https://cdn.jsdelivr.net/npm/mathjax@2/config/TeX-AMS_HTML-full.js")
+    // script(src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js")
+    // script(src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/config/TeX-AMS_HTML.js")
 
   body(ng-app="myApp" ng-controller="MainCtrl")
     section.menu
