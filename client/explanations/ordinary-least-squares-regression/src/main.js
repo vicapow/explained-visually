@@ -7,6 +7,7 @@ require('OrbitControls')(THREE)
 // Adds `TrackballControls` to the `THREE` object.
 require('TrackballControls')(THREE)
 var d3 = require('d3')
+window.d3 = d3;
 // Adds a `masonic` property to the `d3` object.
 require('d3-masonic')(d3)
 var React = require('react')
