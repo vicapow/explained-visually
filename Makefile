@@ -1,5 +1,5 @@
 
 export:
-	cp -R _static/ ~/Documents/work/setosa/setosa.io/public/
+	cp -R _static/ ~/setosa/setosa.io/public/
 
 .PHONY: export
